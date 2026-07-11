@@ -1,4 +1,1 @@
-THE VOID
-Version: 0.3
-Build: Southern Facilities / First Contact
-Assets: IMG01–IMG15
+0.4.0

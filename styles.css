@@ -1706,3 +1706,137 @@ dialog::backdrop {
     transition-duration: .01ms !important;
   }
 }
+
+/* v0.4 branching mission maps */
+.ship-map.mission-map {
+  height: min(72vh, 760px);
+  max-height: 760px;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(72, 112, 145, .12), transparent 38%),
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+    #05080c;
+  background-size: auto, 42px 42px, 42px 42px, auto;
+}
+
+.ship-map.final-map {
+  height: 360px;
+  max-height: 360px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(128, 51, 63, .12), transparent 38%),
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px),
+    #05080c;
+  background-size: auto, 42px 42px, 42px 42px, auto;
+}
+
+.connection-line.is-danger {
+  stroke: rgba(239, 74, 93, .52);
+  filter: drop-shadow(0 0 9px rgba(239, 74, 93, .18));
+}
+
+.connection-line.is-exterior {
+  stroke: rgba(146, 201, 255, .52);
+  stroke-dasharray: 3 8;
+}
+
+.room-node.is-objective {
+  border-color: rgba(255, 168, 76, .84);
+  box-shadow: 0 0 0 1px rgba(255, 168, 76, .12), 0 0 30px rgba(255, 126, 31, .18);
+}
+
+.room-node.is-complete {
+  border-color: rgba(112, 221, 159, .62);
+  background: linear-gradient(145deg, rgba(58, 142, 98, .14), rgba(255,255,255,.018)), rgba(8,14,19,.96);
+}
+
+.choice-window {
+  width: min(980px, calc(100vw - 28px));
+}
+
+.choice-intro {
+  max-width: 72ch;
+  margin: 0 0 24px;
+  color: #b6c0ca;
+  font-size: .96rem;
+  line-height: 1.7;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.choice-card {
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 24px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 3px;
+  color: #e7edf3;
+  text-align: left;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.012)),
+    #080b10;
+  cursor: pointer;
+  transition: transform .3s var(--ease-cinematic), border-color .3s ease, background .3s ease, box-shadow .3s ease;
+}
+
+.choice-card:hover,
+.choice-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: rgba(154, 217, 255, .68);
+  background:
+    linear-gradient(145deg, rgba(74, 153, 196, .14), rgba(255,255,255,.018)),
+    #080c11;
+  box-shadow: 0 18px 45px rgba(0,0,0,.38), 0 0 28px rgba(74, 153, 196, .10);
+  outline: none;
+}
+
+.choice-card span,
+.choice-card small {
+  color: #7e8995;
+  font: 650 .58rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .14em;
+}
+
+.choice-card strong {
+  font-size: 1.12rem;
+  font-weight: 540;
+  letter-spacing: .055em;
+}
+
+.choice-card p {
+  flex: 1;
+  margin: 0;
+  color: #aab4bf;
+  font-size: .87rem;
+  line-height: 1.65;
+}
+
+.final-transmission-window {
+  border-color: rgba(215, 88, 106, .28);
+}
+
+@media (max-width: 720px) {
+  .choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .choice-card {
+    min-height: 210px;
+  }
+
+  .ship-map.mission-map {
+    height: 720px;
+    max-height: none;
+  }
+
+  .ship-map.final-map {
+    height: 320px;
+  }
+}

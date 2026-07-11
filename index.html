@@ -96,81 +96,12 @@
           <div class="panel-heading">
             <div>
               <span class="panel-kicker">SHIP INTERFACE</span>
-              <h2>DECK 07 // HABITATION, RESEARCH &amp; ENGINEERING</h2>
+              <h2 id="mapTitle">DECK 07 // HABITATION, RESEARCH &amp; ENGINEERING</h2>
             </div>
             <span class="map-instruction" id="mapInstruction">DRAG LUNA OR SELECT AN ADJACENT ROOM</span>
           </div>
 
-          <div class="ship-map" id="shipMap">
-            <svg class="map-connections" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
-              <path class="connection-line" d="M170 190 H400"></path>
-              <path class="connection-line" d="M400 190 H670"></path>
-              <path class="connection-line" d="M400 190 V65"></path>
-
-              <path class="connection-line chapter-two-path" d="M670 190 V390"></path>
-              <path class="connection-line chapter-two-path" d="M670 390 L875 485"></path>
-              <path class="connection-line chapter-two-path" d="M670 390 L435 610"></path>
-              <path class="connection-line chapter-two-path" d="M670 390 V650"></path>
-              <path class="connection-line chapter-two-path" d="M670 650 V865"></path>
-              <path class="connection-line chapter-two-path" d="M435 610 L670 865"></path>
-            </svg>
-
-            <button class="room-node current-room" data-room="crew" style="--x: 17%; --y: 19%;" type="button">
-              <span class="node-code">CQ-03</span>
-              <strong>CREW QUARTERS</strong>
-              <small>STARTING LOCATION</small>
-            </button>
-
-            <button class="room-node hallway-node" data-room="hallway" style="--x: 40%; --y: 19%;" type="button">
-              <span class="node-code">H-07</span>
-              <strong>HALLWAY</strong>
-              <small>MAIN ACCESS</small>
-            </button>
-
-            <button class="room-node control-node" data-room="control" style="--x: 40%; --y: 6.5%;" type="button">
-              <span class="node-code">CR-01</span>
-              <strong>CONTROL ROOM</strong>
-              <small id="controlNodeStatus">PILOT SYSTEMS</small>
-            </button>
-
-            <button class="room-node alert-room" data-room="life" style="--x: 67%; --y: 19%;" type="button">
-              <span class="alert-ring" aria-hidden="true"></span>
-              <span class="alert-badge">FIRE</span>
-              <span class="node-code">LS-07</span>
-              <strong>LIFE SUPPORT</strong>
-              <small id="lifeSupportNodeStatus">EMERGENCY</small>
-            </button>
-
-            <button class="room-node chapter-two-node" data-room="south" style="--x: 67%; --y: 39%;" type="button">
-              <span class="node-code">SH-07</span>
-              <strong>SOUTH HALLWAY</strong>
-              <small id="southNodeStatus">LOCKED</small>
-            </button>
-
-            <button class="room-node chapter-two-node" data-room="lab" style="--x: 87.5%; --y: 48.5%;" type="button">
-              <span class="node-code">LAB-07</span>
-              <strong>LABORATORY</strong>
-              <small id="labNodeStatus">SEALED</small>
-            </button>
-
-            <button class="room-node chapter-two-node" data-room="store" style="--x: 43.5%; --y: 61%;" type="button">
-              <span class="node-code">ST-07</span>
-              <strong>STORE ROOM</strong>
-              <small id="storeNodeStatus">UNSCANNED</small>
-            </button>
-
-            <button class="room-node chapter-two-node" data-room="kitchen" style="--x: 67%; --y: 65%;" type="button">
-              <span class="node-code">K-07</span>
-              <strong>KITCHEN / MESS</strong>
-              <small id="kitchenNodeStatus">SEALED</small>
-            </button>
-
-            <button class="room-node chapter-two-node" data-room="engineering" style="--x: 67%; --y: 86.5%;" type="button">
-              <span class="node-code">EN-07</span>
-              <strong>ENGINEERING</strong>
-              <small id="engineeringNodeStatus">LOCKED</small>
-            </button>
-
+          <div class="ship-map" id="shipMap" aria-live="polite">
             <div class="luna-token" id="lunaToken" role="button" tabindex="0" aria-label="Luna token. Drag to an adjacent room.">
               <img src="assets/IMG03.png" alt="Luna">
               <span class="token-label">LUNA</span>
@@ -309,7 +240,69 @@
       </div>
       <footer>
         <span>PROGRESS SAVED</span>
-        <button class="dialog-button" id="closeChapterButton" type="button">RETURN TO SHIP MAP</button>
+        <button class="dialog-button" id="closeChapterButton" type="button">CHOOSE LUNA'S NEXT MOVE</button>
+      </footer>
+    </div>
+  </dialog>
+
+
+  <dialog class="system-dialog" id="branchDialog">
+    <div class="system-window choice-window">
+      <header>
+        <div>
+          <span>MISSION DECISION // CONSEQUENCES PERSIST</span>
+          <h2>WHAT DOES LUNA DO?</h2>
+        </div>
+      </header>
+      <div class="dialog-body">
+        <p class="choice-intro">The organism has withdrawn into the machinery. Luna has one brief window to act. She can return to Control and put out a crisis signal, or move into the ship's engineering systems before the thing relocates.</p>
+        <div class="choice-grid">
+          <button class="choice-card" id="signalChoiceButton" type="button">
+            <span>OPTION A</span>
+            <strong>SEND CRISIS SIGNAL</strong>
+            <p>Return to Control and call Earth. Ground Control may help, but the transmission gives the organism time to interfere with the engines.</p>
+            <small>ROUTE: CONTROL → MAINTENANCE TUNNELS → ENGINE ROOM</small>
+          </button>
+          <button class="choice-card" id="aloneChoiceButton" type="button">
+            <span>OPTION B</span>
+            <strong>FACE ENGINEERING ALONE</strong>
+            <p>Move immediately through the maintenance access. The engines may be reached sooner, but no warning is sent and navigation remains exposed.</p>
+            <small>ROUTE: TUNNELS → ENGINE ROOM → AIRLOCK → OUTER HULL</small>
+          </button>
+        </div>
+      </div>
+      <footer>
+        <span>THE SHIP MAP WILL RECONFIGURE</span>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="system-dialog" id="finalGroundDialog">
+    <div class="system-window transmission-window final-transmission-window">
+      <header>
+        <div>
+          <span>DEEP SPACE RELAY // DEGRADED CARRIER</span>
+          <h2>GROUND CONTROL</h2>
+        </div>
+        <div class="signal-meter" aria-label="Transmission signal strength"><i></i><i></i><i></i><i></i></div>
+      </header>
+      <div class="dialog-body transmission-body">
+        <article class="transmission luna-line">
+          <span>LUNA H. // FINAL SYSTEM REPORT</span>
+          <p id="finalLunaText"></p>
+        </article>
+        <article class="transmission ground-line">
+          <span>GROUND CONTROL // EARTH RELAY</span>
+          <p id="finalGroundText"></p>
+        </article>
+        <article class="transmission signal-line">
+          <span>CONTROL ROOM AUDIO // BACKGROUND CHANNEL</span>
+          <p>Several voices speak beyond the relay. None of them sounds hopeful. One says the words “landing corridor” and another quietly answers, “We cannot let it reach Earth.”</p>
+        </article>
+      </div>
+      <footer>
+        <span>CHECKPOINT 03 // CONTROL ROOM ISOLATED</span>
+        <button class="dialog-button" id="acknowledgeFinalButton" type="button">UNDERSTOOD</button>
       </footer>
     </div>
   </dialog>
