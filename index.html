@@ -17,7 +17,6 @@
   <div class="grain" aria-hidden="true"></div>
 
   <main id="app">
-    <!-- CINEMATIC PROLOGUE -->
     <section class="cinematic-shell" id="cinematicShell">
       <div class="cinematic-frame" id="cinematicFrame" aria-label="The Void cinematic prologue">
         <div class="image-panel" id="imagePanel">
@@ -63,7 +62,6 @@
       </div>
     </section>
 
-    <!-- INTERACTIVE MAP -->
     <section class="game-screen" id="gameScreen" hidden aria-label="Ship map and room interaction screen">
       <header class="game-hud">
         <div class="hud-brand">
@@ -76,56 +74,101 @@
           <strong id="objectiveText">Investigate the fire in Life Support</strong>
         </div>
 
-        <div class="hud-readouts" aria-label="Ship status">
+        <div class="hud-readouts" aria-label="Ship and pilot status">
           <div><span>O₂</span><strong id="oxygenReadout">96%</strong></div>
-          <div><span>POWER</span><strong>81%</strong></div>
-          <div class="danger-readout" id="fireReadout"><span>ALERT</span><strong>FIRE</strong></div>
+          <div><span>POWER</span><strong id="powerReadout">81%</strong></div>
+          <div><span>STRESS</span><strong id="stressReadout">08%</strong></div>
+          <div class="danger-readout" id="threatReadout"><span>ALERT</span><strong>FIRE</strong></div>
         </div>
 
         <button class="utility-button" id="restartButton" type="button" title="Restart the game">RESTART</button>
       </header>
+
+      <div class="inventory-strip" id="inventoryStrip" aria-label="Luna's inventory">
+        <span class="inventory-label">INVENTORY</span>
+        <div class="inventory-items" id="inventoryItems">
+          <span class="inventory-empty">NO FIELD ITEMS</span>
+        </div>
+      </div>
 
       <div class="game-layout">
         <section class="map-panel" aria-label="Interactive ship map">
           <div class="panel-heading">
             <div>
               <span class="panel-kicker">SHIP INTERFACE</span>
-              <h2>DECK 07 // HABITATION &amp; LIFE SUPPORT</h2>
+              <h2>DECK 07 // HABITATION, RESEARCH &amp; ENGINEERING</h2>
             </div>
             <span class="map-instruction" id="mapInstruction">DRAG LUNA OR SELECT AN ADJACENT ROOM</span>
           </div>
 
           <div class="ship-map" id="shipMap">
-            <svg class="map-connections" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
-              <path class="connection-line" d="M210 420 H470"></path>
-              <path class="connection-line" d="M470 420 H815"></path>
-              <path class="connection-line" d="M470 420 V165"></path>
+            <svg class="map-connections" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+              <path class="connection-line" d="M170 190 H400"></path>
+              <path class="connection-line" d="M400 190 H670"></path>
+              <path class="connection-line" d="M400 190 V65"></path>
+
+              <path class="connection-line chapter-two-path" d="M670 190 V390"></path>
+              <path class="connection-line chapter-two-path" d="M670 390 L875 485"></path>
+              <path class="connection-line chapter-two-path" d="M670 390 L435 610"></path>
+              <path class="connection-line chapter-two-path" d="M670 390 V650"></path>
+              <path class="connection-line chapter-two-path" d="M670 650 V865"></path>
+              <path class="connection-line chapter-two-path" d="M435 610 L670 865"></path>
             </svg>
 
-            <button class="room-node current-room" data-room="crew" style="--x: 21%; --y: 70%;" type="button">
+            <button class="room-node current-room" data-room="crew" style="--x: 17%; --y: 19%;" type="button">
               <span class="node-code">CQ-03</span>
               <strong>CREW QUARTERS</strong>
               <small>STARTING LOCATION</small>
             </button>
 
-            <button class="room-node hallway-node" data-room="hallway" style="--x: 47%; --y: 70%;" type="button">
+            <button class="room-node hallway-node" data-room="hallway" style="--x: 40%; --y: 19%;" type="button">
               <span class="node-code">H-07</span>
               <strong>HALLWAY</strong>
               <small>MAIN ACCESS</small>
             </button>
 
-            <button class="room-node control-node" data-room="control" style="--x: 47%; --y: 27%;" type="button">
+            <button class="room-node control-node" data-room="control" style="--x: 40%; --y: 6.5%;" type="button">
               <span class="node-code">CR-01</span>
               <strong>CONTROL ROOM</strong>
-              <small>PILOT SYSTEMS</small>
+              <small id="controlNodeStatus">PILOT SYSTEMS</small>
             </button>
 
-            <button class="room-node alert-room" data-room="life" style="--x: 81.5%; --y: 70%;" type="button">
+            <button class="room-node alert-room" data-room="life" style="--x: 67%; --y: 19%;" type="button">
               <span class="alert-ring" aria-hidden="true"></span>
               <span class="alert-badge">FIRE</span>
               <span class="node-code">LS-07</span>
               <strong>LIFE SUPPORT</strong>
               <small id="lifeSupportNodeStatus">EMERGENCY</small>
+            </button>
+
+            <button class="room-node chapter-two-node" data-room="south" style="--x: 67%; --y: 39%;" type="button">
+              <span class="node-code">SH-07</span>
+              <strong>SOUTH HALLWAY</strong>
+              <small id="southNodeStatus">LOCKED</small>
+            </button>
+
+            <button class="room-node chapter-two-node" data-room="lab" style="--x: 87.5%; --y: 48.5%;" type="button">
+              <span class="node-code">LAB-07</span>
+              <strong>LABORATORY</strong>
+              <small id="labNodeStatus">SEALED</small>
+            </button>
+
+            <button class="room-node chapter-two-node" data-room="store" style="--x: 43.5%; --y: 61%;" type="button">
+              <span class="node-code">ST-07</span>
+              <strong>STORE ROOM</strong>
+              <small id="storeNodeStatus">UNSCANNED</small>
+            </button>
+
+            <button class="room-node chapter-two-node" data-room="kitchen" style="--x: 67%; --y: 65%;" type="button">
+              <span class="node-code">K-07</span>
+              <strong>KITCHEN / MESS</strong>
+              <small id="kitchenNodeStatus">SEALED</small>
+            </button>
+
+            <button class="room-node chapter-two-node" data-room="engineering" style="--x: 67%; --y: 86.5%;" type="button">
+              <span class="node-code">EN-07</span>
+              <strong>ENGINEERING</strong>
+              <small id="engineeringNodeStatus">LOCKED</small>
             </button>
 
             <div class="luna-token" id="lunaToken" role="button" tabindex="0" aria-label="Luna token. Drag to an adjacent room.">
@@ -149,7 +192,7 @@
             <span class="room-status" id="roomStatus">SAFE</span>
           </header>
 
-          <div class="room-media placeholder-media" id="roomMedia">
+          <div class="room-media" id="roomMedia">
             <img id="roomImage" src="assets/IMG02.png" alt="Luna awake in her cryosleep chamber">
             <div class="media-overlay" aria-hidden="true"></div>
             <span class="media-caption" id="mediaCaption">CRYOSLEEP UNIT 03</span>
@@ -169,17 +212,17 @@
   <div class="screen-fade" id="screenFade" aria-hidden="true"></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <dialog class="log-dialog" id="pilotLogDialog">
-    <form method="dialog" class="log-window">
+  <dialog class="system-dialog" id="pilotLogDialog">
+    <form method="dialog" class="system-window log-window">
       <header>
         <div>
           <span>PILOT ARCHIVE // LUNA H.</span>
           <h2>PILOT'S LOG</h2>
         </div>
-        <button class="close-log" value="close" aria-label="Close pilot's log">×</button>
+        <button class="close-dialog" value="close" aria-label="Close pilot's log">×</button>
       </header>
 
-      <div class="log-body">
+      <div class="dialog-body log-body">
         <article>
           <span>MISSION DAY 41 // 18:06 UTC</span>
           <p>Alpha 9 extraction complete. The mineral cores are secure and holding within tolerance. No contamination detected. I am beginning the return journey alone.</p>
@@ -196,9 +239,79 @@
 
       <footer>
         <span id="logFooterStatus">ARCHIVE READ</span>
-        <button value="close" class="log-close-button">CLOSE LOG</button>
+        <button value="close" class="dialog-button">CLOSE LOG</button>
       </footer>
     </form>
+  </dialog>
+
+  <dialog class="system-dialog" id="groundControlDialog">
+    <div class="system-window transmission-window">
+      <header>
+        <div>
+          <span>DEEP SPACE RELAY // ENCRYPTED CHANNEL</span>
+          <h2>GROUND CONTROL</h2>
+        </div>
+        <div class="signal-meter" aria-label="Transmission signal strength"><i></i><i></i><i></i><i></i></div>
+      </header>
+
+      <div class="dialog-body transmission-body">
+        <article class="transmission luna-line">
+          <span>LUNA H. // DECK 07</span>
+          <p>Ground Control, Life Support fire contained. The oxygen supply panel was opened and manually bypassed. This was not a mechanical failure. Someone sabotaged it.</p>
+        </article>
+        <article class="transmission ground-line">
+          <span>GROUND CONTROL // EARTH RELAY</span>
+          <p>Copy, Luna. Vessel manifest still reads one occupant. Conduct a thorough inspection of all ship facilities. Assume every system may be compromised until cleared. Document anything biological, mechanical or unexplained. Keep this channel open.</p>
+        </article>
+        <article class="transmission signal-line">
+          <span>SIGNAL ANOMALY // 0.8 SEC</span>
+          <p>Carrier interruption detected. Source appears local to the vessel.</p>
+        </article>
+      </div>
+
+      <footer>
+        <span>MISSION DIRECTIVE UPDATED</span>
+        <button class="dialog-button" id="acknowledgeGroundButton" type="button">ACKNOWLEDGE ORDERS</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="cinematic-dialog" id="sequenceDialog">
+    <div class="sequence-window">
+      <div class="sequence-media" id="sequenceMedia">
+        <img id="sequenceImage" src="assets/IMG11.png" alt="">
+        <div class="sequence-vignette" aria-hidden="true"></div>
+        <span class="sequence-code" id="sequenceCode">VISUAL RECORD</span>
+      </div>
+      <div class="sequence-copy">
+        <span class="sequence-counter" id="sequenceCounter">01 / 02</span>
+        <h2 id="sequenceTitle">KITCHEN COUNTER</h2>
+        <p id="sequenceText"></p>
+        <button class="dialog-button sequence-button" id="sequenceButton" type="button">CONTINUE</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="system-dialog" id="chapterDialog">
+    <div class="system-window chapter-window">
+      <header>
+        <div>
+          <span>MISSION CHECKPOINT // DECK 07</span>
+          <h2>CHECKPOINT 02</h2>
+        </div>
+      </header>
+      <div class="dialog-body">
+        <p class="chapter-copy">The organism has withdrawn into the ship. Luna remains hidden in Engineering with a specimen, a flashlight and one weapon. The vessel now reports two biological signatures.</p>
+        <div class="chapter-stat">
+          <span>CREW DETECTED</span>
+          <strong>02</strong>
+        </div>
+      </div>
+      <footer>
+        <span>PROGRESS SAVED</span>
+        <button class="dialog-button" id="closeChapterButton" type="button">RETURN TO SHIP MAP</button>
+      </footer>
+    </div>
   </dialog>
 
   <script src="script.js"></script>

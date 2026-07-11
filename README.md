@@ -1,63 +1,41 @@
-# THE VOID — v0.2
+# The Void — v0.3
 
-A GitHub Pages-ready cinematic solo adventure prototype.
+A self-contained, GitHub Pages-ready build of **The Void**, including the cinematic prologue, the Life Support fire sequence, Checkpoint 01, the expanded southern deck, laboratory clue, specimen collection, Kitchen alien encounter, Store Room equipment, Engineering access and the hiding sequence through Checkpoint 02.
 
-## This build includes
+## Included
 
-- The complete two-image cinematic prologue
-- A responsive interactive map for Deck 07
-- Crew Quarters, Hallway, Control Room and Life Support
-- Luna's draggable portrait token using `IMG03`
-- Click/tap room movement as an alternative to dragging
-- An orange pulsing Life Support fire alert
-- The Control Room scene using `IMG04`
-- An interactive Pilot's Log
-- The burning Life Support scene using `IMG05`
-- A hold-to-extinguish fire interaction
-- The sabotaged oxygen control panel reveal using `IMG06`
-- Checkpoint-style browser saving with `localStorage`
-- A restart control for replaying from the prologue
-- Desktop, tablet and mobile layouts
+- `index.html` — complete interface and dialogs
+- `styles.css` — cinematic, responsive visual design
+- `script.js` — story state, navigation, draggable Luna token, choices, checkpoints and local saving
+- `assets/IMG01.png` through `assets/IMG15.png`
+- `.nojekyll` — prevents GitHub Pages from applying Jekyll processing
+- `VERSION.txt` — build number
 
-## Publish on GitHub Pages
+IMG16 is intentionally not included or used.
 
-1. Extract this ZIP.
-2. Upload **all extracted files and the `assets` folder** to the root of your GitHub repository.
-3. Open **Settings → Pages** in the repository.
-4. Under **Build and deployment**, choose:
-   - Source: **Deploy from a branch**
-   - Branch: **main**
-   - Folder: **/(root)**
-5. Save and wait for GitHub to publish the site.
+## Publish to GitHub Pages
 
-`index.html` must remain at the repository root, beside `styles.css` and `script.js`.
+1. Extract the ZIP.
+2. Upload **all files and the `assets` folder** to the root of your GitHub repository.
+3. Ensure `index.html` sits at the repository root.
+4. In GitHub, open **Settings → Pages**.
+5. Select **Deploy from a branch**, choose `main`, then `/(root)`.
 
-## Controls
+## Editing the onscreen writing
 
-- During the cinematic, press **Enter**, **Space**, or **Continue**.
-- Pressing Enter or Space while text is typing reveals the complete passage.
-- On the map, drag Luna to an adjacent room or select the room directly.
-- In Life Support, hold the suppression control for approximately two seconds.
-- Progress is saved automatically in the browser.
+Most changing story text is in `script.js`:
 
-## Project files
+- `introScenes` contains the two opening cinematic passages.
+- `getRoomDefinition()` contains room descriptions.
+- `getRoomActions()` contains action-button labels.
+- `inspectKitchenCounter()` contains the IMG11 → IMG12 alien encounter.
 
-```text
-index.html
-styles.css
-script.js
-.nojekyll
-assets/
-  IMG01.png
-  IMG02.png
-  IMG03.png
-  IMG04.png
-  IMG05.png
-  IMG06.png
-```
+Fixed interface labels and the Ground Control / Pilot Log markup are in `index.html`.
 
-## Current endpoint
+Take care not to remove commas, quotation marks, backticks, braces or element IDs while editing.
 
-The chapter ends after Luna logs the deliberate tampering with the oxygen supply control panel. The objective then becomes:
+## Saving
 
-> Find the source of the Life Support sabotage.
+The game saves automatically in the browser using `localStorage`.
+
+This build migrates a prior v0.2 browser save where possible. The Restart button clears both Checkpoint 01 and Checkpoint 02 and returns to the opening cinematic.

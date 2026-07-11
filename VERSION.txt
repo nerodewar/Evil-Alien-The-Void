@@ -1,3 +1,4 @@
 THE VOID
-Version 0.2
-Prologue + Deck 07 Fire Investigation
+Version: 0.3
+Build: Southern Facilities / First Contact
+Assets: IMG01–IMG15
