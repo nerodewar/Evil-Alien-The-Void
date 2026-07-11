@@ -4,91 +4,202 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#05070a">
-  <meta
-    name="description"
-    content="The Void: a cinematic choose-your-own-adventure prologue."
-  >
-  <title>The Void — Prologue</title>
+  <meta name="description" content="The Void, a cinematic solo sci-fi survival adventure.">
+  <title>The Void</title>
 
   <link rel="preload" as="image" href="assets/IMG01.png">
   <link rel="preload" as="image" href="assets/IMG02.png">
+  <link rel="preload" as="image" href="assets/IMG03.png">
   <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
   <div class="starfield" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
 
-  <main class="cinematic-shell" id="cinematicShell">
-    <section
-      class="cinematic-frame"
-      id="cinematicFrame"
-      aria-label="The Void cinematic prologue"
-    >
-      <div class="image-panel" id="imagePanel">
-        <img
-          id="sceneImage"
-          class="scene-image"
-          src="assets/IMG01.png"
-          alt="Elite Forces Agent Luna H. asleep inside a softly glowing cryosleep chamber."
-        >
-
-        <div class="image-vignette" aria-hidden="true"></div>
-
-        <div class="image-caption" aria-hidden="true">
-          <span id="imageCode">CRYOSLEEP UNIT 03</span>
-          <span id="missionTime">T−72:00:00</span>
-        </div>
-      </div>
-
-      <article class="story-panel" id="storyPanel">
-        <header class="story-header">
-          <div>
-            <p class="eyebrow">ELITE FORCES // MISSION ARCHIVE</p>
-            <h1>THE VOID</h1>
+  <main id="app">
+    <!-- CINEMATIC PROLOGUE -->
+    <section class="cinematic-shell" id="cinematicShell">
+      <div class="cinematic-frame" id="cinematicFrame" aria-label="The Void cinematic prologue">
+        <div class="image-panel" id="imagePanel">
+          <img
+            id="sceneImage"
+            class="scene-image"
+            src="assets/IMG01.png"
+            alt="Elite Forces Agent Luna H. asleep inside a softly glowing cryosleep chamber."
+          >
+          <div class="image-vignette" aria-hidden="true"></div>
+          <div class="image-caption" aria-hidden="true">
+            <span id="imageCode">CRYOSLEEP UNIT 03</span>
+            <span id="missionTime">T−72:00:00</span>
           </div>
-          <p class="scene-counter" id="sceneCounter">01 / 02</p>
-        </header>
-
-        <div class="divider" aria-hidden="true">
-          <span></span>
         </div>
 
-        <section class="narrative-wrap">
-          <p class="log-label" id="logLabel">MISSION LOG // LUNA H.</p>
+        <article class="story-panel" id="storyPanel">
+          <header class="story-header">
+            <div>
+              <p class="eyebrow">ELITE FORCES // MISSION ARCHIVE</p>
+              <h1>THE VOID</h1>
+            </div>
+            <p class="scene-counter" id="sceneCounter">01 / 02</p>
+          </header>
 
-          <p
-            class="narrative"
-            id="narrative"
-            aria-live="off"
-            aria-atomic="true"
-          ></p>
+          <div class="divider" aria-hidden="true"><span></span></div>
 
-          <span class="type-cursor" id="typeCursor" aria-hidden="true"></span>
+          <section class="narrative-wrap">
+            <p class="log-label" id="logLabel">MISSION LOG // LUNA H.</p>
+            <p class="narrative" id="narrative" aria-live="polite" aria-atomic="true"></p>
+            <span class="type-cursor" id="typeCursor" aria-hidden="true"></span>
+          </section>
+
+          <footer class="story-footer">
+            <p class="keyboard-hint" id="keyboardHint">ENTER TO COMPLETE TRANSMISSION</p>
+            <button class="continue-button" id="continueButton" type="button" disabled aria-disabled="true">
+              <span class="button-index">01</span>
+              <span class="button-label">CONTINUE</span>
+              <span class="button-arrow" aria-hidden="true">›</span>
+            </button>
+          </footer>
+        </article>
+      </div>
+    </section>
+
+    <!-- INTERACTIVE MAP -->
+    <section class="game-screen" id="gameScreen" hidden aria-label="Ship map and room interaction screen">
+      <header class="game-hud">
+        <div class="hud-brand">
+          <span class="hud-kicker">ELITE FORCES VESSEL // DECK 07</span>
+          <strong>THE VOID</strong>
+        </div>
+
+        <div class="objective-block" aria-live="polite">
+          <span>CURRENT OBJECTIVE</span>
+          <strong id="objectiveText">Investigate the fire in Life Support</strong>
+        </div>
+
+        <div class="hud-readouts" aria-label="Ship status">
+          <div><span>O₂</span><strong id="oxygenReadout">96%</strong></div>
+          <div><span>POWER</span><strong>81%</strong></div>
+          <div class="danger-readout" id="fireReadout"><span>ALERT</span><strong>FIRE</strong></div>
+        </div>
+
+        <button class="utility-button" id="restartButton" type="button" title="Restart the game">RESTART</button>
+      </header>
+
+      <div class="game-layout">
+        <section class="map-panel" aria-label="Interactive ship map">
+          <div class="panel-heading">
+            <div>
+              <span class="panel-kicker">SHIP INTERFACE</span>
+              <h2>DECK 07 // HABITATION &amp; LIFE SUPPORT</h2>
+            </div>
+            <span class="map-instruction" id="mapInstruction">DRAG LUNA OR SELECT AN ADJACENT ROOM</span>
+          </div>
+
+          <div class="ship-map" id="shipMap">
+            <svg class="map-connections" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+              <path class="connection-line" d="M210 420 H470"></path>
+              <path class="connection-line" d="M470 420 H815"></path>
+              <path class="connection-line" d="M470 420 V165"></path>
+            </svg>
+
+            <button class="room-node current-room" data-room="crew" style="--x: 21%; --y: 70%;" type="button">
+              <span class="node-code">CQ-03</span>
+              <strong>CREW QUARTERS</strong>
+              <small>STARTING LOCATION</small>
+            </button>
+
+            <button class="room-node hallway-node" data-room="hallway" style="--x: 47%; --y: 70%;" type="button">
+              <span class="node-code">H-07</span>
+              <strong>HALLWAY</strong>
+              <small>MAIN ACCESS</small>
+            </button>
+
+            <button class="room-node control-node" data-room="control" style="--x: 47%; --y: 27%;" type="button">
+              <span class="node-code">CR-01</span>
+              <strong>CONTROL ROOM</strong>
+              <small>PILOT SYSTEMS</small>
+            </button>
+
+            <button class="room-node alert-room" data-room="life" style="--x: 81.5%; --y: 70%;" type="button">
+              <span class="alert-ring" aria-hidden="true"></span>
+              <span class="alert-badge">FIRE</span>
+              <span class="node-code">LS-07</span>
+              <strong>LIFE SUPPORT</strong>
+              <small id="lifeSupportNodeStatus">EMERGENCY</small>
+            </button>
+
+            <div class="luna-token" id="lunaToken" role="button" tabindex="0" aria-label="Luna token. Drag to an adjacent room.">
+              <img src="assets/IMG03.png" alt="Luna">
+              <span class="token-label">LUNA</span>
+            </div>
+          </div>
+
+          <div class="map-footer">
+            <span id="locationReadout">LOCATION: CREW QUARTERS</span>
+            <span id="routeReadout">ROUTE STATUS: HALLWAY ACCESSIBLE</span>
+          </div>
         </section>
 
-        <footer class="story-footer">
-          <p class="keyboard-hint" id="keyboardHint">
-            ENTER TO COMPLETE TRANSMISSION
-          </p>
+        <aside class="room-panel" id="roomPanel" aria-label="Selected room">
+          <header class="room-header">
+            <div>
+              <span class="room-code" id="roomCode">CQ-03</span>
+              <h2 id="roomTitle">CREW QUARTERS</h2>
+            </div>
+            <span class="room-status" id="roomStatus">SAFE</span>
+          </header>
 
-          <button
-            class="continue-button"
-            id="continueButton"
-            type="button"
-            disabled
-            aria-disabled="true"
-          >
-            <span class="button-index">01</span>
-            <span class="button-label">CONTINUE</span>
-            <span class="button-arrow" aria-hidden="true">›</span>
-          </button>
-        </footer>
-      </article>
+          <div class="room-media placeholder-media" id="roomMedia">
+            <img id="roomImage" src="assets/IMG02.png" alt="Luna awake in her cryosleep chamber">
+            <div class="media-overlay" aria-hidden="true"></div>
+            <span class="media-caption" id="mediaCaption">CRYOSLEEP UNIT 03</span>
+          </div>
+
+          <div class="room-copy">
+            <p class="room-narrative" id="roomNarrative" aria-live="polite"></p>
+            <span class="room-cursor" id="roomCursor" aria-hidden="true"></span>
+          </div>
+
+          <div class="room-actions" id="roomActions" aria-label="Available actions"></div>
+        </aside>
+      </div>
     </section>
   </main>
 
-  <div class="final-blackout" id="finalBlackout" aria-hidden="true"></div>
+  <div class="screen-fade" id="screenFade" aria-hidden="true"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <dialog class="log-dialog" id="pilotLogDialog">
+    <form method="dialog" class="log-window">
+      <header>
+        <div>
+          <span>PILOT ARCHIVE // LUNA H.</span>
+          <h2>PILOT'S LOG</h2>
+        </div>
+        <button class="close-log" value="close" aria-label="Close pilot's log">×</button>
+      </header>
+
+      <div class="log-body">
+        <article>
+          <span>MISSION DAY 41 // 18:06 UTC</span>
+          <p>Alpha 9 extraction complete. The mineral cores are secure and holding within tolerance. No contamination detected. I am beginning the return journey alone.</p>
+        </article>
+        <article>
+          <span>MISSION DAY 47 // 02:02 UTC</span>
+          <p>Earth is seventy-two hours away. Guidance will carry the ship through The Void while I enter a short cryosleep cycle. All systems report nominal. External sensors report nothing at all.</p>
+        </article>
+        <article class="corrupt-entry">
+          <span>AUTOMATED SYSTEM APPENDIX // 02:17 UTC</span>
+          <p>Internal maintenance access recorded. User credential: LUNA H. Location: unresolved.</p>
+        </article>
+      </div>
+
+      <footer>
+        <span id="logFooterStatus">ARCHIVE READ</span>
+        <button value="close" class="log-close-button">CLOSE LOG</button>
+      </footer>
+    </form>
+  </dialog>
 
   <script src="script.js"></script>
 </body>
