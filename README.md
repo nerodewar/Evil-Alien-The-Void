@@ -50,3 +50,18 @@ Take care not to remove quotation marks, commas, braces, parentheses or HTML ele
 ## Saving
 
 The game saves automatically in the browser with `localStorage`. This build migrates browser saves from v0.3 or v0.2 where possible. The **Restart** button clears all supported save versions and returns to the opening cinematic.
+
+
+## v0.5 — Act II: Blackout
+
+This build adds IMG22–IMG40 and a complete playable blackout chapter:
+
+- Checkpoint 03 and blackout-only map
+- Three-component search
+- First total-failure state and checkpoint restart
+- Alien hiding encounter
+- Lighting repair and plasma-gun confrontation
+- Surveillance archive investigation
+- Mimic-Luna reveal
+- False Ground Control transmission
+- Checkpoint 04
