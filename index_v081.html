@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05070a">
+  <meta name="game-version" content="0.8.1">
+  <meta name="description" content="The Void, a cinematic solo sci-fi survival adventure.">
+  <title>The Void</title>
+
+  <link rel="preload" as="image" href="assets/IMG00.png" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/IMG01.png">
+  <link rel="preload" as="image" href="assets/IMG02.png">
+  <link rel="preload" as="image" href="assets/IMG03.png">
+  <link rel="prefetch" as="image" href="assets/IMG21.png">
+  <link rel="prefetch" as="image" href="assets/IMG22.png">
+  <link rel="prefetch" as="image" href="assets/IMG27.png">
+  <link rel="prefetch" as="image" href="assets/IMG30.png">
+  <link rel="prefetch" as="image" href="assets/IMG41.png">
+  <link rel="prefetch" as="image" href="assets/IMG42.png">
+  <link rel="prefetch" as="image" href="assets/IMG50.png">
+  <link rel="prefetch" as="image" href="assets/IMG51.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="starfield" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <audio
+    id="titleMusic"
+    src="https://pub-00000000000000000000000000000000.r2.dev/the-void-title-theme.mp3"
+    preload="auto"
+    autoplay
+    loop
+    aria-hidden="true"
+  ></audio>
+
+  <audio
+    id="creditsMusic"
+    src="https://pub-00000000000000000000000000000000.r2.dev/the-void-triumphant-love-song.mp3"
+    preload="auto"
+    aria-hidden="true"
+  ></audio>
+
+  <main id="app">
+    <section class="title-screen is-visible" id="titleScreen" aria-label="The Void title screen">
+      <div class="title-backdrop" aria-hidden="true"></div>
+      <img
+        class="title-artwork"
+        id="titleArtwork"
+        src="assets/IMG00.png"
+        fetchpriority="high"
+        decoding="async"
+        alt="Luna pilots her spacecraft at maximum throttle toward a vast dark anomaly. The Void title and production credits appear over the scene."
+      >
+      <div class="title-shade" aria-hidden="true"></div>
+      <div class="title-hud" aria-hidden="true">
+        <span>DEEP SPACE MISSION ARCHIVE</span>
+        <span>VESSEL LINK // STANDBY</span>
+      </div>
+      <div class="title-menu" id="titleMenu">
+        <h1 class="sr-only">The Void</h1>
+        <p class="title-menu-kicker">MISSION ARCHIVE // SELECT DIRECTIVE</p>
+        <div class="title-actions" aria-label="Title screen options">
+          <button class="title-button title-button-primary" id="playButton" type="button">
+            <span>PLAY</span>
+            <small>NEW MISSION</small>
+          </button>
+          <button class="title-button" id="continueGameButton" type="button" hidden>
+            <span>CONTINUE</span>
+            <small id="continueGameMeta">CHECKPOINT SAVED</small>
+          </button>
+          <button class="title-button title-button-quiet" id="creditsButton" type="button">
+            <span>CREDITS</span>
+            <small>PRODUCTION ARCHIVE</small>
+          </button>
+        </div>
+        <p class="title-enter-hint" id="titleEnterHint">PRESS ENTER OR SELECT PLAY</p>
+      </div>
+      <div class="title-build">BUILD 0.8.1</div>
+    </section>
+
+    <section class="cinematic-shell" id="cinematicShell" hidden>
+      <div class="cinematic-frame" id="cinematicFrame" aria-label="The Void cinematic prologue">
+        <div class="image-panel" id="imagePanel">
+          <img
+            id="sceneImage"
+            class="scene-image"
+            src="assets/IMG01.png"
+            alt="Elite Forces Agent Luna H. asleep inside a softly glowing cryosleep chamber."
+          >
+          <div class="image-vignette" aria-hidden="true"></div>
+          <div class="image-caption" aria-hidden="true">
+            <span id="imageCode">CRYOSLEEP UNIT 03</span>
+            <span id="missionTime">T−72:00:00</span>
+          </div>
+        </div>
+
+        <article class="story-panel" id="storyPanel">
+          <header class="story-header">
+            <div>
+              <p class="eyebrow">ELITE FORCES // MISSION ARCHIVE</p>
+              <h1>THE VOID</h1>
+            </div>
+            <p class="scene-counter" id="sceneCounter">01 / 02</p>
+          </header>
+
+          <div class="divider" aria-hidden="true"><span></span></div>
+
+          <section class="narrative-wrap">
+            <p class="log-label" id="logLabel">MISSION LOG // LUNA H.</p>
+            <p class="narrative" id="narrative" aria-live="polite" aria-atomic="true"></p>
+            <span class="type-cursor" id="typeCursor" aria-hidden="true"></span>
+          </section>
+
+          <footer class="story-footer">
+            <p class="keyboard-hint" id="keyboardHint">ENTER TO COMPLETE TRANSMISSION</p>
+            <button class="continue-button" id="continueButton" type="button" disabled aria-disabled="true">
+              <span class="button-index">01</span>
+              <span class="button-label">CONTINUE</span>
+              <span class="button-arrow" aria-hidden="true">›</span>
+            </button>
+          </footer>
+        </article>
+      </div>
+    </section>
+
+    <section class="game-screen" id="gameScreen" hidden aria-label="Ship map and room interaction screen">
+      <header class="game-hud">
+        <div class="hud-brand">
+          <span class="hud-kicker">ELITE FORCES VESSEL // DECK 07</span>
+          <strong>THE VOID</strong>
+        </div>
+
+        <div class="objective-block" aria-live="polite">
+          <span>CURRENT OBJECTIVE</span>
+          <strong id="objectiveText">Investigate the fire in Life Support</strong>
+        </div>
+
+        <div class="hud-readouts" aria-label="Ship and pilot status">
+          <div><span id="oxygenLabel">O₂</span><strong id="oxygenReadout">96%</strong></div>
+          <div><span id="powerLabel">POWER</span><strong id="powerReadout">81%</strong></div>
+          <div><span>STRESS</span><strong id="stressReadout">08%</strong></div>
+          <div class="danger-readout" id="threatReadout"><span>ALERT</span><strong>FIRE</strong></div>
+        </div>
+
+        <button class="utility-button" id="restartButton" type="button" title="Restart the game">RESTART</button>
+      </header>
+
+      <div class="inventory-strip" id="inventoryStrip" aria-label="Luna's inventory">
+        <span class="inventory-label">INVENTORY</span>
+        <div class="inventory-items" id="inventoryItems">
+          <span class="inventory-empty">NO FIELD ITEMS</span>
+        </div>
+      </div>
+
+      <div class="game-layout">
+        <section class="map-panel" aria-label="Interactive ship map">
+          <div class="panel-heading">
+            <div>
+              <span class="panel-kicker">SHIP INTERFACE</span>
+              <h2 id="mapTitle">DECK 07 // HABITATION, RESEARCH &amp; ENGINEERING</h2>
+            </div>
+            <span class="map-instruction" id="mapInstruction">DRAG LUNA OR SELECT AN ADJACENT ROOM</span>
+          </div>
+
+          <div class="ship-map" id="shipMap" aria-live="polite">
+            <div class="luna-token" id="lunaToken" role="button" tabindex="0" aria-label="Luna token. Drag to an adjacent room.">
+              <img src="assets/IMG03.png" alt="Luna">
+              <span class="token-label">LUNA</span>
+            </div>
+          </div>
+
+          <div class="map-footer">
+            <span id="locationReadout">LOCATION: CREW QUARTERS</span>
+            <span id="routeReadout">ROUTE STATUS: HALLWAY ACCESSIBLE</span>
+          </div>
+        </section>
+
+        <aside class="room-panel" id="roomPanel" aria-label="Selected room">
+          <header class="room-header">
+            <div>
+              <span class="room-code" id="roomCode">CQ-03</span>
+              <h2 id="roomTitle">CREW QUARTERS</h2>
+            </div>
+            <span class="room-status" id="roomStatus">SAFE</span>
+          </header>
+
+          <div class="room-media" id="roomMedia">
+            <img id="roomImage" src="assets/IMG02.png" loading="eager" decoding="async" fetchpriority="high" alt="Luna awake in her cryosleep chamber">
+            <div class="media-overlay" aria-hidden="true"></div>
+            <span class="media-caption" id="mediaCaption">CRYOSLEEP UNIT 03</span>
+          </div>
+
+          <div class="room-copy">
+            <p class="room-narrative" id="roomNarrative" aria-live="polite"></p>
+            <span class="room-cursor" id="roomCursor" aria-hidden="true"></span>
+          </div>
+
+          <div class="room-actions" id="roomActions" aria-label="Available actions"></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <section class="cinematic-transition" id="cinematicTransition" hidden aria-live="polite" aria-atomic="true">
+    <div class="transition-noise" aria-hidden="true"></div>
+    <div class="transition-core">
+      <div class="transition-emblem" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="transition-kicker" id="transitionKicker">MISSION SYSTEM</p>
+      <h2 id="transitionTitle">RECONSTRUCTING SHIP SCHEMATIC</h2>
+      <p class="transition-text" id="transitionText">Buffering mission state…</p>
+      <div class="transition-track" aria-hidden="true"><span id="transitionProgress"></span></div>
+      <p class="transition-status">PLEASE STAND BY // LOCAL VESSEL LINK</p>
+    </div>
+  </section>
+
+  <section class="lose-screen" id="loseScreen" hidden aria-labelledby="loseTitle">
+    <div class="lose-grid" aria-hidden="true"></div>
+    <div class="lose-card">
+      <p class="lose-kicker">BIOLOGICAL STATUS // SIGNAL LOST</p>
+      <h2 id="loseTitle">YOU LOSE</h2>
+      <p class="lose-copy">Luna was discovered in the dark. Her suit transmission ended before the organism withdrew.</p>
+      <div class="lose-divider" aria-hidden="true"></div>
+      <div class="lose-actions">
+        <button class="lose-button lose-button-primary" id="returnCheckpointButton" type="button">
+          <span>RETURN TO CHECKPOINT 03</span>
+          <small>RESTORE LIGHTING-FAILURE MISSION STATE</small>
+        </button>
+        <button class="lose-button" id="restartMissionButton" type="button">
+          <span>RESTART GAME</span>
+          <small>BEGIN FROM THE OPENING CINEMATIC</small>
+        </button>
+        <button class="lose-button lose-button-quiet" id="quitTitleButton" type="button">
+          <span>QUIT TO TITLE</span>
+          <small>CHECKPOINT 03 WILL REMAIN AVAILABLE</small>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="screen-fade" id="screenFade" aria-hidden="true"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <dialog class="system-dialog" id="pilotLogDialog">
+    <form method="dialog" class="system-window log-window">
+      <header>
+        <div>
+          <span>CAPTAIN'S ARCHIVE // LUNA H.</span>
+          <h2>CAPTAIN'S LOG</h2>
+        </div>
+        <button class="close-dialog" value="close" aria-label="Close Captain's Log">×</button>
+      </header>
+
+      <div class="dialog-body log-body">
+        <section class="log-section" aria-labelledby="missionArchiveHeading">
+          <div class="log-section-heading">
+            <span>FIXED SHIP RECORDS</span>
+            <h3 id="missionArchiveHeading">MISSION ARCHIVE</h3>
+          </div>
+
+          <article>
+            <span>MISSION DAY 41 // 18:06 UTC</span>
+            <p>Alpha 9 extraction complete. The mineral cores are secure and holding within tolerance. No contamination detected. I am beginning the return journey alone.</p>
+          </article>
+          <article>
+            <span>MISSION DAY 47 // 02:02 UTC</span>
+            <p>Earth is seventy-two hours away. Guidance will carry the ship through The Void while I enter a short cryosleep cycle. All systems report nominal. External sensors report nothing at all.</p>
+          </article>
+          <article class="corrupt-entry">
+            <span>AUTOMATED SYSTEM APPENDIX // 02:17 UTC</span>
+            <p>Internal maintenance access recorded. User credential: LUNA H. Location: unresolved.</p>
+          </article>
+          <article class="analysis-entry" id="organismAnalysisLogEntry" hidden>
+            <span>ORGANISM ANALYSIS // LABORATORY 07</span>
+            <p>Adaptive DNA mimic. Capable of assuming living biological forms. Transformation becomes irreversible after completion. A completed human form requires oxygen and remains vulnerable to injury, blood loss and biological death. Trace contamination originated inside the Alpha 9 mineral cores.</p>
+          </article>
+        </section>
+
+        <section class="log-section personal-log-section" aria-labelledby="personalNotesHeading">
+          <div class="log-section-heading personal-log-heading">
+            <div>
+              <span>PLAYER ENTRY // LOCAL DEVICE STORAGE</span>
+              <h3 id="personalNotesHeading">PERSONAL NOTES</h3>
+            </div>
+            <span class="log-save-status" id="logSaveStatus">AUTO-SAVE READY</span>
+          </div>
+          <label class="sr-only" for="personalLogNotes">Captain's Log personal notes</label>
+          <textarea
+            id="personalLogNotes"
+            class="personal-log-notes"
+            rows="10"
+            maxlength="12000"
+            spellcheck="true"
+            placeholder="Record codes, clues, suspicions or mission reminders…"
+          ></textarea>
+          <div class="personal-log-controls">
+            <button class="dialog-button" id="addLogTimestampButton" type="button">ADD TIMESTAMP</button>
+            <button class="dialog-button personal-log-clear" id="clearLogButton" type="button">CLEAR NOTES</button>
+          </div>
+        </section>
+      </div>
+
+      <footer>
+        <span id="logFooterStatus">ARCHIVE READ // PERSONAL LOG READY</span>
+        <button value="close" class="dialog-button">CLOSE LOG</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog class="system-dialog" id="groundControlDialog">
+    <div class="system-window transmission-window">
+      <header>
+        <div>
+          <span>DEEP SPACE RELAY // ENCRYPTED CHANNEL</span>
+          <h2>GROUND CONTROL</h2>
+        </div>
+        <div class="signal-meter" aria-label="Transmission signal strength"><i></i><i></i><i></i><i></i></div>
+      </header>
+
+      <div class="dialog-body transmission-body">
+        <article class="transmission luna-line">
+          <span>LUNA H. // DECK 07</span>
+          <p>Ground Control, Life Support fire contained. The oxygen supply panel was opened and manually bypassed. This was not a mechanical failure. Someone sabotaged it.</p>
+        </article>
+        <article class="transmission ground-line">
+          <span>GROUND CONTROL // EARTH RELAY</span>
+          <p>Copy, Luna. Vessel manifest still reads one occupant. Conduct a thorough inspection of all ship facilities. Assume every system may be compromised until cleared. Document anything biological, mechanical or unexplained. Keep this channel open.</p>
+        </article>
+        <article class="transmission signal-line">
+          <span>SIGNAL ANOMALY // 0.8 SEC</span>
+          <p>Carrier interruption detected. Source appears local to the vessel.</p>
+        </article>
+      </div>
+
+      <footer>
+        <span>MISSION DIRECTIVE UPDATED</span>
+        <button class="dialog-button" id="acknowledgeGroundButton" type="button">ACKNOWLEDGE ORDERS</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="cinematic-dialog" id="sequenceDialog">
+    <div class="sequence-window">
+      <div class="sequence-media" id="sequenceMedia">
+        <img id="sequenceImage" src="assets/IMG11.png" loading="eager" decoding="async" alt="">
+        <div class="sequence-vignette" aria-hidden="true"></div>
+        <span class="sequence-code" id="sequenceCode">VISUAL RECORD</span>
+      </div>
+      <div class="sequence-copy">
+        <span class="sequence-counter" id="sequenceCounter">01 / 02</span>
+        <h2 id="sequenceTitle">KITCHEN COUNTER</h2>
+        <p id="sequenceText"></p>
+        <button class="dialog-button sequence-button" id="sequenceButton" type="button">CONTINUE</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="system-dialog" id="chapterDialog">
+    <div class="system-window chapter-window">
+      <header>
+        <div>
+          <span>MISSION CHECKPOINT // DECK 07</span>
+          <h2>CHECKPOINT 02</h2>
+        </div>
+      </header>
+      <div class="dialog-body">
+        <p class="chapter-copy">The organism has withdrawn into the ship. Luna remains hidden in Engineering with a specimen, a flashlight and one weapon. The vessel now reports two biological signatures.</p>
+        <div class="chapter-stat">
+          <span>CREW DETECTED</span>
+          <strong>02</strong>
+        </div>
+      </div>
+      <footer>
+        <span>PROGRESS SAVED</span>
+        <button class="dialog-button" id="closeChapterButton" type="button">CHOOSE LUNA'S NEXT MOVE</button>
+      </footer>
+    </div>
+  </dialog>
+
+
+  <dialog class="system-dialog mission-choice-dialog" id="branchDialog">
+    <div class="system-window choice-window">
+      <header class="choice-header">
+        <div>
+          <span>MISSION DECISION // PATH LOCKS AFTER SELECTION</span>
+          <h2>SELECT LUNA'S RESPONSE</h2>
+        </div>
+        <div class="choice-header-code" aria-hidden="true">
+          <span>DECISION NODE</span>
+          <strong>02-A/B</strong>
+        </div>
+      </header>
+
+      <div class="dialog-body choice-body">
+        <p class="choice-intro">The organism has withdrawn into the machinery. Luna has one brief window to act. Both routes lead deeper into the ship, but each exposes a different critical system.</p>
+
+        <div class="choice-grid">
+          <button class="choice-card choice-signal" id="signalChoiceButton" type="button">
+            <span class="choice-corner choice-corner-a" aria-hidden="true"></span>
+            <span class="choice-corner choice-corner-b" aria-hidden="true"></span>
+
+            <div class="choice-card-topline">
+              <span>OPTION A // TRANSMIT</span>
+              <span class="choice-state">GROUND LINK</span>
+            </div>
+
+            <strong>SEND CRISIS SIGNAL</strong>
+            <p>Return to Control and warn Earth. The transmission costs time, and Engine 02 fails while Ground Control responds.</p>
+
+            <div class="choice-risk">
+              <span>SYSTEM CRISIS</span>
+              <strong>ENGINE FAILURE</strong>
+            </div>
+
+            <div class="choice-route" aria-label="Control Room to Maintenance Tunnels to Engine Room">
+              <span>CONTROL</span><i></i><span>TUNNELS</span><i></i><span>ENGINE</span>
+            </div>
+
+            <small>MISSION TYPE // INTERIOR REPAIR &amp; BLACKOUT RETURN</small>
+          </button>
+
+          <button class="choice-card choice-alone" id="aloneChoiceButton" type="button">
+            <span class="choice-corner choice-corner-a" aria-hidden="true"></span>
+            <span class="choice-corner choice-corner-b" aria-hidden="true"></span>
+
+            <div class="choice-card-topline">
+              <span>OPTION B // ADVANCE</span>
+              <span class="choice-state">NO CONTACT</span>
+            </div>
+
+            <strong>FACE ENGINEERING ALONE</strong>
+            <p>Move through the maintenance route immediately. The engines remain stable, but satellite navigation fails.</p>
+
+            <div class="choice-risk">
+              <span>SYSTEM CRISIS</span>
+              <strong>SAT-NAV FAILURE</strong>
+            </div>
+
+            <div class="choice-route" aria-label="Engine Room to Control Room and Airlock, then exterior satellite navigation array">
+              <span>ENGINE</span><i></i><span>CONTROL</span><i></i><span>AIRLOCK</span><i></i><span>EVA</span>
+            </div>
+
+            <small>MISSION TYPE // EXTERIOR COMPONENT REPLACEMENT</small>
+          </button>
+        </div>
+      </div>
+
+      <footer class="choice-footer">
+        <span>THE SCHEMATIC WILL RECONFIGURE AROUND THE SELECTED MISSION</span>
+        <span class="choice-footer-alert">SELECTION CANNOT BE UNDONE</span>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="system-dialog" id="finalGroundDialog">
+    <div class="system-window transmission-window final-transmission-window">
+      <header>
+        <div>
+          <span>DEEP SPACE RELAY // DEGRADED CARRIER</span>
+          <h2>GROUND CONTROL</h2>
+        </div>
+        <div class="signal-meter" aria-label="Transmission signal strength"><i></i><i></i><i></i><i></i></div>
+      </header>
+      <div class="dialog-body transmission-body">
+        <article class="transmission luna-line">
+          <span>LUNA H. // FINAL SYSTEM REPORT</span>
+          <p id="finalLunaText"></p>
+        </article>
+        <article class="transmission ground-line">
+          <span>GROUND CONTROL // EARTH RELAY</span>
+          <p id="finalGroundText"></p>
+        </article>
+        <article class="transmission signal-line">
+          <span>CONTROL ROOM AUDIO // BACKGROUND CHANNEL</span>
+          <p>Several voices speak beyond the relay. None of them sounds hopeful. One says the words “landing corridor” and another quietly answers, “We cannot let it reach Earth.”</p>
+        </article>
+      </div>
+      <footer>
+        <span>CHECKPOINT 03 // CONTROL ROOM ISOLATED</span>
+        <button class="dialog-button" id="acknowledgeFinalButton" type="button">UNDERSTOOD</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="orbital-dialog" id="orbitalDialog" aria-labelledby="orbitalTitle">
+    <div class="orbital-console">
+      <header class="orbital-header">
+        <div>
+          <span class="orbital-kicker" id="orbitalKicker">DEEP SYSTEM OVERRIDE // GRAVITATIONAL PROCESSOR</span>
+          <h2 id="orbitalTitle">ORBITAL CIPHER</h2>
+          <p id="orbitalSubtitle">Construct a stable transfer route through the security lattice.</p>
+        </div>
+        <div class="orbital-header-readout" aria-live="polite">
+          <span>GRAVITY BUDGET</span>
+          <strong id="orbitalBudget">08</strong>
+        </div>
+      </header>
+
+      <section class="orbital-briefing" aria-label="Orbital Cipher instructions">
+        <p id="orbitalBriefing">Increase a destination core above the source mass. When an orbit crosses a transfer gate, trigger the illuminated link.</p>
+        <div class="orbital-legend" aria-hidden="true">
+          <span><i class="legend-core"></i> GRAVITY CORE</span>
+          <span><i class="legend-orb"></i> DATA ORB</span>
+          <span><i class="legend-gate"></i> TRANSFER GATE</span>
+        </div>
+      </section>
+
+      <div class="orbital-stage-shell">
+        <svg id="orbitalStage" class="orbital-stage" viewBox="0 0 1000 620" role="img" aria-label="Animated gravitational security lattice">
+          <defs>
+            <radialGradient id="coreGlow" cx="50%" cy="44%" r="62%">
+              <stop offset="0%" stop-color="#eefaff" stop-opacity="1"></stop>
+              <stop offset="18%" stop-color="#8bdcff" stop-opacity=".96"></stop>
+              <stop offset="55%" stop-color="#176f9f" stop-opacity=".76"></stop>
+              <stop offset="100%" stop-color="#06111b" stop-opacity=".16"></stop>
+            </radialGradient>
+            <filter id="orbitalGlow" x="-80%" y="-80%" width="260%" height="260%">
+              <feGaussianBlur stdDeviation="5" result="blur"></feGaussianBlur>
+              <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+            </filter>
+            <filter id="orbitalSoftGlow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="2.4" result="blur"></feGaussianBlur>
+              <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+            </filter>
+          </defs>
+          <g id="orbitalLinkLayer"></g>
+          <g id="orbitalCoreLayer"></g>
+          <g id="orbitalOrbLayer"></g>
+        </svg>
+        <div class="orbital-gates" id="orbitalGateLayer" aria-label="Transfer gates"></div>
+        <div class="orbital-controls" id="orbitalCoreControls" aria-label="Gravity core controls"></div>
+        <div class="orbital-scan" aria-hidden="true"></div>
+        <div class="orbital-result" id="orbitalResult" hidden>
+          <span id="orbitalResultKicker">CIPHER STABLE</span>
+          <strong id="orbitalResultTitle">OVERRIDE ACCEPTED</strong>
+          <p id="orbitalResultText">All data-orbs are locked into their receivers.</p>
+        </div>
+      </div>
+
+      <footer class="orbital-footer">
+        <div class="orbital-objectives">
+          <span>ACTIVE RECEIVERS</span>
+          <div id="orbitalObjectiveList"></div>
+        </div>
+        <div class="orbital-status-panel" aria-live="polite">
+          <span>SYSTEM STATUS</span>
+          <strong id="orbitalStatus">AWAITING INPUT</strong>
+          <small id="orbitalStability">STABILITY 100%</small>
+        </div>
+        <div class="orbital-actions">
+          <button class="dialog-button orbital-slow-button" id="orbitalSlowButton" type="button" aria-pressed="false">TIME DILATION</button>
+          <button class="dialog-button" id="orbitalResetButton" type="button">RESET MODEL</button>
+          <button class="dialog-button" id="orbitalAbortButton" type="button">ABORT HACK</button>
+          <button class="dialog-button orbital-commit-button" id="orbitalCommitButton" type="button" hidden>COMMIT OVERRIDE</button>
+        </div>
+      </footer>
+    </div>
+  </dialog>
+
+  <dialog class="system-dialog credits-dialog" id="creditsDialog" aria-labelledby="creditsTitle">
+    <div class="system-window credits-window credits-window-roll">
+      <header class="credits-header">
+        <div>
+          <span>PRODUCTION ARCHIVE // THE VOID</span>
+          <h2 id="creditsTitle">CREDITS</h2>
+        </div>
+        <button class="close-dialog" id="creditsCloseButton" type="button" aria-label="Close credits">×</button>
+      </header>
+
+      <div class="dialog-body credits-body-roll">
+        <div class="credits-layout">
+          <aside class="credits-visual">
+            <img
+              id="creditsArtwork"
+              src="assets/IMG56.png"
+              loading="eager"
+              decoding="async"
+              alt="Luna stands victorious in the aftermath of the battle, empowered after defeating the alien organism."
+            >
+          </aside>
+
+          <section class="credits-roll-panel" aria-label="Rolling credits">
+            <div class="credits-roll-viewport">
+              <div class="credits-roll" id="creditsRoll">
+                <div class="credits-roll-spacer" aria-hidden="true"></div>
+                <div class="credits-roll-content">
+                  <p class="credits-overline">NERO DEWAR PRODUCTIONS</p>
+                  <h3 class="credits-main-title">THE VOID</h3>
+                  <p class="credits-subtitle">A JAMES RITCHIE VIDEO GAME</p>
+                  <div class="credits-rule credits-rule-roll" aria-hidden="true"></div>
+
+                  <section class="credits-block">
+                    <h4>CREATED, WRITTEN &amp; DIRECTED BY</h4>
+                    <p>James Ritchie</p>
+                  </section>
+
+                  <section class="credits-block">
+                    <h4>GAME DESIGN</h4>
+                    <p>James Ritchie</p>
+                  </section>
+
+                  <section class="credits-block">
+                    <h4>ART DIRECTION</h4>
+                    <p>James Ritchie</p>
+                  </section>
+
+                  <section class="credits-block">
+                    <h4>ALL MUSIC WRITTEN, PRODUCED &amp; PERFORMED BY</h4>
+                    <p>James Ritchie</p>
+                  </section>
+
+                  <section class="credits-block">
+                    <h4>LEAD CHARACTER</h4>
+                    <p>Luna H.</p>
+                  </section>
+
+                  <section class="credits-block">
+                    <h4>SPECIAL THANKS</h4>
+                    <div class="credits-thanks-list">
+                      <p>Michael Bainbridge</p>
+                      <p>Andrea Niesen</p>
+                      <p>Cassandra Witherbee</p>
+                      <p>Julia Samson</p>
+                      <p>Catherine J. Hopkins</p>
+                      <p>Christopher Nolan</p>
+                      <p>Sandra Muhr</p>
+                      <p>Michael Summerfield</p>
+                      <p>Nicole Roberts</p>
+                      <p>Jacob Smithson</p>
+                      <p>Sean Smith</p>
+                      <p>James Forten</p>
+                      <p>Joseph Adenuga Jr</p>
+                      <p>James Smith</p>
+                      <p>Rory O’Connor</p>
+                      <p>Corey Taylor</p>
+                      <p>Sasha</p>
+                      <p>Samantha Bates</p>
+                      <p>Olivia Taylor</p>
+                      <p>Simon Garfield</p>
+                      <p>John Michaels</p>
+                      <p>Steven Spielberg</p>
+                      <p>Kim Virginie Scott</p>
+                      <p>Jo-Vaughn Virginie Scott</p>
+                      <p>Natalie Imbruglia</p>
+                      <p>Sam Ireland</p>
+                      <p>Hans Zimmer</p>
+                      <p>Devi Herself</p>
+                    </div>
+                  </section>
+
+                  <section class="credits-block credits-closing-block">
+                    <h4>WITH LOVE, COURAGE &amp; POWER</h4>
+                    <p>This game is for everyone who keeps moving through the dark.</p>
+                  </section>
+
+                  <section class="credits-block credits-closing-block">
+                    <h4>THANK YOU FOR PLAYING</h4>
+                    <p>Build 0.8.1</p>
+                  </section>
+                </div>
+                <div class="credits-roll-spacer credits-roll-spacer-end" aria-hidden="true"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <footer class="credits-footer">
+        <span id="creditsStatus">ROLLING CREDITS // SPECIAL SONG PLAYING</span>
+        <div class="credits-footer-actions">
+          <button class="dialog-button" id="creditsMuteButton" type="button">MUTE</button>
+          <button class="dialog-button" id="creditsDoneButton" type="button">RETURN</button>
+        </div>
+      </footer>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
