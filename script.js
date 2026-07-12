@@ -1,11 +1,11 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v081";
+  const SAVE_KEY = "theVoidSave_v082";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
   const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
-  const LEGACY_KEYS = ["theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const LEGACY_KEYS = ["theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -134,6 +134,7 @@
   let titleMusicFadeFrame = 0;
   let creditsMusicFadeFrame = 0;
   let creditsSequenceOpen = false;
+  let creditsRollAnimation = null;
   let creditsResumeMode = "resume-title-audio";
   let orbitalAnimationFrame = 0;
   let orbitalRuntime = null;
@@ -258,6 +259,9 @@
   const orbitalCommitButton = document.getElementById("orbitalCommitButton");
   const creditsDialog = document.getElementById("creditsDialog");
   const creditsRoll = document.getElementById("creditsRoll");
+  const creditsRollViewport = creditsDialog.querySelector(".credits-roll-viewport");
+  const creditsStartSpacer = creditsDialog.querySelector(".credits-roll-spacer:not(.credits-roll-spacer-end)");
+  const creditsEndSpacer = creditsDialog.querySelector(".credits-roll-spacer-end");
   const creditsStatus = document.getElementById("creditsStatus");
   const creditsMuteButton = document.getElementById("creditsMuteButton");
   const creditsCloseButton = document.getElementById("creditsCloseButton");
@@ -478,27 +482,71 @@
     });
   }
 
-  async function playCreditsMusic() {
-    if (!creditsMusic) return false;
+  function beginCreditsAudioCrossfade() {
+    if (!creditsMusic) return fadeTitleMusicOut(900);
+
     window.cancelAnimationFrame(creditsMusicFadeFrame);
     creditsMusic.pause();
     creditsMusic.currentTime = 0;
     creditsMusic.volume = 0;
     creditsMusic.muted = false;
+    creditsMusic.dataset.autoplay = "starting";
     if (creditsMuteButton) creditsMuteButton.textContent = "MUTE";
+
+    // play() is called immediately inside the original CREDITS click. Waiting
+    // until after the title fade can make browsers reject the second track.
+    let playback;
     try {
+      playback = creditsMusic.play();
+    } catch {
+      playback = Promise.reject(new Error("Credits playback blocked"));
+    }
+
+    const titleFade = fadeTitleMusicOut(900);
+    const creditsFade = Promise.resolve(playback)
+      .then(() => {
+        creditsMusic.dataset.autoplay = "playing";
+        return animateAudioVolume(creditsMusic, {
+          from: 0,
+          to: CREDITS_MUSIC_DEFAULT_VOLUME,
+          duration: 1300,
+          frameKey: "credits"
+        });
+      })
+      .catch(() => {
+        creditsMusic.dataset.autoplay = "blocked";
+        if (creditsStatus) creditsStatus.textContent = "SELECT THE CREDITS SCREEN TO START THE SONG";
+        return false;
+      });
+
+    return Promise.allSettled([titleFade, creditsFade]);
+  }
+
+  async function playCreditsMusic() {
+    if (!creditsMusic) return false;
+    window.cancelAnimationFrame(creditsMusicFadeFrame);
+    try {
+      if (creditsMusic.ended) creditsMusic.currentTime = 0;
       await creditsMusic.play();
-      await animateAudioVolume(creditsMusic, { from: 0, to: CREDITS_MUSIC_DEFAULT_VOLUME, duration: 1400, frameKey: "credits" });
       creditsMusic.dataset.autoplay = "playing";
+      if (creditsMusic.volume <= 0.01) {
+        await animateAudioVolume(creditsMusic, {
+          from: 0,
+          to: CREDITS_MUSIC_DEFAULT_VOLUME,
+          duration: 800,
+          frameKey: "credits"
+        });
+      }
+      if (creditsStatus) creditsStatus.textContent = "ROLLING CREDITS // SPECIAL SONG PLAYING";
       return true;
     } catch {
       creditsMusic.dataset.autoplay = "blocked";
-      if (creditsStatus) creditsStatus.textContent = "PRESS ANY KEY OR CLICK TO START THE CREDITS SONG";
+      if (creditsStatus) creditsStatus.textContent = "CLICK ONCE TO START THE CREDITS SONG";
       return false;
     }
   }
 
-  function fadeCreditsMusicOut(duration = 900) {
+  function fadeCreditsMusicOut(duration = 850) {
     if (!creditsMusic || creditsMusic.paused) return Promise.resolve();
     window.cancelAnimationFrame(creditsMusicFadeFrame);
     const startVolume = creditsMusic.volume;
@@ -520,32 +568,86 @@
     });
   }
 
+  function stopCreditsRoll() {
+    if (creditsRollAnimation) {
+      creditsRollAnimation.cancel();
+      creditsRollAnimation = null;
+    }
+    if (creditsRoll) creditsRoll.style.transform = "translate3d(0, 0, 0)";
+  }
+
   function restartCreditsRoll() {
-    if (!creditsRoll) return;
-    creditsRoll.classList.remove("is-rolling");
-    void creditsRoll.offsetWidth;
-    creditsRoll.classList.add("is-rolling");
+    if (!creditsRoll || !creditsRollViewport) return;
+    stopCreditsRoll();
+
+    const viewportHeight = Math.max(320, creditsRollViewport.clientHeight);
+    if (creditsStartSpacer) creditsStartSpacer.style.height = `${Math.round(viewportHeight * 0.12)}px`;
+    if (creditsEndSpacer) creditsEndSpacer.style.height = `${Math.round(viewportHeight * 0.58)}px`;
+
+    // Force measurement only after the modal has a real fixed viewport.
+    void creditsRoll.offsetHeight;
+    const travel = Math.max(0, creditsRoll.scrollHeight - viewportHeight);
+    const duration = 168000; // 2:48, matching the credits song.
+
+    if (typeof creditsRoll.animate !== "function" || travel <= 0) {
+      creditsRoll.style.transform = `translate3d(0, -${travel}px, 0)`;
+      return;
+    }
+
+    creditsRollAnimation = creditsRoll.animate(
+      [
+        { transform: "translate3d(0, 0, 0)" },
+        { transform: `translate3d(0, -${travel}px, 0)` }
+      ],
+      {
+        duration,
+        easing: "linear",
+        fill: "forwards"
+      }
+    );
+
+    creditsRollAnimation.onfinish = () => {
+      if (creditsStatus) creditsStatus.textContent = "CREDITS COMPLETE // RETURN WHEN READY";
+    };
   }
 
   async function openCreditsSequence({ fromEnding = false } = {}) {
     if (creditsSequenceOpen) return;
     creditsSequenceOpen = true;
     creditsResumeMode = fromEnding ? "show-title" : (!titleScreen.hidden ? "resume-title-audio" : "show-title");
-    if (creditsStatus) creditsStatus.textContent = "ROLLING CREDITS // SPECIAL SONG PLAYING";
-    if (creditsStatus) creditsStatus.classList.remove("credits-status-muted");
+    if (creditsStatus) {
+      creditsStatus.textContent = "ROLLING CREDITS // SPECIAL SONG PLAYING";
+      creditsStatus.classList.remove("credits-status-muted");
+    }
+
     closeAllDialogs();
-    if (!fromEnding && !titleScreen.hidden) await fadeTitleMusicOut(950);
-    restartCreditsRoll();
+    document.documentElement.classList.add("credits-open");
+    document.body.classList.add("credits-open");
     openDialog(creditsDialog);
-    if (creditsDoneButton) creditsDoneButton.focus({ preventScroll: true });
-    await playCreditsMusic();
+
+    // Start the new track while the CREDITS click still counts as a user
+    // gesture, then crossfade both tracks concurrently.
+    const audioTransition = beginCreditsAudioCrossfade();
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        restartCreditsRoll();
+        if (creditsDoneButton) creditsDoneButton.focus({ preventScroll: true });
+      });
+    });
+
+    await audioTransition;
   }
 
   async function closeCreditsSequence() {
     if (!creditsSequenceOpen && !creditsDialog.open) return;
     creditsSequenceOpen = false;
-    await fadeCreditsMusicOut(850);
+    stopCreditsRoll();
+    await fadeCreditsMusicOut(780);
     closeDialog(creditsDialog);
+    document.documentElement.classList.remove("credits-open");
+    document.body.classList.remove("credits-open");
+
     if (creditsResumeMode === "show-title") {
       showTitleScreen();
       return;
@@ -4489,6 +4591,9 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
     closeCreditsSequence();
   });
   creditsDialog.addEventListener("close", () => {
+    stopCreditsRoll();
+    document.documentElement.classList.remove("credits-open");
+    document.body.classList.remove("credits-open");
     if (creditsMusic && !creditsMusic.paused) {
       creditsMusic.pause();
       creditsMusic.currentTime = 0;
@@ -4541,6 +4646,10 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
     titleArtwork.hidden = true;
   });
 
+  creditsMusic?.addEventListener("error", () => {
+    if (creditsStatus) creditsStatus.textContent = "CREDITS SONG COULD NOT LOAD // CHECK CLOUDFLARE URL";
+  });
+
   document.addEventListener("pointerdown", () => {
     if (creditsDialog.open && creditsMusic?.dataset.autoplay === "blocked") playCreditsMusic();
     else if (!titleScreen.hidden && titleMusic?.dataset.autoplay === "blocked") playTitleMusic();
@@ -4569,7 +4678,10 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
     }
   });
 
-  window.addEventListener("resize", positionToken);
+  window.addEventListener("resize", () => {
+    positionToken();
+    if (creditsDialog.open) restartCreditsRoll();
+  });
 
   cinematicShell.hidden = true;
   gameScreen.hidden = true;
