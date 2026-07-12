@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v052";
-  const LEGACY_KEYS = ["theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const SAVE_KEY = "theVoidSave_v060";
+  const LEGACY_KEYS = ["theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -108,7 +108,18 @@
   let sequenceRunId = 0;
   let sequenceAdvanceLocked = false;
   let backgroundWarmupStarted = false;
+  let transitionRunId = 0;
+  let mapRevealTimer = 0;
   const imageCache = new Map();
+
+  const titleScreen = document.getElementById("titleScreen");
+  const titleArtwork = document.getElementById("titleArtwork");
+  const titleMenu = document.getElementById("titleMenu");
+  const playButton = document.getElementById("playButton");
+  const continueGameButton = document.getElementById("continueGameButton");
+  const continueGameMeta = document.getElementById("continueGameMeta");
+  const creditsButton = document.getElementById("creditsButton");
+  const titleEnterHint = document.getElementById("titleEnterHint");
 
   const cinematicShell = document.getElementById("cinematicShell");
   const cinematicFrame = document.getElementById("cinematicFrame");
@@ -148,6 +159,16 @@
   const roomCursor = document.getElementById("roomCursor");
   const roomActions = document.getElementById("roomActions");
 
+  const cinematicTransition = document.getElementById("cinematicTransition");
+  const transitionKicker = document.getElementById("transitionKicker");
+  const transitionTitle = document.getElementById("transitionTitle");
+  const transitionText = document.getElementById("transitionText");
+  const transitionProgress = document.getElementById("transitionProgress");
+  const loseScreen = document.getElementById("loseScreen");
+  const returnCheckpointButton = document.getElementById("returnCheckpointButton");
+  const restartMissionButton = document.getElementById("restartMissionButton");
+  const quitTitleButton = document.getElementById("quitTitleButton");
+
   const screenFade = document.getElementById("screenFade");
   const toast = document.getElementById("toast");
   const pilotLogDialog = document.getElementById("pilotLogDialog");
@@ -171,6 +192,7 @@
   const finalLunaText = document.getElementById("finalLunaText");
   const finalGroundText = document.getElementById("finalGroundText");
   const acknowledgeFinalButton = document.getElementById("acknowledgeFinalButton");
+  const creditsDialog = document.getElementById("creditsDialog");
 
   function loadState() {
     try {
@@ -234,6 +256,7 @@
     } catch {
       // The game remains playable without persistent storage.
     }
+    refreshTitleMenu();
   }
 
   function wait(ms) {
@@ -330,6 +353,256 @@
     if (!dialog || !dialog.open) return;
     if (typeof dialog.close === "function") dialog.close();
     else dialog.removeAttribute("open");
+  }
+
+  function closeAllDialogs() {
+    document.querySelectorAll("dialog[open]").forEach(closeDialog);
+  }
+
+  function hasStoredMission() {
+    try {
+      return [SAVE_KEY, ...LEGACY_KEYS].some((key) => {
+        const raw = localStorage.getItem(key);
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        return Boolean(parsed && typeof parsed === "object");
+      });
+    } catch {
+      return false;
+    }
+  }
+
+  function clearStoredMission() {
+    try {
+      localStorage.removeItem(SAVE_KEY);
+      for (const key of LEGACY_KEYS) localStorage.removeItem(key);
+    } catch {
+      // The in-memory reset still works when storage is unavailable.
+    }
+  }
+
+  function getContinueMeta() {
+    if (state.phase === "intro") return `PROLOGUE // SCENE ${String(state.introIndex + 1).padStart(2, "0")}`;
+    if (state.checkpoint > 0) return `CHECKPOINT ${String(state.checkpoint).padStart(2, "0")} // ${getRoomName(state.currentRoom)}`;
+    return `MISSION IN PROGRESS // ${getRoomName(state.currentRoom)}`;
+  }
+
+  function refreshTitleMenu() {
+    if (!continueGameButton || !continueGameMeta) return;
+    const hasSave = hasStoredMission();
+    continueGameButton.hidden = !hasSave;
+    continueGameMeta.textContent = hasSave ? getContinueMeta() : "NO MISSION SAVE";
+    titleEnterHint.textContent = hasSave
+      ? "PRESS ENTER TO PLAY // CONTINUE AVAILABLE"
+      : "PRESS ENTER OR SELECT PLAY";
+  }
+
+  function hidePrimaryScreens() {
+    titleScreen.classList.remove("is-visible");
+    titleScreen.hidden = true;
+    cinematicShell.hidden = true;
+    gameScreen.classList.remove("is-visible");
+    gameScreen.hidden = true;
+    loseScreen.classList.remove("is-visible");
+    loseScreen.hidden = true;
+  }
+
+  function armMapReveal() {
+    shipMap.dataset.cinematicReveal = "pending";
+  }
+
+  async function runCinematicTransition({
+    kicker = "MISSION SYSTEM",
+    title = "RECONSTRUCTING SHIP SCHEMATIC",
+    text = "Buffering mission state…",
+    duration = 900,
+    task = null
+  } = {}) {
+    const runId = ++transitionRunId;
+    transitionKicker.textContent = kicker;
+    transitionTitle.textContent = title;
+    transitionText.textContent = text;
+    transitionProgress.style.animationDuration = `${Math.max(700, duration)}ms`;
+    cinematicTransition.hidden = false;
+    cinematicTransition.classList.remove("is-active", "is-leaving");
+    await wait(reducedMotion ? 1 : 20);
+    if (runId !== transitionRunId) return undefined;
+    cinematicTransition.classList.add("is-active");
+    await wait(reducedMotion ? 5 : 220);
+
+    let result;
+    let thrown;
+    const operation = (async () => {
+      try {
+        if (typeof task === "function") result = await task();
+      } catch (error) {
+        thrown = error;
+      }
+    })();
+
+    await Promise.all([operation, wait(reducedMotion ? 20 : duration)]);
+    if (runId !== transitionRunId) return result;
+    cinematicTransition.classList.add("is-leaving");
+    await wait(reducedMotion ? 5 : 320);
+    if (runId === transitionRunId) {
+      cinematicTransition.hidden = true;
+      cinematicTransition.classList.remove("is-active", "is-leaving");
+    }
+    if (thrown) throw thrown;
+    return result;
+  }
+
+  function showTitleScreen() {
+    cancelActiveSequence();
+    closeAllDialogs();
+    cinematicShell.hidden = true;
+    gameScreen.classList.remove("is-visible");
+    gameScreen.hidden = true;
+    loseScreen.classList.remove("is-visible");
+    loseScreen.hidden = true;
+    titleScreen.hidden = false;
+    refreshTitleMenu();
+    preloadImage("assets/IMG00.png");
+    requestAnimationFrame(() => {
+      titleScreen.classList.add("is-visible");
+      playButton.focus({ preventScroll: true });
+    });
+  }
+
+  async function startNewMission({ force = false } = {}) {
+    if (!force && hasStoredMission()) {
+      const confirmed = window.confirm("Start a new mission? Existing checkpoint progress will be overwritten.");
+      if (!confirmed) return;
+    }
+
+    cancelActiveSequence();
+    closeAllDialogs();
+    clearStoredMission();
+    state = { ...defaultState };
+    saveState();
+    backgroundWarmupStarted = false;
+
+    await runCinematicTransition({
+      kicker: "ELITE FORCES // MISSION ARCHIVE",
+      title: "MISSION ARCHIVE INITIALISING",
+      text: "Pilot: Luna H. // Destination: Earth // Deep-space route loading",
+      duration: 1050,
+      task: async () => {
+        hidePrimaryScreens();
+        cinematicShell.hidden = false;
+        await preloadImages(["assets/IMG01.png", "assets/IMG02.png"], 2);
+        await showIntroScene(0, { initial: true });
+      }
+    });
+  }
+
+  async function continueMission() {
+    if (!hasStoredMission()) {
+      await startNewMission({ force: true });
+      return;
+    }
+
+    state = loadState();
+    const checkpointText = state.phase === "intro"
+      ? "Restoring prologue transmission"
+      : `Restoring Checkpoint ${String(state.checkpoint).padStart(2, "0")} at ${getRoomName(state.currentRoom)}`;
+
+    await runCinematicTransition({
+      kicker: "MISSION ARCHIVE // SAVE DETECTED",
+      title: "MISSION STATE RECOVERED",
+      text: checkpointText,
+      duration: 950,
+      task: async () => {
+        hidePrimaryScreens();
+        if (state.phase === "intro") {
+          cinematicShell.hidden = false;
+          await showIntroScene(state.introIndex, { initial: true });
+          return;
+        }
+
+        gameScreen.hidden = false;
+        ensureCurrentRoom();
+        armMapReveal();
+        updateInterface();
+        await showRoom(state.currentRoom, { immediate: true });
+        requestAnimationFrame(() => {
+          positionToken();
+          gameScreen.classList.add("is-visible");
+        });
+      }
+    });
+  }
+
+  async function quitToTitle() {
+    cancelActiveSequence();
+    closeAllDialogs();
+    saveState();
+    await runCinematicTransition({
+      kicker: "MISSION ARCHIVE",
+      title: "RETURNING TO TITLE",
+      text: "Preserving the latest mission state",
+      duration: 700,
+      task: showTitleScreen
+    });
+  }
+
+  function resetBlackoutCheckpointState() {
+    state = {
+      ...state,
+      phase: "game",
+      blackoutStarted: true,
+      lightsOut: true,
+      currentRoom: "control",
+      mapMode: "blackout",
+      checkpoint: 3,
+      relayFound: false,
+      bridgeFound: false,
+      regulatorFound: false,
+      blackoutThreatStep: 0,
+      alienRepelled: false,
+      lightsRestored: false,
+      surveillanceOpened: false,
+      shadowFootageViewed: false,
+      mimicFootageViewed: false,
+      falseGroundContacted: false,
+      actTwoComplete: false,
+      stress: 94
+    };
+    saveState();
+  }
+
+  async function showLoseScreen() {
+    cancelActiveSequence();
+    await runCinematicTransition({
+      kicker: "SUIT TELEMETRY // CONNECTION TERMINATED",
+      title: "BIOLOGICAL SIGNAL LOST",
+      text: "No further transmission received from Luna H.",
+      duration: 900,
+      task: () => {
+        hidePrimaryScreens();
+        loseScreen.hidden = false;
+        requestAnimationFrame(() => {
+          loseScreen.classList.add("is-visible");
+          returnCheckpointButton.focus({ preventScroll: true });
+        });
+      }
+    });
+  }
+
+  async function returnToCheckpointFromLoss() {
+    loseScreen.classList.remove("is-visible");
+    resetBlackoutCheckpointState();
+    await restartBlackoutCheckpoint({ stateAlreadyReset: true });
+  }
+
+  async function restartFromLoss() {
+    loseScreen.classList.remove("is-visible");
+    await startNewMission({ force: true });
+  }
+
+  async function quitFromLossToTitle() {
+    resetBlackoutCheckpointState();
+    await quitToTitle();
   }
 
   const TEXT_FADE_DURATION = 460;
@@ -433,24 +706,28 @@
   }
 
   async function enterGame() {
-    screenFade.classList.add("is-active");
-    await wait(reducedMotion ? 20 : 850);
-
     state.phase = "game";
     saveState();
-    cinematicShell.hidden = true;
-    gameScreen.hidden = false;
-    ensureCurrentRoom();
-    updateInterface();
-    await showRoom(state.currentRoom, { immediate: true });
 
-    requestAnimationFrame(() => {
-      positionToken();
-      gameScreen.classList.add("is-visible");
+    await runCinematicTransition({
+      kicker: "VESSEL SYSTEM // DECK 07",
+      title: "SHIP SCHEMATIC ONLINE",
+      text: "Locating Luna H. and reconstructing the accessible route",
+      duration: 950,
+      task: async () => {
+        cinematicShell.hidden = true;
+        gameScreen.hidden = false;
+        ensureCurrentRoom();
+        armMapReveal();
+        updateInterface();
+        await showRoom(state.currentRoom, { immediate: true });
+        requestAnimationFrame(() => {
+          positionToken();
+          gameScreen.classList.add("is-visible");
+        });
+      }
     });
 
-    await wait(reducedMotion ? 20 : 150);
-    screenFade.classList.remove("is-active");
     showToast("SHIP MAP ONLINE // DRAG LUNA OR SELECT A CONNECTED ROOM");
   }
 
@@ -743,6 +1020,8 @@
 
   function renderMap() {
     const config = getMapConfig();
+    const revealMap = shipMap.dataset.cinematicReveal === "pending";
+    delete shipMap.dataset.cinematicReveal;
     mapTitle.textContent = config.title;
     mapInstruction.textContent = config.instruction;
     shipMap.className = "ship-map";
@@ -752,6 +1031,7 @@
     if (config.interior) shipMap.classList.add("interior-map");
     if (config.exterior) shipMap.classList.add("exterior-map");
     if (config.final) shipMap.classList.add("final-map");
+    if (revealMap) shipMap.classList.add("is-cinematic-reveal");
 
     const byId = Object.fromEntries(config.nodes.map((node) => [node.id, node]));
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -760,7 +1040,7 @@
     svg.setAttribute("preserveAspectRatio", "none");
     svg.setAttribute("aria-hidden", "true");
 
-    for (const edge of config.edges) {
+    for (const [edgeIndex, edge] of config.edges.entries()) {
       const [fromId, toId, edgeClass = ""] = edge;
       const from = byId[fromId];
       const to = byId[toId];
@@ -771,10 +1051,11 @@
       line.setAttribute("x2", String(to.x));
       line.setAttribute("y2", String(to.y));
       line.setAttribute("class", `connection-line ${edgeClass}`.trim());
+      line.style.setProperty("--reveal-index", String(edgeIndex));
       svg.append(line);
     }
 
-    const nodeElements = config.nodes.map((node) => {
+    const nodeElements = config.nodes.map((node, nodeIndex) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "room-node";
@@ -782,6 +1063,7 @@
       button.dataset.room = node.id;
       button.style.setProperty("--x", `${node.x}%`);
       button.style.setProperty("--y", `${node.y}%`);
+      button.style.setProperty("--reveal-index", String(nodeIndex));
 
       if (node.alert) {
         const ring = document.createElement("span");
@@ -822,6 +1104,10 @@
       .join(" / ");
     routeReadout.textContent = connected ? `ROUTE STATUS: ${connected}` : "ROUTE STATUS: NO CLEAR EXIT";
     requestAnimationFrame(positionToken);
+    if (revealMap) {
+      window.clearTimeout(mapRevealTimer);
+      mapRevealTimer = window.setTimeout(() => shipMap.classList.remove("is-cinematic-reveal"), reducedMotion ? 20 : 1500);
+    }
   }
 
   function positionToken() {
@@ -882,16 +1168,16 @@
       value.textContent = "FIRE";
       return;
     }
-    if (state.finalReported) {
-      threatReadout.classList.add("is-alien");
-      label.textContent = "EARTH";
-      value.textContent = "HOLD";
-      return;
-    }
     if (state.lightsOut) {
       threatReadout.classList.add("is-alien");
       label.textContent = "POWER";
       value.textContent = "BLACKOUT";
+      return;
+    }
+    if (state.finalReported) {
+      threatReadout.classList.add("is-alien");
+      label.textContent = "EARTH";
+      value.textContent = "HOLD";
       return;
     }
     if (state.currentRoom === "outside" || state.currentRoom === "satnav") {
@@ -1738,6 +2024,7 @@
     }
 
     const previousRoom = state.currentRoom;
+    const previousMapMode = state.mapMode;
     state.currentRoom = targetRoom;
 
     if (state.branch === "alone" && previousRoom === "airlock" && targetRoom === "outside") {
@@ -1753,8 +2040,26 @@
     }
     if (targetRoom === "outside") state.stress = Math.max(state.stress, 81);
     saveState();
-    updateInterface();
-    await showRoom(targetRoom);
+
+    const mapChanged = previousMapMode !== state.mapMode;
+    if (mapChanged) {
+      await runCinematicTransition({
+        kicker: "SHIP INTERFACE // ROUTE CHANGE",
+        title: state.currentRoom === "outside" || state.currentRoom === "satnav"
+          ? "EXTERIOR SCHEMATIC LOADING"
+          : "INTERIOR SCHEMATIC RESTORING",
+        text: "Reconstructing Luna's accessible route",
+        duration: 720,
+        task: async () => {
+          armMapReveal();
+          updateInterface();
+          await showRoom(targetRoom, { immediate: true });
+        }
+      });
+    } else {
+      updateInterface();
+      await showRoom(targetRoom);
+    }
 
     if (targetRoom === "life" && !state.fireExtinguished) showToast("WARNING // FIRE SUPPRESSION OFFLINE");
     if (targetRoom === "kitchen" && !state.alienEncountered) window.setTimeout(() => showToast("AUDIO EVENT // DOOR LOCK ENGAGED"), 650);
@@ -1786,8 +2091,17 @@
     state.stress = Math.max(state.stress, 14);
     saveState();
     closeDialog(groundControlDialog);
-    updateInterface();
-    await showRoom("control");
+    await runCinematicTransition({
+      kicker: "MISSION DIRECTIVE // GROUND CONTROL",
+      title: "SOUTHERN DECK UNLOCKED",
+      text: "Expanding the ship schematic to Laboratory, Stores, Mess and Engineering",
+      duration: 850,
+      task: async () => {
+        armMapReveal();
+        updateInterface();
+        await showRoom("control", { immediate: true });
+      }
+    });
     showToast("NEW AREA UNLOCKED // SOUTHERN FACILITIES AVAILABLE");
   }
 
@@ -1804,8 +2118,17 @@
     state.damageLogged = true;
     state.checkpoint = Math.max(state.checkpoint, 1);
     saveState();
-    updateInterface();
-    await showRoom("life");
+    await runCinematicTransition({
+      kicker: "MISSION CHECKPOINT // DECK 07",
+      title: "CHECKPOINT 01",
+      text: "Sabotage confirmed // Mission state preserved",
+      duration: 900,
+      task: async () => {
+        armMapReveal();
+        updateInterface();
+        await showRoom("life", { immediate: true });
+      }
+    });
     showToast("CHECKPOINT 01 SAVED // SOUTHERN DECK MAPPED // REPORT TO CONTROL");
   }
 
@@ -1917,7 +2240,18 @@
           button: "SAVE CHECKPOINT"
         }
       ],
-      () => {
+      async () => {
+        await runCinematicTransition({
+          kicker: "MISSION CHECKPOINT // ENGINEERING",
+          title: "CHECKPOINT 02",
+          text: "Two biological signatures detected // Mission state preserved",
+          duration: 950,
+          task: async () => {
+            armMapReveal();
+            updateInterface();
+            await showRoom("engineering", { immediate: true });
+          }
+        });
         showToast("CHECKPOINT 02 SAVED // TWO BIOLOGICAL SIGNATURES DETECTED");
         openDialog(chapterDialog);
       }
@@ -1953,8 +2287,17 @@
         }
       ],
       async () => {
-        updateInterface();
-        await showRoom("control");
+        await runCinematicTransition({
+          kicker: "MISSION ROUTE // CRITICAL FAILURE",
+          title: "ENGINE 02 ROUTE ISOLATED",
+          text: "Contracting the schematic to Control, Maintenance Tunnels and Main Engine Room",
+          duration: 900,
+          task: async () => {
+            armMapReveal();
+            updateInterface();
+            await showRoom("control", { immediate: true });
+          }
+        });
         showToast("MISSION ROUTE UPDATED // ENGINE 02 FAILURE");
       }
     );
@@ -1981,8 +2324,17 @@
         }
       ],
       async () => {
-        updateInterface();
-        await showRoom("tunnels");
+        await runCinematicTransition({
+          kicker: "MISSION ROUTE // TRANSMITTER SILENT",
+          title: "MAINTENANCE ROUTE ISOLATED",
+          text: "Reconstructing the immediate route through Engineering",
+          duration: 850,
+          task: async () => {
+            armMapReveal();
+            updateInterface();
+            await showRoom("tunnels", { immediate: true });
+          }
+        });
         showToast("MISSION ROUTE UPDATED // ENGINEERING ACCESS ONLY");
       }
     );
@@ -2016,8 +2368,17 @@
         }
       ],
       async () => {
-        updateInterface();
-        await showRoom("engine");
+        await runCinematicTransition({
+          kicker: "SHIPWIDE SYSTEM // LIGHTING FAILURE",
+          title: "RETURN ROUTE RECALCULATED",
+          text: "Emergency navigation active // Flashlight required",
+          duration: 800,
+          task: async () => {
+            armMapReveal();
+            updateInterface();
+            await showRoom("engine", { immediate: true });
+          }
+        });
         showToast("SHIPWIDE BLACKOUT // FLASHLIGHT ACTIVE");
       }
     );
@@ -2049,8 +2410,17 @@
         }
       ],
       async () => {
-        updateInterface();
-        await showRoom("engine");
+        await runCinematicTransition({
+          kicker: "NAVIGATION SYSTEM // POSITION DATA LOST",
+          title: "EVA ROUTE CONSTRUCTED",
+          text: "Mapping Control, Airlock, Outer Hull and Satellite Navigation Array",
+          duration: 900,
+          task: async () => {
+            armMapReveal();
+            updateInterface();
+            await showRoom("engine", { immediate: true });
+          }
+        });
         showToast("SATELLITE NAVIGATION OFFLINE // RETURN TO CONTROL");
       }
     );
@@ -2073,8 +2443,17 @@
         }
       ],
       async () => {
-        updateInterface();
-        await showRoom("control");
+        await runCinematicTransition({
+          kicker: "SAT-NAV DIAGNOSTICS // EXTERNAL FAILURE",
+          title: "AIRLOCK 02 UNLOCKED",
+          text: "Preparing the exterior repair schematic",
+          duration: 700,
+          task: async () => {
+            armMapReveal();
+            updateInterface();
+            await showRoom("control", { immediate: true });
+          }
+        });
         showToast("EVA ROUTE UNLOCKED // AIRLOCK 02");
       }
     );
@@ -2108,8 +2487,17 @@
         }
       ],
       async () => {
-        updateInterface();
-        await showRoom("satnav");
+        await runCinematicTransition({
+          kicker: "NAVIGATION SYSTEM // POSITION FIX RESTORED",
+          title: "RETURN ROUTE LOADING",
+          text: "Reconstructing the path to Airlock 02 and Control",
+          duration: 760,
+          task: async () => {
+            armMapReveal();
+            updateInterface();
+            await showRoom("satnav", { immediate: true });
+          }
+        });
         showToast("SAT-NAV RESTORED // RETURN TO CONTROL");
       }
     );
@@ -2120,28 +2508,39 @@
     closeDialog(finalGroundDialog);
     cancelActiveSequence();
     state.blackoutStarted = true;
+    state.lightsOut = true;
     state.mapMode = "blackout";
     state.currentRoom = "control";
     state.checkpoint = 3;
     state.stress = Math.max(state.stress, 94);
     saveState();
-    // Load the first Control image before revealing the checkpoint, then warm
-    // the rest without holding the interface hostage on a slow connection.
-    const controlImageReady = await preloadImage("assets/IMG22.png");
-    if (!controlImageReady) await preloadImage("assets/IMG21.png");
-    preloadImages([
-      "assets/IMG21.png",
-      "assets/IMG23.png",
-      "assets/IMG25.png",
-      "assets/IMG26.png",
-      "assets/IMG27.png",
-      "assets/IMG30.png",
-      "assets/IMG34.png",
-      "assets/IMG35.png",
-      "assets/IMG36.png"
-    ], 2);
-    updateInterface();
-    await showRoom("control");
+
+    await runCinematicTransition({
+      kicker: "MISSION CHECKPOINT // CONTROL ROOM",
+      title: "CHECKPOINT 03",
+      text: "Shipwide lighting failure // Reconstructing emergency search grid",
+      duration: 1150,
+      task: async () => {
+        const controlImageReady = await preloadImage("assets/IMG22.png");
+        if (!controlImageReady) await preloadImage("assets/IMG21.png");
+        preloadImages([
+          "assets/IMG21.png",
+          "assets/IMG23.png",
+          "assets/IMG25.png",
+          "assets/IMG26.png",
+          "assets/IMG27.png",
+          "assets/IMG30.png",
+          "assets/IMG31.png",
+          "assets/IMG32.png",
+          "assets/IMG34.png",
+          "assets/IMG35.png",
+          "assets/IMG36.png"
+        ], 2);
+        armMapReveal();
+        updateInterface();
+        await showRoom("control", { immediate: true });
+      }
+    });
     showToast("CHECKPOINT 03 SAVED // SHIPWIDE LIGHTING FAILURE");
   }
 
@@ -2197,10 +2596,10 @@
         code: "BIOLOGICAL STATUS // SIGNAL LOST",
         title: "TOTAL FAILURE",
         text: "It finds her.\n\nThe last image recorded by Luna's suit is a black face opening directly in front of her.",
-        button: "RESTART CHECKPOINT 03",
+        button: "CONTINUE",
         presentation: "failure"
       }
-    ], restartBlackoutCheckpoint);
+    ], showLoseScreen);
   }
 
   function faceAlienBlackout() {
@@ -2238,37 +2637,44 @@
     ], async () => {
       state.alienRepelled = true;
       state.lightsRestored = true;
+      state.lightsOut = false;
       state.currentRoom = "control";
       state.stress = Math.min(99, state.stress + 4);
       saveState();
-      updateInterface();
-      await showRoom("control");
+      await runCinematicTransition({
+        kicker: "LIGHTING GRID // ONLINE",
+        title: "CONTROL ROOM RESTORED",
+        text: "Returning Luna to the communications station",
+        duration: 720,
+        task: async () => {
+          updateInterface();
+          await showRoom("control", { immediate: true });
+        }
+      });
       showToast("LIGHTING RESTORED // COMMUNICATIONS ONLINE");
     });
   }
 
-  async function restartBlackoutCheckpoint() {
+  async function restartBlackoutCheckpoint({ stateAlreadyReset = false } = {}) {
     cancelActiveSequence();
-    state = {
-      ...state,
-      currentRoom: "control",
-      mapMode: "blackout",
-      relayFound: false,
-      bridgeFound: false,
-      regulatorFound: false,
-      blackoutThreatStep: 0,
-      alienRepelled: false,
-      lightsRestored: false,
-      surveillanceOpened: false,
-      shadowFootageViewed: false,
-      mimicFootageViewed: false,
-      falseGroundContacted: false,
-      actTwoComplete: false,
-      stress: 94
-    };
-    saveState();
-    updateInterface();
-    await showRoom("control");
+    if (!stateAlreadyReset) resetBlackoutCheckpointState();
+    await runCinematicTransition({
+      kicker: "MISSION CHECKPOINT // RESTORE",
+      title: "CHECKPOINT 03",
+      text: "Restoring the lighting-failure mission state",
+      duration: 1050,
+      task: async () => {
+        hidePrimaryScreens();
+        gameScreen.hidden = false;
+        armMapReveal();
+        updateInterface();
+        await showRoom("control", { immediate: true });
+        requestAnimationFrame(() => {
+          positionToken();
+          gameScreen.classList.add("is-visible");
+        });
+      }
+    });
     showToast("CHECKPOINT 03 RESTORED // LIGHTS OUT");
   }
 
@@ -2358,8 +2764,17 @@
       state.currentRoom = "control";
       state.stress = 99;
       saveState();
-      updateInterface();
-      await showRoom("control");
+      await runCinematicTransition({
+        kicker: "MISSION CHECKPOINT // SIGNAL CORRUPTION",
+        title: "CHECKPOINT 04",
+        text: "Internal communications compromised // Mission state preserved",
+        duration: 1050,
+        task: async () => {
+          armMapReveal();
+          updateInterface();
+          await showRoom("control", { immediate: true });
+        }
+      });
       showToast("CHECKPOINT 04 SAVED // COMMUNICATIONS COMPROMISED");
     });
   }
@@ -2376,8 +2791,17 @@
     state.currentRoom = "control";
     state.stress = Math.max(state.stress, 93);
     saveState();
-    updateInterface();
-    await showRoom("control");
+    await runCinematicTransition({
+      kicker: "CONTROL ROOM // FINAL REPORT",
+      title: "COMMAND NODE ISOLATED",
+      text: "Closing secondary routes and acquiring the Earth relay",
+      duration: 800,
+      task: async () => {
+        armMapReveal();
+        updateInterface();
+        await showRoom("control", { immediate: true });
+      }
+    });
     openFinalGroundDialog();
   }
 
@@ -2532,20 +2956,21 @@
     await moveToRoom(target.dataset.room);
   }
 
-  function restartGame() {
+  async function restartGame() {
     cancelActiveSequence();
     mediaSwapToken += 1;
     roomFadeToken += 1;
     const confirmed = window.confirm("Restart The Void from the opening cinematic? All checkpoints will be erased.");
     if (!confirmed) return;
-    try {
-      localStorage.removeItem(SAVE_KEY);
-      for (const key of LEGACY_KEYS) localStorage.removeItem(key);
-    } catch {
-      // Reload still resets the in-memory game.
-    }
-    window.location.reload();
+    await startNewMission({ force: true });
   }
+
+  playButton.addEventListener("click", () => startNewMission());
+  continueGameButton.addEventListener("click", continueMission);
+  creditsButton.addEventListener("click", () => openDialog(creditsDialog));
+  returnCheckpointButton.addEventListener("click", returnToCheckpointFromLoss);
+  restartMissionButton.addEventListener("click", restartFromLoss);
+  quitTitleButton.addEventListener("click", quitFromLossToTitle);
 
   continueButton.addEventListener("click", advanceIntro);
   acknowledgeGroundButton.addEventListener("click", acknowledgeGroundControl);
@@ -2568,28 +2993,36 @@
     positionToken();
   });
 
+  titleArtwork.addEventListener("error", () => {
+    titleArtwork.hidden = true;
+  });
+
   document.addEventListener("keydown", (event) => {
-    if (state.phase !== "intro") return;
     if (event.key !== "Enter" && event.key !== " ") return;
-    event.preventDefault();
-    advanceIntro();
+    if (creditsDialog.open || !cinematicTransition.hidden) return;
+
+    if (!titleScreen.hidden && titleScreen.classList.contains("is-visible")) {
+      event.preventDefault();
+      startNewMission();
+      return;
+    }
+
+    if (state.phase === "intro" && !cinematicShell.hidden) {
+      event.preventDefault();
+      advanceIntro();
+    }
   });
 
   window.addEventListener("resize", positionToken);
 
-  if (state.phase === "intro") {
-    gameScreen.hidden = true;
-    cinematicShell.hidden = false;
-    showIntroScene(state.introIndex, { initial: true });
-  } else {
-    cinematicShell.hidden = true;
-    gameScreen.hidden = false;
-    ensureCurrentRoom();
-    updateInterface();
-    showRoom(state.currentRoom, { immediate: true });
-    requestAnimationFrame(() => {
-      positionToken();
-      gameScreen.classList.add("is-visible");
-    });
-  }
+  cinematicShell.hidden = true;
+  gameScreen.hidden = true;
+  loseScreen.hidden = true;
+  refreshTitleMenu();
+  preloadImage("assets/IMG00.png");
+  requestAnimationFrame(() => {
+    titleScreen.hidden = false;
+    titleScreen.classList.add("is-visible");
+    playButton.focus({ preventScroll: true });
+  });
 })();

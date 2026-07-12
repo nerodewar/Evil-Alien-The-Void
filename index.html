@@ -4,10 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#05070a">
-  <meta name="game-version" content="0.5.3">
+  <meta name="game-version" content="0.6.0">
   <meta name="description" content="The Void, a cinematic solo sci-fi survival adventure.">
   <title>The Void</title>
 
+  <link rel="preload" as="image" href="assets/IMG00.png" fetchpriority="high">
   <link rel="preload" as="image" href="assets/IMG01.png">
   <link rel="preload" as="image" href="assets/IMG02.png">
   <link rel="preload" as="image" href="assets/IMG03.png">
@@ -22,7 +23,44 @@
   <div class="grain" aria-hidden="true"></div>
 
   <main id="app">
-    <section class="cinematic-shell" id="cinematicShell">
+    <section class="title-screen is-visible" id="titleScreen" aria-label="The Void title screen">
+      <div class="title-backdrop" aria-hidden="true"></div>
+      <img
+        class="title-artwork"
+        id="titleArtwork"
+        src="assets/IMG00.png"
+        fetchpriority="high"
+        decoding="async"
+        alt="Luna pilots her spacecraft at maximum throttle toward a vast dark anomaly. The Void title and production credits appear over the scene."
+      >
+      <div class="title-shade" aria-hidden="true"></div>
+      <div class="title-hud" aria-hidden="true">
+        <span>DEEP SPACE MISSION ARCHIVE</span>
+        <span>VESSEL LINK // STANDBY</span>
+      </div>
+      <div class="title-menu" id="titleMenu">
+        <h1 class="sr-only">The Void</h1>
+        <p class="title-menu-kicker">MISSION ARCHIVE // SELECT DIRECTIVE</p>
+        <div class="title-actions" aria-label="Title screen options">
+          <button class="title-button title-button-primary" id="playButton" type="button">
+            <span>PLAY</span>
+            <small>NEW MISSION</small>
+          </button>
+          <button class="title-button" id="continueGameButton" type="button" hidden>
+            <span>CONTINUE</span>
+            <small id="continueGameMeta">CHECKPOINT SAVED</small>
+          </button>
+          <button class="title-button title-button-quiet" id="creditsButton" type="button">
+            <span>CREDITS</span>
+            <small>PRODUCTION ARCHIVE</small>
+          </button>
+        </div>
+        <p class="title-enter-hint" id="titleEnterHint">PRESS ENTER OR SELECT PLAY</p>
+      </div>
+      <div class="title-build">BUILD 0.6.0</div>
+    </section>
+
+    <section class="cinematic-shell" id="cinematicShell" hidden>
       <div class="cinematic-frame" id="cinematicFrame" aria-label="The Void cinematic prologue">
         <div class="image-panel" id="imagePanel">
           <img
@@ -144,6 +182,42 @@
       </div>
     </section>
   </main>
+
+  <section class="cinematic-transition" id="cinematicTransition" hidden aria-live="polite" aria-atomic="true">
+    <div class="transition-noise" aria-hidden="true"></div>
+    <div class="transition-core">
+      <div class="transition-emblem" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="transition-kicker" id="transitionKicker">MISSION SYSTEM</p>
+      <h2 id="transitionTitle">RECONSTRUCTING SHIP SCHEMATIC</h2>
+      <p class="transition-text" id="transitionText">Buffering mission state…</p>
+      <div class="transition-track" aria-hidden="true"><span id="transitionProgress"></span></div>
+      <p class="transition-status">PLEASE STAND BY // LOCAL VESSEL LINK</p>
+    </div>
+  </section>
+
+  <section class="lose-screen" id="loseScreen" hidden aria-labelledby="loseTitle">
+    <div class="lose-grid" aria-hidden="true"></div>
+    <div class="lose-card">
+      <p class="lose-kicker">BIOLOGICAL STATUS // SIGNAL LOST</p>
+      <h2 id="loseTitle">YOU LOSE</h2>
+      <p class="lose-copy">Luna was discovered in the dark. Her suit transmission ended before the organism withdrew.</p>
+      <div class="lose-divider" aria-hidden="true"></div>
+      <div class="lose-actions">
+        <button class="lose-button lose-button-primary" id="returnCheckpointButton" type="button">
+          <span>RETURN TO CHECKPOINT 03</span>
+          <small>RESTORE LIGHTING-FAILURE MISSION STATE</small>
+        </button>
+        <button class="lose-button" id="restartMissionButton" type="button">
+          <span>RESTART GAME</span>
+          <small>BEGIN FROM THE OPENING CINEMATIC</small>
+        </button>
+        <button class="lose-button lose-button-quiet" id="quitTitleButton" type="button">
+          <span>QUIT TO TITLE</span>
+          <small>CHECKPOINT 03 WILL REMAIN AVAILABLE</small>
+        </button>
+      </div>
+    </div>
+  </section>
 
   <div class="screen-fade" id="screenFade" aria-hidden="true"></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -353,6 +427,32 @@
         <button class="dialog-button" id="acknowledgeFinalButton" type="button">UNDERSTOOD</button>
       </footer>
     </div>
+  </dialog>
+
+  <dialog class="system-dialog credits-dialog" id="creditsDialog">
+    <form method="dialog" class="system-window credits-window">
+      <header>
+        <div>
+          <span>PRODUCTION ARCHIVE // THE VOID</span>
+          <h2>CREDITS</h2>
+        </div>
+        <button class="close-dialog" value="close" aria-label="Close credits">×</button>
+      </header>
+      <div class="dialog-body credits-body">
+        <p class="credits-studio">NERO DEWAR PRODUCTIONS</p>
+        <p class="credits-game">A JAMES RITCHIE VIDEO GAME</p>
+        <div class="credits-rule" aria-hidden="true"></div>
+        <dl>
+          <div><dt>Created, designed and directed by</dt><dd>James Ritchie</dd></div>
+          <div><dt>Lead character</dt><dd>Luna H.</dd></div>
+          <div><dt>Current build</dt><dd>0.6.0</dd></div>
+        </dl>
+      </div>
+      <footer>
+        <span>MISSION ARCHIVE COMPLETE</span>
+        <button value="close" class="dialog-button">RETURN TO TITLE</button>
+      </footer>
+    </form>
   </dialog>
 
   <script src="script.js"></script>
