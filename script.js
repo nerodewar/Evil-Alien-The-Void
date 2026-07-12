@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v091";
+  const SAVE_KEY = "theVoidSave_v092";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
   const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
@@ -1726,23 +1726,24 @@
     svg.append(createMapSvgElement("rect", { class: "cutaway-space", x: "0", y: "0", width: "100", height: "100", fill: `url(#${uid}-space)` }));
     svg.append(createMapSvgElement("rect", { class: "cutaway-nebula", x: "0", y: "0", width: "100", height: "100", fill: `url(#${uid}-nebula)` }));
 
-    const starLayer = createMapSvgElement("g", { class: "cutaway-stars" });
     const seedState = { value: mapSeed(`${profile}-${state.checkpoint}`) };
-    for (let index = 0; index < 88; index += 1) {
+    const starLayerA = createMapSvgElement("g", { class: "cutaway-stars cutaway-stars-a" });
+    const starLayerB = createMapSvgElement("g", { class: "cutaway-stars cutaway-stars-b" });
+    for (let index = 0; index < 110; index += 1) {
       const x = mapRandom(seedState) * 100;
       const y = mapRandom(seedState) * 100;
       const bright = mapRandom(seedState);
-      const radius = bright > .93 ? .18 : bright > .72 ? .105 : .055;
+      const radius = bright > .94 ? .18 : bright > .74 ? .105 : .055;
       const star = createMapSvgElement("circle", {
         cx: x.toFixed(2),
         cy: y.toFixed(2),
         r: radius,
-        class: bright > .93 ? "cutaway-star is-bright" : "cutaway-star"
+        class: bright > .94 ? "cutaway-star is-bright" : "cutaway-star"
       });
       star.style.setProperty("--star-delay", `${(mapRandom(seedState) * 6).toFixed(2)}s`);
-      starLayer.append(star);
+      (index % 2 === 0 ? starLayerA : starLayerB).append(star);
     }
-    svg.append(starLayer);
+    svg.append(starLayerA, starLayerB);
   }
 
   function nodeCompartmentSize(node, config) {
@@ -1754,16 +1755,80 @@
     return { width: config.compact ? 15 : 16, height: config.compact ? 15 : 16 };
   }
 
-  function mapCorridorPath(from, to) {
-    const dx = Math.abs(to.x - from.x);
-    const dy = Math.abs(to.y - from.y);
-    if (dx < 3 || dy < 3) return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
-    if (dx >= dy) {
-      const middleX = (from.x + to.x) / 2;
-      return `M ${from.x} ${from.y} H ${middleX} V ${to.y} H ${to.x}`;
+
+  function buildAdjacency(config) {
+    const adjacency = Object.fromEntries(config.nodes.map((node) => [node.id, new Set()]));
+    for (const [fromId, toId] of config.edges) {
+      if (adjacency[fromId]) adjacency[fromId].add(toId);
+      if (adjacency[toId]) adjacency[toId].add(fromId);
     }
-    const middleY = (from.y + to.y) / 2;
-    return `M ${from.x} ${from.y} V ${middleY} H ${to.x} V ${to.y}`;
+    return adjacency;
+  }
+
+  function buildNodeFrames(config) {
+    const byId = Object.fromEntries(config.nodes.map((node) => [node.id, node]));
+    const adjacency = buildAdjacency(config);
+    const corridorRooms = new Set(["hallway", "south", "darkcorridor", "tunnels", "outside"]);
+    const frames = {};
+
+    for (const node of config.nodes) {
+      let { width, height } = nodeCompartmentSize(node, config);
+      const neighbors = [...(adjacency[node.id] || [])].map((id) => byId[id]).filter(Boolean);
+
+      if (corridorRooms.has(node.id) && neighbors.length) {
+        const dxSpread = Math.max(...neighbors.map((neighbor) => Math.abs(neighbor.x - node.x)));
+        const dySpread = Math.max(...neighbors.map((neighbor) => Math.abs(neighbor.y - node.y)));
+        if (dxSpread >= dySpread) {
+          width = Math.max(width + 2, Math.min(28, dxSpread * 2 + 6));
+          height = config.compact ? 8.5 : 9.8;
+        } else {
+          width = config.compact ? 8.5 : 9.8;
+          height = Math.max(height + 2, Math.min(28, dySpread * 2 + 6));
+        }
+      }
+
+      if (node.id === "control" && !config.final) width += 2;
+      if (["lab", "security", "tactical", "engineering", "engine"].includes(node.id)) {
+        width += 1.5;
+        height += 1.5;
+      }
+
+      const x = Math.max(1.5, Math.min(98.5 - width, node.x - width / 2));
+      const y = Math.max(1.5, Math.min(98.5 - height, node.y - height / 2));
+      frames[node.id] = { ...node, x, y, width, height, cx: x + width / 2, cy: y + height / 2 };
+    }
+    return frames;
+  }
+
+  function connectorPoint(frame, target, preferAxis = "auto") {
+    const dx = target.x - frame.cx;
+    const dy = target.y - frame.cy;
+    const horizontal = preferAxis === "horizontal" || (preferAxis === "auto" && Math.abs(dx) >= Math.abs(dy));
+    if (horizontal) {
+      return {
+        x: dx >= 0 ? frame.x + frame.width : frame.x,
+        y: frame.cy
+      };
+    }
+    return {
+      x: frame.cx,
+      y: dy >= 0 ? frame.y + frame.height : frame.y
+    };
+  }
+
+  function mapCorridorPath(fromFrame, toFrame) {
+    const dx = Math.abs(toFrame.cx - fromFrame.cx);
+    const dy = Math.abs(toFrame.cy - fromFrame.cy);
+    const horizontal = dx >= dy;
+    const start = connectorPoint(fromFrame, { x: toFrame.cx, y: toFrame.cy }, horizontal ? "horizontal" : "vertical");
+    const end = connectorPoint(toFrame, { x: fromFrame.cx, y: fromFrame.cy }, horizontal ? "horizontal" : "vertical");
+    if (dx < 3 || dy < 3) return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+    if (horizontal) {
+      const middleX = (start.x + end.x) / 2;
+      return `M ${start.x} ${start.y} H ${middleX} V ${end.y} H ${end.x}`;
+    }
+    const middleY = (start.y + end.y) / 2;
+    return `M ${start.x} ${start.y} V ${middleY} H ${end.x} V ${end.y}`;
   }
 
   function appendHull(svg, uid, geometry, config) {
@@ -1781,13 +1846,13 @@
     const deck = createMapSvgElement("path", {
       class: "cutaway-deck",
       d: geometry.outer,
-      transform: "translate(50 50) scale(.925) translate(-50 -50)",
+      transform: "translate(50 50) scale(.94) translate(-50 -50)",
       fill: `url(#${uid}-deck)`
     });
     const grid = createMapSvgElement("path", {
       class: "cutaway-deck-grid",
       d: geometry.outer,
-      transform: "translate(50 50) scale(.925) translate(-50 -50)",
+      transform: "translate(50 50) scale(.94) translate(-50 -50)",
       fill: `url(#${uid}-grid)`
     });
     const rim = createMapSvgElement("path", { class: "cutaway-hull-rim", d: geometry.outer });
@@ -1798,18 +1863,18 @@
       const upperShell = createMapSvgElement("path", {
         class: "cutaway-exterior-shell",
         d: geometry.outer,
-        transform: "translate(50 50) scale(.86) translate(-50 -50)"
+        transform: "translate(50 50) scale(.88) translate(-50 -50)"
       });
       svg.append(upperShell);
     }
   }
 
-  function appendCorridors(svg, uid, config, byId) {
+  function appendCorridors(svg, uid, config, frames) {
     const layer = createMapSvgElement("g", { class: "cutaway-corridors" });
     for (const [edgeIndex, edge] of config.edges.entries()) {
       const [fromId, toId, edgeClass = ""] = edge;
-      const from = byId[fromId];
-      const to = byId[toId];
+      const from = frames[fromId];
+      const to = frames[toId];
       if (!from || !to) continue;
       const d = mapCorridorPath(from, to);
       const activeRoute = (fromId === state.currentRoom && !getAccessReason(toId)) || (toId === state.currentRoom && !getAccessReason(fromId));
@@ -1836,12 +1901,11 @@
     svg.append(layer);
   }
 
-  function appendCompartments(svg, uid, config) {
+  function appendCompartments(svg, uid, config, frames) {
     const layer = createMapSvgElement("g", { class: "cutaway-compartments" });
     for (const [nodeIndex, node] of config.nodes.entries()) {
-      const { width, height } = nodeCompartmentSize(node, config);
-      const x = Math.max(1.5, Math.min(98.5 - width, node.x - width / 2));
-      const y = Math.max(1.5, Math.min(98.5 - height, node.y - height / 2));
+      const frame = frames[node.id];
+      const { x, y, width, height } = frame;
       const accessReason = getAccessReason(node.id);
       const adjacent = getActiveRoutes()[state.currentRoom]?.includes(node.id);
       const stateClasses = [
@@ -1886,8 +1950,8 @@
 
       if (["engine", "engineering", "power"].includes(node.id)) {
         group.append(
-          createMapSvgElement("circle", { cx: node.x, cy: node.y, r: Math.min(width, height) * .18, class: "cutaway-reactor-ring" }),
-          createMapSvgElement("circle", { cx: node.x, cy: node.y, r: Math.min(width, height) * .07, class: "cutaway-reactor-core" })
+          createMapSvgElement("circle", { cx: frame.cx, cy: frame.cy, r: Math.min(width, height) * .18, class: "cutaway-reactor-ring" }),
+          createMapSvgElement("circle", { cx: frame.cx, cy: frame.cy, r: Math.min(width, height) * .07, class: "cutaway-reactor-core" })
         );
       } else if (node.id === "airlock") {
         group.append(createMapSvgElement("path", { d: `M ${x + width * .36} ${y + 2} V ${y + height - 2} M ${x + width * .64} ${y + 2} V ${y + height - 2}`, class: "cutaway-airlock-bars" }));
@@ -1899,7 +1963,7 @@
     svg.append(layer);
   }
 
-  function buildCutawaySvg(config, byId, profile) {
+  function buildCutawaySvg(config, frames, profile) {
     const geometry = cutawayHullGeometry(profile);
     const uid = `cutaway-${profile}-${Date.now().toString(36)}`;
     const svg = createMapSvgElement("svg", {
@@ -1911,8 +1975,8 @@
     appendMapDefinitions(svg, uid, geometry);
     appendStarfield(svg, uid, profile);
     appendHull(svg, uid, geometry, config);
-    appendCorridors(svg, uid, config, byId);
-    appendCompartments(svg, uid, config);
+    appendCorridors(svg, uid, config, frames);
+    appendCompartments(svg, uid, config, frames);
     return svg;
   }
 
@@ -1934,17 +1998,18 @@
 
     const profile = cutawayProfile(config);
     shipMap.dataset.cutawayProfile = profile;
-    const byId = Object.fromEntries(config.nodes.map((node) => [node.id, node]));
-    const svg = buildCutawaySvg(config, byId, profile);
+    const frames = buildNodeFrames(config);
+    const svg = buildCutawaySvg(config, frames, profile);
 
     const nodeElements = config.nodes.map((node, nodeIndex) => {
+      const frame = frames[node.id];
       const button = document.createElement("button");
       button.type = "button";
       button.className = "room-node cutaway-room-label";
       for (const className of node.classes || []) button.classList.add(className);
       button.dataset.room = node.id;
-      button.style.setProperty("--x", `${node.x}%`);
-      button.style.setProperty("--y", `${node.y}%`);
+      button.style.setProperty("--x", `${frame.cx}%`);
+      button.style.setProperty("--y", `${frame.cy}%`);
       button.style.setProperty("--reveal-index", String(nodeIndex));
 
       if (node.alert) {
@@ -1959,6 +2024,8 @@
 
       const plate = document.createElement("span");
       plate.className = "cutaway-label-plate";
+      const signal = document.createElement("span");
+      signal.className = "cutaway-signal";
       const code = document.createElement("span");
       code.className = "node-code";
       code.textContent = node.code;
@@ -1966,8 +2033,11 @@
       strong.textContent = node.name;
       const small = document.createElement("small");
       small.textContent = node.status;
-      plate.append(code, strong, small);
-      button.append(plate);
+      plate.append(signal, code, strong, small);
+      const beacon = document.createElement("span");
+      beacon.className = "cutaway-signal-beacon";
+      beacon.setAttribute("aria-hidden", "true");
+      button.append(beacon, plate);
 
       const accessReason = getAccessReason(node.id);
       const adjacent = getActiveRoutes()[state.currentRoom]?.includes(node.id);
