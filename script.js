@@ -94,11 +94,11 @@
   };
 
   let state = loadState();
-  let introTyping = false;
-  let introTypingToken = 0;
+  let introTextFading = false;
+  let introFadeToken = 0;
   let introFullText = "";
   let introTransitionLocked = false;
-  let roomTypingToken = 0;
+  let roomFadeToken = 0;
   let mediaSwapToken = 0;
   let toastTimer = 0;
   let dragState = null;
@@ -332,23 +332,17 @@
     else dialog.removeAttribute("open");
   }
 
-  const TYPE_SPEED_MULTIPLIER = 1.4;
+  const TEXT_FADE_DURATION = 460;
 
-  function introPause(character) {
-    if (reducedMotion) return 0;
-    if (character === ".") return 300 / TYPE_SPEED_MULTIPLIER;
-    if (character === ",") return 105 / TYPE_SPEED_MULTIPLIER;
-    if (character === ":") return 145 / TYPE_SPEED_MULTIPLIER;
-    if (character === "\n") return 210 / TYPE_SPEED_MULTIPLIER;
-    return (23 + Math.random() * 17) / TYPE_SPEED_MULTIPLIER;
-  }
+  function restartTextFade(element, text, immediate = false) {
+    element.classList.remove("is-fading-in");
+    element.textContent = text;
 
-  function roomPause(character) {
-    if (reducedMotion) return 0;
-    if (character === ".") return 145 / TYPE_SPEED_MULTIPLIER;
-    if (character === ",") return 62 / TYPE_SPEED_MULTIPLIER;
-    if (character === "\n") return 100 / TYPE_SPEED_MULTIPLIER;
-    return (11 + Math.random() * 9) / TYPE_SPEED_MULTIPLIER;
+    if (immediate || reducedMotion) return;
+
+    // Force the animation to restart when the same panel receives new text.
+    void element.offsetWidth;
+    element.classList.add("is-fading-in");
   }
 
   function setContinueReady(isReady) {
@@ -358,38 +352,35 @@
     keyboardHint.textContent = isReady ? "ENTER TO CONTINUE" : "ENTER TO COMPLETE TRANSMISSION";
   }
 
-  function completeIntroTyping() {
-    if (!introTyping) return;
-    introTypingToken += 1;
+  function completeIntroFade() {
+    if (!introTextFading) return;
+    introFadeToken += 1;
+    narrative.classList.remove("is-fading-in");
     narrative.textContent = introFullText;
-    introTyping = false;
+    introTextFading = false;
     typeCursor.classList.add("is-hidden");
     setContinueReady(true);
   }
 
-  async function typeIntroText(text) {
-    introTypingToken += 1;
-    const token = introTypingToken;
+  async function fadeIntroText(text) {
+    introFadeToken += 1;
+    const token = introFadeToken;
     introFullText = text;
-    narrative.textContent = "";
-    introTyping = true;
-    typeCursor.classList.remove("is-hidden");
+    introTextFading = true;
+    typeCursor.classList.add("is-hidden");
     setContinueReady(false);
+    restartTextFade(narrative, text);
 
     if (reducedMotion) {
-      completeIntroTyping();
+      completeIntroFade();
       return;
     }
 
-    for (const character of text) {
-      if (token !== introTypingToken) return;
-      narrative.textContent += character;
-      await wait(introPause(character));
-    }
+    await wait(TEXT_FADE_DURATION);
+    if (token !== introFadeToken) return;
 
-    if (token !== introTypingToken) return;
-    introTyping = false;
-    typeCursor.classList.add("is-hidden");
+    introTextFading = false;
+    narrative.classList.remove("is-fading-in");
     setContinueReady(true);
   }
 
@@ -410,20 +401,21 @@
     sceneCounter.textContent = scene.counter;
     logLabel.textContent = scene.logLabel;
     imagePanel.classList.toggle("alarm", scene.alarm);
+    narrative.classList.remove("is-fading-in");
     narrative.textContent = "";
-    typeCursor.classList.remove("is-hidden");
+    typeCursor.classList.add("is-hidden");
     setContinueReady(false);
 
     await wait(reducedMotion ? 10 : 90);
     cinematicFrame.classList.remove("is-transitioning");
     sceneImage.classList.add("is-visible");
-    typeIntroText(scene.text);
+    fadeIntroText(scene.text);
   }
 
   async function advanceIntro() {
     if (introTransitionLocked) return;
-    if (introTyping) {
-      completeIntroTyping();
+    if (introTextFading) {
+      completeIntroFade();
       return;
     }
 
@@ -1395,24 +1387,10 @@
     };
   }
 
-  async function typeRoomText(text, immediate = false) {
-    roomTypingToken += 1;
-    const token = roomTypingToken;
-    roomNarrative.textContent = "";
-    roomCursor.classList.remove("is-hidden");
-
-    if (immediate || reducedMotion) {
-      roomNarrative.textContent = text;
-      roomCursor.classList.add("is-hidden");
-      return;
-    }
-
-    for (const character of text) {
-      if (token !== roomTypingToken) return;
-      roomNarrative.textContent += character;
-      await wait(roomPause(character));
-    }
-    if (token === roomTypingToken) roomCursor.classList.add("is-hidden");
+  function fadeRoomText(text, immediate = false) {
+    roomFadeToken += 1;
+    roomCursor.classList.add("is-hidden");
+    restartTextFade(roomNarrative, text, immediate);
   }
 
   async function swapRoomMedia(definition, immediate = false) {
@@ -1735,7 +1713,7 @@
     roomStatus.className = `room-status ${definition.statusClass || ""}`.trim();
     renderRoomActions(room);
     swapRoomMedia(definition, immediate);
-    typeRoomText(definition.text, immediate);
+    fadeRoomText(definition.text, immediate);
     warmAdjacentRoomImages(room);
     startBackgroundImageWarmup();
   }
@@ -2557,7 +2535,7 @@
   function restartGame() {
     cancelActiveSequence();
     mediaSwapToken += 1;
-    roomTypingToken += 1;
+    roomFadeToken += 1;
     const confirmed = window.confirm("Restart The Void from the opening cinematic? All checkpoints will be erased.");
     if (!confirmed) return;
     try {

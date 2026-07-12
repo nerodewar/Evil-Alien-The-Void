@@ -297,21 +297,14 @@ button,
   text-wrap: pretty;
 }
 
-.type-cursor,
-.room-cursor {
-  display: inline-block;
-  width: 8px;
-  height: 1.18em;
-  margin-left: 4px;
-  vertical-align: -.17em;
-  background: rgba(255,255,255,.88);
-  animation: cursor-blink .9s steps(1) infinite;
+.narrative.is-fading-in,
+.room-narrative.is-fading-in {
+  animation: narrative-fade-in .46s var(--ease-cinematic) both;
 }
 
-.type-cursor.is-hidden,
-.room-cursor.is-hidden {
-  opacity: 0;
-  animation: none;
+.type-cursor,
+.room-cursor {
+  display: none !important;
 }
 
 .story-footer {
@@ -1412,9 +1405,17 @@ dialog::backdrop {
   to { transform: translateX(340%); }
 }
 
-@keyframes cursor-blink {
-  0%, 48% { opacity: 1; }
-  49%, 100% { opacity: 0; }
+@keyframes narrative-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
 }
 
 @keyframes alarm-breathe {
