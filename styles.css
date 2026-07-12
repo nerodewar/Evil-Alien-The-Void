@@ -4241,3 +4241,494 @@ body.credits-open {
     width: 100%;
   }
 }
+
+/* v0.9.0 cinematic sectional cutaway maps */
+.ship-map.cutaway-map {
+  isolation: isolate;
+  background: #01040a;
+  box-shadow:
+    inset 0 0 0 1px rgba(205,232,255,.05),
+    inset 0 -80px 120px rgba(0,0,0,.38);
+}
+
+.ship-map.cutaway-map::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.025), transparent 18%, transparent 82%, rgba(0,0,0,.28)),
+    radial-gradient(ellipse at 50% 48%, transparent 46%, rgba(0,0,0,.34) 100%);
+}
+
+.ship-map.cutaway-map::after {
+  content: "CUTAWAY DECK VISUALISATION // LOCAL SHIP TELEMETRY";
+  position: absolute;
+  z-index: 7;
+  left: 16px;
+  bottom: 12px;
+  color: rgba(190,218,238,.34);
+  font: 650 .48rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .16em;
+  pointer-events: none;
+}
+
+.ship-cutaway-svg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  filter: saturate(.96) contrast(1.035);
+}
+
+.cutaway-space,
+.cutaway-nebula {
+  pointer-events: none;
+}
+
+.cutaway-nebula {
+  opacity: .88;
+  animation: cutaway-nebula-breathe 12s ease-in-out infinite;
+}
+
+.cutaway-star {
+  fill: rgba(221,239,255,.68);
+  opacity: .58;
+  animation: cutaway-star-twinkle 5.8s ease-in-out var(--star-delay, 0s) infinite;
+}
+
+.cutaway-star.is-bright {
+  fill: #fff;
+  opacity: .94;
+  filter: drop-shadow(0 0 2px rgba(179,223,255,.8));
+}
+
+.cutaway-hull-shadow {
+  fill: rgba(0,0,0,.82);
+  opacity: .94;
+}
+
+.cutaway-hull-shell {
+  stroke: rgba(240,249,255,.68);
+  stroke-width: .3;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 8px rgba(195,228,255,.14));
+  animation: cutaway-hull-glimmer 9s ease-in-out infinite;
+}
+
+.cutaway-deck {
+  stroke: rgba(118,157,185,.32);
+  stroke-width: .36;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-deck-grid {
+  opacity: .86;
+}
+
+.cutaway-hull-rim {
+  fill: none;
+  stroke: rgba(248,252,255,.78);
+  stroke-width: 1.05;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(187,226,255,.28));
+}
+
+.cutaway-hull-panels {
+  fill: none;
+  stroke: rgba(214,237,250,.24);
+  stroke-width: .62;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-exterior-shell {
+  fill: rgba(226,240,248,.08);
+  stroke: rgba(231,247,255,.45);
+  stroke-width: .75;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-corridor-shell {
+  fill: none;
+  stroke: rgba(0,4,8,.92);
+  stroke-width: 13;
+  stroke-linecap: square;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.connection-line.cutaway-corridor {
+  fill: none;
+  stroke: rgba(132,178,207,.32);
+  stroke-width: 5.4;
+  stroke-linecap: square;
+  stroke-linejoin: round;
+  stroke-dasharray: none;
+  vector-effect: non-scaling-stroke;
+  filter:
+    drop-shadow(0 0 3px rgba(93,184,231,.12))
+    drop-shadow(0 0 8px rgba(80,148,188,.08));
+}
+
+.connection-line.cutaway-corridor.is-danger,
+.lockdown-map .connection-line.cutaway-corridor {
+  stroke: rgba(205,48,66,.5);
+  filter: drop-shadow(0 0 7px rgba(238,52,75,.22));
+}
+
+.connection-line.cutaway-corridor.is-exterior {
+  stroke: rgba(158,210,247,.52);
+  stroke-width: 3;
+  stroke-dasharray: 3 7;
+}
+
+.connection-line.cutaway-corridor.is-locked-route {
+  stroke: rgba(115,125,137,.25);
+  stroke-dasharray: 1 6;
+}
+
+.cutaway-corridor-pulse {
+  fill: none;
+  stroke: rgba(176,229,255,.92);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-dasharray: 1 10;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 4px rgba(124,210,255,.72));
+  animation: cutaway-route-flow 2.9s linear var(--flow-delay, 0s) infinite;
+}
+
+.cutaway-bulkhead {
+  fill: #071018;
+  stroke: rgba(165,207,235,.44);
+  stroke-width: .58;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-compartment-shadow {
+  fill: rgba(0,0,0,.82);
+}
+
+.cutaway-compartment-room {
+  stroke: rgba(138,186,216,.38);
+  stroke-width: .7;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 7px rgba(63,139,184,.1));
+}
+
+.cutaway-compartment-rim {
+  fill: none;
+  stroke: rgba(201,229,246,.18);
+  stroke-width: .42;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-compartment-light {
+  fill: none;
+  stroke: rgba(173,223,250,.52);
+  stroke-width: .72;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 3px rgba(126,208,255,.28));
+}
+
+.cutaway-room-detail,
+.cutaway-airlock-bars {
+  fill: none;
+  stroke: rgba(131,170,196,.22);
+  stroke-width: .52;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-reactor-ring {
+  fill: rgba(4,11,17,.72);
+  stroke: rgba(121,203,244,.56);
+  stroke-width: .8;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-reactor-core {
+  fill: rgba(168,229,255,.8);
+  filter: drop-shadow(0 0 5px rgba(103,204,255,.68));
+}
+
+.cutaway-compartment.current-room .cutaway-compartment-room {
+  stroke: rgba(150,224,255,.92);
+  filter:
+    drop-shadow(0 0 5px rgba(109,207,255,.42))
+    drop-shadow(0 0 14px rgba(65,164,218,.22));
+}
+
+.cutaway-compartment.reachable .cutaway-compartment-rim {
+  stroke: rgba(145,220,255,.52);
+  animation: cutaway-room-breathe 2.6s ease-in-out infinite;
+}
+
+.cutaway-compartment.is-objective .cutaway-compartment-room {
+  stroke: rgba(255,175,81,.92);
+  filter: drop-shadow(0 0 10px rgba(255,138,43,.32));
+}
+
+.cutaway-compartment.is-complete .cutaway-compartment-room {
+  stroke: rgba(112,221,159,.76);
+  filter: drop-shadow(0 0 8px rgba(72,197,127,.22));
+}
+
+.cutaway-compartment.is-locked .cutaway-compartment-room {
+  stroke: rgba(111,122,133,.25);
+  opacity: .62;
+}
+
+.cutaway-compartment.is-biohazard .cutaway-compartment-room,
+.cutaway-compartment.alert-room .cutaway-compartment-room {
+  stroke: rgba(239,72,91,.88);
+  filter: drop-shadow(0 0 11px rgba(226,38,62,.32));
+}
+
+.room-node.cutaway-room-label {
+  z-index: 6;
+  width: clamp(92px, 9.4vw, 136px);
+  min-height: 58px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.room-node.cutaway-room-label:hover {
+  transform: translate(-50%, -50%) scale(1.055);
+  border-color: transparent;
+}
+
+.cutaway-label-plate {
+  position: relative;
+  width: 100%;
+  min-height: 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 9px 10px 8px;
+  overflow: hidden;
+  border: 1px solid rgba(178,212,235,.24);
+  clip-path: polygon(0 8px, 8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+  color: #e2edf5;
+  background:
+    linear-gradient(135deg, rgba(136,203,238,.09), transparent 46%),
+    rgba(3,9,14,.76);
+  box-shadow:
+    0 8px 18px rgba(0,0,0,.34),
+    inset 0 0 16px rgba(66,143,184,.035);
+  backdrop-filter: blur(4px);
+  transition: border-color .3s ease, background .3s ease, box-shadow .3s ease, opacity .3s ease;
+}
+
+.cutaway-label-plate::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 34%;
+  height: 2px;
+  background: rgba(145,220,255,.5);
+  box-shadow: 0 0 8px rgba(100,198,246,.24);
+}
+
+.room-node.cutaway-room-label.current-room .cutaway-label-plate {
+  border-color: rgba(145,220,255,.72);
+  background:
+    linear-gradient(135deg, rgba(68,166,214,.2), transparent 50%),
+    rgba(3,11,17,.88);
+  box-shadow: 0 0 20px rgba(75,176,226,.18), 0 8px 22px rgba(0,0,0,.4);
+}
+
+.room-node.cutaway-room-label.reachable .cutaway-label-plate {
+  border-color: rgba(145,220,255,.38);
+}
+
+.room-node.cutaway-room-label.is-locked .cutaway-label-plate {
+  opacity: .62;
+  filter: grayscale(.38);
+}
+
+.room-node.cutaway-room-label.is-objective .cutaway-label-plate {
+  border-color: rgba(255,175,81,.72);
+  box-shadow: 0 0 20px rgba(255,122,34,.14), 0 8px 22px rgba(0,0,0,.4);
+}
+
+.room-node.cutaway-room-label.is-complete .cutaway-label-plate {
+  border-color: rgba(112,221,159,.52);
+}
+
+.room-node.cutaway-room-label.is-biohazard .cutaway-label-plate,
+.room-node.cutaway-room-label.alert-room .cutaway-label-plate {
+  border-color: rgba(239,72,91,.72);
+}
+
+.room-node.cutaway-room-label .node-code {
+  color: rgba(157,201,229,.62);
+  font-size: clamp(.42rem, .45vw, .5rem);
+}
+
+.room-node.cutaway-room-label strong {
+  margin-top: 3px;
+  font-size: clamp(.56rem, .65vw, .72rem);
+  letter-spacing: .045em;
+}
+
+.room-node.cutaway-room-label small {
+  max-width: 100%;
+  margin-top: 4px;
+  overflow: hidden;
+  color: rgba(159,177,190,.66);
+  font-size: clamp(.39rem, .42vw, .48rem);
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.room-node.cutaway-room-label.reachable::after {
+  inset: -4px;
+  border-radius: 0;
+  clip-path: polygon(0 10px, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+
+.room-node.cutaway-room-label .alert-ring {
+  inset: -8px;
+  border-width: 1px;
+  clip-path: polygon(0 10px, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+
+.room-node.cutaway-room-label .alert-badge {
+  z-index: 3;
+  right: 4px;
+  top: 4px;
+}
+
+.ship-map[data-cutaway-profile="outer-hull"] .cutaway-label-plate {
+  background: rgba(3,8,14,.7);
+}
+
+.ship-map.lockdown-map .cutaway-hull-shell {
+  stroke: rgba(255,222,226,.46);
+}
+
+.ship-map.lockdown-map .cutaway-hull-rim {
+  stroke: rgba(255,146,156,.38);
+  filter: drop-shadow(0 0 7px rgba(225,39,61,.18));
+}
+
+.ship-map.final-map.cutaway-map {
+  min-height: 360px;
+}
+
+.ship-map.is-cinematic-reveal .cutaway-hull-shell,
+.ship-map.is-cinematic-reveal .cutaway-deck,
+.ship-map.is-cinematic-reveal .cutaway-hull-rim,
+.ship-map.is-cinematic-reveal .cutaway-hull-panels {
+  opacity: 0;
+  animation: cutaway-hull-reveal 1.15s var(--ease-cinematic) forwards;
+}
+
+.ship-map.is-cinematic-reveal .cutaway-corridor-shell,
+.ship-map.is-cinematic-reveal .cutaway-compartment {
+  opacity: 0;
+  animation: cutaway-system-reveal .72s var(--ease-cinematic) forwards;
+  animation-delay: calc(.22s + var(--reveal-index, 0) * 70ms);
+}
+
+@keyframes cutaway-star-twinkle {
+  0%, 100% { opacity: .34; }
+  50% { opacity: .92; }
+}
+
+@keyframes cutaway-nebula-breathe {
+  0%, 100% { opacity: .72; }
+  50% { opacity: .98; }
+}
+
+@keyframes cutaway-hull-glimmer {
+  0%, 100% { filter: drop-shadow(0 0 7px rgba(195,228,255,.12)); }
+  48% { filter: drop-shadow(0 0 12px rgba(220,241,255,.22)); }
+}
+
+@keyframes cutaway-route-flow {
+  to { stroke-dashoffset: -44; }
+}
+
+@keyframes cutaway-room-breathe {
+  0%, 100% { opacity: .42; }
+  50% { opacity: .94; }
+}
+
+@keyframes cutaway-hull-reveal {
+  from { opacity: 0; filter: blur(7px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+@keyframes cutaway-system-reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 760px) {
+  .ship-map.cutaway-map::after { display: none; }
+  .room-node.cutaway-room-label {
+    width: clamp(78px, 24vw, 112px);
+    min-height: 48px;
+  }
+  .cutaway-label-plate {
+    min-height: 46px;
+    padding: 7px 8px 6px;
+  }
+  .room-node.cutaway-room-label strong { font-size: .56rem; }
+  .room-node.cutaway-room-label small { font-size: .4rem; }
+  .connection-line.cutaway-corridor { stroke-width: 4.4; }
+  .cutaway-corridor-shell { stroke-width: 10; }
+}
+
+@media (max-width: 520px) {
+  .room-node.cutaway-room-label {
+    width: clamp(70px, 25vw, 96px);
+  }
+  .room-node.cutaway-room-label small { display: none; }
+  .cutaway-label-plate { min-height: 40px; }
+  .luna-token { width: 48px; height: 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cutaway-nebula,
+  .cutaway-star,
+  .cutaway-hull-shell,
+  .cutaway-corridor-pulse,
+  .cutaway-compartment.reachable .cutaway-compartment-rim,
+  .ship-map.is-cinematic-reveal .cutaway-hull-shell,
+  .ship-map.is-cinematic-reveal .cutaway-deck,
+  .ship-map.is-cinematic-reveal .cutaway-hull-rim,
+  .ship-map.is-cinematic-reveal .cutaway-hull-panels,
+  .ship-map.is-cinematic-reveal .cutaway-corridor-shell,
+  .ship-map.is-cinematic-reveal .cutaway-compartment {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
+.ship-map.lockdown-map .room-node.cutaway-room-label,
+.ship-map.lockdown-map .room-node.cutaway-room-label.is-locked,
+.ship-map.lockdown-map .room-node.cutaway-room-label.is-objective,
+.ship-map.lockdown-map .room-node.cutaway-room-label.is-complete,
+.ship-map.lockdown-map .room-node.cutaway-room-label.is-hack-target,
+.ship-map.lockdown-map .room-node.cutaway-room-label.is-biohazard {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}

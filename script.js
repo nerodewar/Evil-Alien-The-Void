@@ -1,11 +1,11 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v082";
+  const SAVE_KEY = "theVoidSave_v090";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
   const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
-  const LEGACY_KEYS = ["theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const LEGACY_KEYS = ["theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -1215,15 +1215,15 @@
     const expanded = state.damageLogged;
     const nodes = expanded
       ? [
-          { id: "crew", code: "CQ-03", name: "CREW QUARTERS", status: "STARTING LOCATION", x: 15, y: 16 },
-          { id: "hallway", code: "H-07", name: "HALLWAY", status: "MAIN ACCESS", x: 39, y: 16 },
-          { id: "control", code: "CR-01", name: "CONTROL ROOM", status: state.groundContacted ? "CHANNEL OPEN" : "GROUND CONTROL", x: 39, y: 5.5 },
-          { id: "life", code: "LS-07", name: "LIFE SUPPORT", status: state.fireExtinguished ? "FIRE CONTAINED" : "EMERGENCY", x: 66, y: 16, classes: state.fireExtinguished ? ["alert-room", "is-contained"] : ["alert-room"], alert: !state.fireExtinguished },
-          { id: "south", code: "SH-07", name: "SOUTH HALLWAY", status: state.groundContacted ? "ACCESSIBLE" : "AWAIT GROUND", x: 66, y: 38 },
-          { id: "lab", code: "LAB-07", name: "LABORATORY", status: state.sampleCollected ? "SAMPLE SECURED" : state.residueFound ? "CLUE FOUND" : state.groundContacted ? "UNSCANNED" : "SEALED", x: 87, y: 47 },
-          { id: "store", code: "ST-07", name: "STORE ROOM", status: state.equipmentTaken ? "EQUIPPED" : state.alienEncountered ? "ACCESSIBLE" : "SAFETY LOCK", x: 43, y: 61 },
-          { id: "kitchen", code: "K-07", name: "KITCHEN / MESS", status: state.alienEncountered ? "CONTACT" : state.sampleCollected ? "UNSCANNED" : "SEALED", x: 66, y: 65 },
-          { id: "engineering", code: "EN-07", name: "ENGINEERING", status: state.hidingInProgress ? "HIDING" : state.engineeringUnlocked ? "UNLOCKED" : state.engineeringKey ? "KEY ACQUIRED" : "LOCKED", x: 66, y: 87 }
+          { id: "crew", code: "CQ-03", name: "CREW QUARTERS", status: "STARTING LOCATION", x: 15, y: 20 },
+          { id: "hallway", code: "H-07", name: "HALLWAY", status: "MAIN ACCESS", x: 39, y: 20 },
+          { id: "control", code: "CR-01", name: "CONTROL ROOM", status: state.groundContacted ? "CHANNEL OPEN" : "GROUND CONTROL", x: 39, y: 7 },
+          { id: "life", code: "LS-07", name: "LIFE SUPPORT", status: state.fireExtinguished ? "FIRE CONTAINED" : "EMERGENCY", x: 66, y: 20, classes: state.fireExtinguished ? ["alert-room", "is-contained"] : ["alert-room"], alert: !state.fireExtinguished },
+          { id: "south", code: "SH-07", name: "SOUTH HALLWAY", status: state.groundContacted ? "ACCESSIBLE" : "AWAIT GROUND", x: 66, y: 40 },
+          { id: "lab", code: "LAB-07", name: "LABORATORY", status: state.sampleCollected ? "SAMPLE SECURED" : state.residueFound ? "CLUE FOUND" : state.groundContacted ? "UNSCANNED" : "SEALED", x: 87, y: 50 },
+          { id: "store", code: "ST-07", name: "STORE ROOM", status: state.equipmentTaken ? "EQUIPPED" : state.alienEncountered ? "ACCESSIBLE" : "SAFETY LOCK", x: 43, y: 63 },
+          { id: "kitchen", code: "K-07", name: "KITCHEN / MESS", status: state.alienEncountered ? "CONTACT" : state.sampleCollected ? "UNSCANNED" : "SEALED", x: 66, y: 67 },
+          { id: "engineering", code: "EN-07", name: "ENGINEERING", status: state.hidingInProgress ? "HIDING" : state.engineeringUnlocked ? "UNLOCKED" : state.engineeringKey ? "KEY ACQUIRED" : "LOCKED", x: 66, y: 88 }
         ]
       : [
           { id: "crew", code: "CQ-03", name: "CREW QUARTERS", status: "STARTING LOCATION", x: 17, y: 59 },
@@ -1564,13 +1564,361 @@
     return "";
   }
 
+  function createMapSvgElement(tag, attributes = {}) {
+    const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (const [name, value] of Object.entries(attributes)) {
+      if (value === undefined || value === null || value === "") continue;
+      element.setAttribute(name, String(value));
+    }
+    return element;
+  }
+
+  function cutawayProfile(config) {
+    if (state.mapMode === "original") return config.expanded ? "habitation-full" : "habitation-local";
+    if (state.mapMode === "investigation") return "research-wing";
+    if (state.mapMode === "lockdown") return "security-wing";
+    if (state.mapMode === "signal_engine" || state.mapMode === "signal_return") return "engineering-spine";
+    if (state.mapMode === "alone_engine") return "maintenance-spine";
+    if (state.mapMode === "satnav_interior" || state.mapMode === "satnav_interior_return") return "command-airlock";
+    if (state.mapMode === "satnav_exterior" || state.mapMode === "satnav_exterior_return") return "outer-hull";
+    if (state.mapMode === "blackout") return "power-spine";
+    return "command-pod";
+  }
+
+  function cutawayHullGeometry(profile) {
+    const geometries = {
+      "habitation-local": {
+        outer: "M4 55 L13 28 Q16 18 27 14 L53 7 Q64 6 73 15 L95 38 L97 58 L83 76 L53 92 L20 85 Q10 80 6 69 Z",
+        accent: "M15 31 L48 14 L72 20 L90 42 M18 76 L50 86 L78 72",
+        glowX: 72,
+        glowY: 17
+      },
+      "habitation-full": {
+        outer: "M3 20 Q8 8 23 7 L56 4 Q67 5 73 16 L92 27 Q98 33 97 45 L91 64 L76 73 L71 94 Q68 98 58 98 L31 97 Q23 96 18 87 L7 72 Q3 66 4 55 Z",
+        accent: "M13 18 L53 10 L69 22 L88 33 M10 67 L31 83 L67 84 L84 66 M23 14 L18 84",
+        glowX: 79,
+        glowY: 20
+      },
+      "research-wing": {
+        outer: "M3 12 Q7 5 18 5 L60 7 Q69 8 74 17 L97 60 Q99 68 94 79 L87 95 L50 90 L31 72 L8 42 Q3 34 3 24 Z",
+        accent: "M12 14 L57 14 L70 25 L90 65 M15 39 L45 66 L82 88",
+        glowX: 79,
+        glowY: 26
+      },
+      "security-wing": {
+        outer: "M3 35 L13 17 Q17 10 29 9 L75 9 Q83 10 88 18 L98 36 L97 67 L84 86 Q79 92 68 91 L25 90 Q15 89 10 80 L3 65 Z",
+        accent: "M14 28 L37 16 L70 16 L89 31 M12 72 L35 84 L72 83 L89 67",
+        glowX: 84,
+        glowY: 22
+      },
+      "engineering-spine": {
+        outer: "M31 3 L69 3 L84 17 L78 53 L72 86 L62 98 L38 98 L28 86 L22 53 L16 17 Z",
+        accent: "M29 13 L50 8 L71 13 M25 49 L50 55 L75 49 M34 88 L50 94 L66 88",
+        glowX: 65,
+        glowY: 14
+      },
+      "maintenance-spine": {
+        outer: "M35 4 L65 4 L77 18 L70 83 L61 97 L39 97 L30 83 L23 18 Z",
+        accent: "M32 17 L50 10 L68 17 M31 80 L50 91 L69 80",
+        glowX: 66,
+        glowY: 13
+      },
+      "command-airlock": {
+        outer: "M10 8 L83 7 Q91 9 95 19 L96 32 L72 43 L68 92 Q66 98 57 98 L30 97 Q24 96 23 88 L20 43 L5 31 Q2 22 6 14 Z",
+        accent: "M15 14 L73 13 L89 23 L67 36 M25 41 L45 47 L64 41 M29 87 L46 93 L63 87",
+        glowX: 82,
+        glowY: 18
+      },
+      "outer-hull": {
+        outer: "M3 45 L16 28 L45 18 L74 21 L96 40 L95 59 L75 72 L42 78 L13 67 Z",
+        accent: "M10 44 L43 25 L72 29 L89 43 M15 63 L43 70 L74 65",
+        glowX: 77,
+        glowY: 19
+      },
+      "power-spine": {
+        outer: "M7 5 L89 5 L97 18 L73 36 L68 94 Q66 98 57 98 L36 98 Q31 97 30 91 L26 36 L5 20 Z",
+        accent: "M15 13 L50 10 L84 14 M29 32 L50 40 L70 32 M35 88 L49 94 L63 88",
+        glowX: 78,
+        glowY: 13
+      },
+      "command-pod": {
+        outer: "M18 50 Q18 22 38 12 L62 12 Q82 22 82 50 Q82 78 62 88 L38 88 Q18 78 18 50 Z",
+        accent: "M28 28 L50 18 L72 28 M28 72 L50 82 L72 72",
+        glowX: 68,
+        glowY: 23
+      }
+    };
+    return geometries[profile] || geometries["command-pod"];
+  }
+
+  function mapSeed(text) {
+    let seed = 2166136261;
+    for (const character of text) {
+      seed ^= character.charCodeAt(0);
+      seed = Math.imul(seed, 16777619);
+    }
+    return seed >>> 0;
+  }
+
+  function mapRandom(seedState) {
+    seedState.value = (Math.imul(seedState.value, 1664525) + 1013904223) >>> 0;
+    return seedState.value / 4294967296;
+  }
+
+  function appendMapDefinitions(svg, uid, geometry) {
+    const defs = createMapSvgElement("defs");
+
+    const space = createMapSvgElement("linearGradient", { id: `${uid}-space`, x1: "0", y1: "0", x2: "1", y2: "1" });
+    space.append(
+      createMapSvgElement("stop", { offset: "0%", "stop-color": "#01040b" }),
+      createMapSvgElement("stop", { offset: "52%", "stop-color": "#071426" }),
+      createMapSvgElement("stop", { offset: "100%", "stop-color": "#02050a" })
+    );
+
+    const nebula = createMapSvgElement("radialGradient", { id: `${uid}-nebula`, cx: `${geometry.glowX}%`, cy: `${geometry.glowY}%`, r: "58%" });
+    nebula.append(
+      createMapSvgElement("stop", { offset: "0%", "stop-color": state.lockdownActive ? "#6b1020" : "#1e5275", "stop-opacity": state.lockdownActive ? ".34" : ".32" }),
+      createMapSvgElement("stop", { offset: "45%", "stop-color": state.lockdownActive ? "#310712" : "#102a47", "stop-opacity": ".14" }),
+      createMapSvgElement("stop", { offset: "100%", "stop-color": "#000000", "stop-opacity": "0" })
+    );
+
+    const hull = createMapSvgElement("linearGradient", { id: `${uid}-hull`, x1: "0", y1: "0", x2: "1", y2: "1" });
+    hull.append(
+      createMapSvgElement("stop", { offset: "0%", "stop-color": "#f8fbff", "stop-opacity": ".92" }),
+      createMapSvgElement("stop", { offset: "28%", "stop-color": "#b6c6d3", "stop-opacity": ".7" }),
+      createMapSvgElement("stop", { offset: "65%", "stop-color": "#506274", "stop-opacity": ".55" }),
+      createMapSvgElement("stop", { offset: "100%", "stop-color": "#dceaf2", "stop-opacity": ".72" })
+    );
+
+    const deck = createMapSvgElement("radialGradient", { id: `${uid}-deck`, cx: "48%", cy: "40%", r: "70%" });
+    deck.append(
+      createMapSvgElement("stop", { offset: "0%", "stop-color": state.lockdownActive ? "#16070a" : "#0c1b26" }),
+      createMapSvgElement("stop", { offset: "63%", "stop-color": "#060b11" }),
+      createMapSvgElement("stop", { offset: "100%", "stop-color": "#020408" })
+    );
+
+    const compartment = createMapSvgElement("linearGradient", { id: `${uid}-compartment`, x1: "0", y1: "0", x2: "0", y2: "1" });
+    compartment.append(
+      createMapSvgElement("stop", { offset: "0%", "stop-color": "#163044", "stop-opacity": ".86" }),
+      createMapSvgElement("stop", { offset: "100%", "stop-color": "#050b11", "stop-opacity": ".94" })
+    );
+
+    const glow = createMapSvgElement("filter", { id: `${uid}-glow`, x: "-60%", y: "-60%", width: "220%", height: "220%" });
+    glow.append(createMapSvgElement("feGaussianBlur", { stdDeviation: "1.2", result: "blur" }));
+    const merge = createMapSvgElement("feMerge");
+    merge.append(createMapSvgElement("feMergeNode", { in: "blur" }), createMapSvgElement("feMergeNode", { in: "SourceGraphic" }));
+    glow.append(merge);
+
+    const shadow = createMapSvgElement("filter", { id: `${uid}-shadow`, x: "-30%", y: "-30%", width: "160%", height: "170%" });
+    shadow.append(createMapSvgElement("feDropShadow", { dx: "0", dy: "2.2", stdDeviation: "2.5", "flood-color": "#000712", "flood-opacity": ".92" }));
+
+    const grid = createMapSvgElement("pattern", { id: `${uid}-grid`, width: "3.2", height: "3.2", patternUnits: "userSpaceOnUse" });
+    grid.append(createMapSvgElement("path", { d: "M 3.2 0 L 0 0 0 3.2", fill: "none", stroke: "#9ed8ff", "stroke-opacity": ".045", "stroke-width": ".12" }));
+
+    const clip = createMapSvgElement("clipPath", { id: `${uid}-clip` });
+    clip.append(createMapSvgElement("path", { d: geometry.outer, transform: "translate(50 50) scale(.925) translate(-50 -50)" }));
+
+    defs.append(space, nebula, hull, deck, compartment, glow, shadow, grid, clip);
+    svg.append(defs);
+  }
+
+  function appendStarfield(svg, uid, profile) {
+    svg.append(createMapSvgElement("rect", { class: "cutaway-space", x: "0", y: "0", width: "100", height: "100", fill: `url(#${uid}-space)` }));
+    svg.append(createMapSvgElement("rect", { class: "cutaway-nebula", x: "0", y: "0", width: "100", height: "100", fill: `url(#${uid}-nebula)` }));
+
+    const starLayer = createMapSvgElement("g", { class: "cutaway-stars" });
+    const seedState = { value: mapSeed(`${profile}-${state.checkpoint}`) };
+    for (let index = 0; index < 88; index += 1) {
+      const x = mapRandom(seedState) * 100;
+      const y = mapRandom(seedState) * 100;
+      const bright = mapRandom(seedState);
+      const radius = bright > .93 ? .18 : bright > .72 ? .105 : .055;
+      const star = createMapSvgElement("circle", {
+        cx: x.toFixed(2),
+        cy: y.toFixed(2),
+        r: radius,
+        class: bright > .93 ? "cutaway-star is-bright" : "cutaway-star"
+      });
+      star.style.setProperty("--star-delay", `${(mapRandom(seedState) * 6).toFixed(2)}s`);
+      starLayer.append(star);
+    }
+    svg.append(starLayer);
+  }
+
+  function nodeCompartmentSize(node, config) {
+    const longRooms = new Set(["hallway", "south", "darkcorridor", "tunnels", "outside"]);
+    const largeRooms = new Set(["control", "engineering", "engine", "security", "tactical", "lab", "life"]);
+    if (config.final) return { width: 27, height: 18 };
+    if (longRooms.has(node.id)) return { width: config.compact ? 25 : 22, height: 8.5 };
+    if (largeRooms.has(node.id)) return { width: config.compact ? 22 : 18, height: 12.5 };
+    return { width: config.compact ? 20 : 16.5, height: 10.5 };
+  }
+
+  function mapCorridorPath(from, to) {
+    const dx = Math.abs(to.x - from.x);
+    const dy = Math.abs(to.y - from.y);
+    if (dx < 3 || dy < 3) return `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
+    if (dx >= dy) {
+      const middleX = (from.x + to.x) / 2;
+      return `M ${from.x} ${from.y} H ${middleX} V ${to.y} H ${to.x}`;
+    }
+    const middleY = (from.y + to.y) / 2;
+    return `M ${from.x} ${from.y} V ${middleY} H ${to.x} V ${to.y}`;
+  }
+
+  function appendHull(svg, uid, geometry, config) {
+    const shadow = createMapSvgElement("path", {
+      class: "cutaway-hull-shadow",
+      d: geometry.outer,
+      transform: "translate(0 2.4)",
+      filter: `url(#${uid}-shadow)`
+    });
+    const outer = createMapSvgElement("path", {
+      class: "cutaway-hull-shell",
+      d: geometry.outer,
+      fill: `url(#${uid}-hull)`
+    });
+    const deck = createMapSvgElement("path", {
+      class: "cutaway-deck",
+      d: geometry.outer,
+      transform: "translate(50 50) scale(.925) translate(-50 -50)",
+      fill: `url(#${uid}-deck)`
+    });
+    const grid = createMapSvgElement("path", {
+      class: "cutaway-deck-grid",
+      d: geometry.outer,
+      transform: "translate(50 50) scale(.925) translate(-50 -50)",
+      fill: `url(#${uid}-grid)`
+    });
+    const rim = createMapSvgElement("path", { class: "cutaway-hull-rim", d: geometry.outer });
+    const accent = createMapSvgElement("path", { class: "cutaway-hull-panels", d: geometry.accent || "" });
+    svg.append(shadow, outer, deck, grid, rim, accent);
+
+    if (config.exterior) {
+      const upperShell = createMapSvgElement("path", {
+        class: "cutaway-exterior-shell",
+        d: geometry.outer,
+        transform: "translate(50 50) scale(.86) translate(-50 -50)"
+      });
+      svg.append(upperShell);
+    }
+  }
+
+  function appendCorridors(svg, uid, config, byId) {
+    const layer = createMapSvgElement("g", { class: "cutaway-corridors", "clip-path": `url(#${uid}-clip)` });
+    for (const [edgeIndex, edge] of config.edges.entries()) {
+      const [fromId, toId, edgeClass = ""] = edge;
+      const from = byId[fromId];
+      const to = byId[toId];
+      if (!from || !to) continue;
+      const d = mapCorridorPath(from, to);
+      const activeRoute = (fromId === state.currentRoom && !getAccessReason(toId)) || (toId === state.currentRoom && !getAccessReason(fromId));
+      const classes = `${edgeClass} ${activeRoute ? "is-active-route" : ""}`.trim();
+      const shell = createMapSvgElement("path", { d, class: `cutaway-corridor-shell ${classes}`.trim() });
+      shell.style.setProperty("--reveal-index", String(edgeIndex));
+      const floor = createMapSvgElement("path", { d, class: `connection-line cutaway-corridor ${classes}`.trim() });
+      floor.style.setProperty("--reveal-index", String(edgeIndex));
+      layer.append(shell, floor);
+      if (activeRoute) {
+        const pulse = createMapSvgElement("path", { d, class: "cutaway-corridor-pulse" });
+        pulse.style.setProperty("--flow-delay", `${edgeIndex * .23}s`);
+        layer.append(pulse);
+      }
+      layer.append(
+        createMapSvgElement("circle", { cx: from.x, cy: from.y, r: ".62", class: "cutaway-bulkhead" }),
+        createMapSvgElement("circle", { cx: to.x, cy: to.y, r: ".62", class: "cutaway-bulkhead" })
+      );
+    }
+    svg.append(layer);
+  }
+
+  function appendCompartments(svg, uid, config) {
+    const layer = createMapSvgElement("g", { class: "cutaway-compartments", "clip-path": `url(#${uid}-clip)` });
+    for (const [nodeIndex, node] of config.nodes.entries()) {
+      const { width, height } = nodeCompartmentSize(node, config);
+      const x = Math.max(1.5, Math.min(98.5 - width, node.x - width / 2));
+      const y = Math.max(1.5, Math.min(98.5 - height, node.y - height / 2));
+      const accessReason = getAccessReason(node.id);
+      const adjacent = getActiveRoutes()[state.currentRoom]?.includes(node.id);
+      const stateClasses = [
+        ...(node.classes || []),
+        node.id === state.currentRoom ? "current-room" : "",
+        adjacent && !accessReason ? "reachable" : "",
+        accessReason ? "is-locked" : "",
+        node.alert ? "alert-room" : ""
+      ].filter(Boolean).join(" ");
+      const group = createMapSvgElement("g", { class: `cutaway-compartment ${stateClasses}`.trim() });
+      group.style.setProperty("--reveal-index", String(nodeIndex));
+      const shadow = createMapSvgElement("rect", {
+        x: x + .55,
+        y: y + .85,
+        width,
+        height,
+        rx: "1.4",
+        class: "cutaway-compartment-shadow"
+      });
+      const room = createMapSvgElement("rect", {
+        x,
+        y,
+        width,
+        height,
+        rx: "1.4",
+        class: "cutaway-compartment-room",
+        fill: `url(#${uid}-compartment)`
+      });
+      const rim = createMapSvgElement("rect", {
+        x: x + .7,
+        y: y + .7,
+        width: Math.max(1, width - 1.4),
+        height: Math.max(1, height - 1.4),
+        rx: ".9",
+        class: "cutaway-compartment-rim"
+      });
+      const topLine = createMapSvgElement("path", {
+        d: `M ${x + 2} ${y + 1.35} H ${x + width - 2}`,
+        class: "cutaway-compartment-light"
+      });
+      group.append(shadow, room, rim, topLine);
+
+      if (["engine", "engineering", "power"].includes(node.id)) {
+        group.append(
+          createMapSvgElement("circle", { cx: node.x, cy: node.y, r: Math.min(width, height) * .18, class: "cutaway-reactor-ring" }),
+          createMapSvgElement("circle", { cx: node.x, cy: node.y, r: Math.min(width, height) * .07, class: "cutaway-reactor-core" })
+        );
+      } else if (node.id === "airlock") {
+        group.append(createMapSvgElement("path", { d: `M ${x + width * .36} ${y + 2} V ${y + height - 2} M ${x + width * .64} ${y + 2} V ${y + height - 2}`, class: "cutaway-airlock-bars" }));
+      } else {
+        group.append(createMapSvgElement("path", { d: `M ${x + 1.7} ${y + height - 1.8} H ${x + width * .4} M ${x + width * .6} ${y + height - 1.8} H ${x + width - 1.7}`, class: "cutaway-room-detail" }));
+      }
+      layer.append(group);
+    }
+    svg.append(layer);
+  }
+
+  function buildCutawaySvg(config, byId, profile) {
+    const geometry = cutawayHullGeometry(profile);
+    const uid = `cutaway-${profile}-${Date.now().toString(36)}`;
+    const svg = createMapSvgElement("svg", {
+      class: "map-connections ship-cutaway-svg",
+      viewBox: "0 0 100 100",
+      preserveAspectRatio: "none",
+      "aria-hidden": "true"
+    });
+    appendMapDefinitions(svg, uid, geometry);
+    appendStarfield(svg, uid, profile);
+    appendHull(svg, uid, geometry, config);
+    appendCorridors(svg, uid, config, byId);
+    appendCompartments(svg, uid, config);
+    return svg;
+  }
+
   function renderMap() {
     const config = getMapConfig();
     const revealMap = shipMap.dataset.cinematicReveal === "pending";
     delete shipMap.dataset.cinematicReveal;
     mapTitle.textContent = config.title;
     mapInstruction.textContent = config.instruction;
-    shipMap.className = "ship-map";
+    shipMap.className = "ship-map cutaway-map";
     if (config.compact) shipMap.classList.add("map-compact");
     if (config.expanded) shipMap.classList.add("map-expanded");
     if (config.mission) shipMap.classList.add("mission-map");
@@ -1580,32 +1928,15 @@
     if (config.lockdown) shipMap.classList.add("lockdown-map");
     if (revealMap) shipMap.classList.add("is-cinematic-reveal");
 
+    const profile = cutawayProfile(config);
+    shipMap.dataset.cutawayProfile = profile;
     const byId = Object.fromEntries(config.nodes.map((node) => [node.id, node]));
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("class", "map-connections");
-    svg.setAttribute("viewBox", "0 0 100 100");
-    svg.setAttribute("preserveAspectRatio", "none");
-    svg.setAttribute("aria-hidden", "true");
-
-    for (const [edgeIndex, edge] of config.edges.entries()) {
-      const [fromId, toId, edgeClass = ""] = edge;
-      const from = byId[fromId];
-      const to = byId[toId];
-      if (!from || !to) continue;
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("x1", String(from.x));
-      line.setAttribute("y1", String(from.y));
-      line.setAttribute("x2", String(to.x));
-      line.setAttribute("y2", String(to.y));
-      line.setAttribute("class", `connection-line ${edgeClass}`.trim());
-      line.style.setProperty("--reveal-index", String(edgeIndex));
-      svg.append(line);
-    }
+    const svg = buildCutawaySvg(config, byId, profile);
 
     const nodeElements = config.nodes.map((node, nodeIndex) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "room-node";
+      button.className = "room-node cutaway-room-label";
       for (const className of node.classes || []) button.classList.add(className);
       button.dataset.room = node.id;
       button.style.setProperty("--x", `${node.x}%`);
@@ -1622,6 +1953,8 @@
         button.append(ring, badge);
       }
 
+      const plate = document.createElement("span");
+      plate.className = "cutaway-label-plate";
       const code = document.createElement("span");
       code.className = "node-code";
       code.textContent = node.code;
@@ -1629,7 +1962,8 @@
       strong.textContent = node.name;
       const small = document.createElement("small");
       small.textContent = node.status;
-      button.append(code, strong, small);
+      plate.append(code, strong, small);
+      button.append(plate);
 
       const accessReason = getAccessReason(node.id);
       const adjacent = getActiveRoutes()[state.currentRoom]?.includes(node.id);
@@ -1637,6 +1971,7 @@
       button.classList.toggle("reachable", Boolean(adjacent && !accessReason));
       button.classList.toggle("is-locked", Boolean(accessReason));
       button.setAttribute("aria-disabled", String(Boolean(accessReason)));
+      button.setAttribute("aria-label", `${node.name}. ${node.status}${accessReason ? `. Locked: ${accessReason}` : ""}`);
       button.addEventListener("click", () => moveToRoom(node.id));
       return button;
     });
@@ -1653,7 +1988,7 @@
     requestAnimationFrame(positionToken);
     if (revealMap) {
       window.clearTimeout(mapRevealTimer);
-      mapRevealTimer = window.setTimeout(() => shipMap.classList.remove("is-cinematic-reveal"), reducedMotion ? 20 : 1500);
+      mapRevealTimer = window.setTimeout(() => shipMap.classList.remove("is-cinematic-reveal"), reducedMotion ? 20 : 1800);
     }
   }
 
