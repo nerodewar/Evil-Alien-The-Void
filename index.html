@@ -4,13 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#05070a">
-  <meta name="game-version" content="0.5.1">
+  <meta name="game-version" content="0.5.2">
   <meta name="description" content="The Void, a cinematic solo sci-fi survival adventure.">
   <title>The Void</title>
 
   <link rel="preload" as="image" href="assets/IMG01.png">
   <link rel="preload" as="image" href="assets/IMG02.png">
   <link rel="preload" as="image" href="assets/IMG03.png">
+  <link rel="prefetch" as="image" href="assets/IMG21.png">
+  <link rel="prefetch" as="image" href="assets/IMG22.png">
+  <link rel="prefetch" as="image" href="assets/IMG27.png">
+  <link rel="prefetch" as="image" href="assets/IMG30.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -125,7 +129,7 @@
           </header>
 
           <div class="room-media" id="roomMedia">
-            <img id="roomImage" src="assets/IMG02.png" alt="Luna awake in her cryosleep chamber">
+            <img id="roomImage" src="assets/IMG02.png" loading="eager" decoding="async" fetchpriority="high" alt="Luna awake in her cryosleep chamber">
             <div class="media-overlay" aria-hidden="true"></div>
             <span class="media-caption" id="mediaCaption">CRYOSLEEP UNIT 03</span>
           </div>
@@ -211,7 +215,7 @@
   <dialog class="cinematic-dialog" id="sequenceDialog">
     <div class="sequence-window">
       <div class="sequence-media" id="sequenceMedia">
-        <img id="sequenceImage" src="assets/IMG11.png" alt="">
+        <img id="sequenceImage" src="assets/IMG11.png" loading="eager" decoding="async" alt="">
         <div class="sequence-vignette" aria-hidden="true"></div>
         <span class="sequence-code" id="sequenceCode">VISUAL RECORD</span>
       </div>

@@ -963,12 +963,12 @@ button,
   opacity: 1;
   transform: scale(1);
   filter: saturate(.9) contrast(1.035);
-  transition: opacity .48s ease, transform 6s ease-out, filter .48s ease;
+  transition: opacity .16s ease, transform 6s ease-out, filter .2s ease;
 }
 
 .room-media.is-swapping img {
-  opacity: 0;
-  transform: scale(1.025);
+  opacity: .72;
+  transform: scale(1.008);
 }
 
 .room-media.is-alien img {
