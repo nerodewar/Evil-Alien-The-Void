@@ -1,10 +1,10 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v070";
+  const SAVE_KEY = "theVoidSave_v080";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
-  const LEGACY_KEYS = ["theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const LEGACY_KEYS = ["theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -94,6 +94,20 @@
     investigationUnlocked: false,
     organismAnalysed: false,
     lockdownActive: false,
+    southHallUnlocked: false,
+    securityOverrideComplete: false,
+    cloneRevealed: false,
+    atmosphereOverrideComplete: false,
+    cloneIncapacitated: false,
+    emergencyRebreather: false,
+    rebreatherSeconds: 90,
+    tacticalGearCollected: false,
+    tacticalHelmet: false,
+    oxygenTank: false,
+    flamethrower: false,
+    plasmaRefills: false,
+    oxygenMinutesRemaining: 1440,
+    earthMinutesRemaining: 2880,
     checkpoint: 0,
     stress: 8
   };
@@ -117,6 +131,10 @@
   let mapRevealTimer = 0;
   let captainLogSaveTimer = 0;
   let titleMusicFadeFrame = 0;
+  let orbitalAnimationFrame = 0;
+  let orbitalRuntime = null;
+  let orbitalLastFrame = 0;
+  let rebreatherInterval = 0;
   const imageCache = new Map();
 
   const titleMusic = document.getElementById("titleMusic");
@@ -144,7 +162,9 @@
 
   const gameScreen = document.getElementById("gameScreen");
   const objectiveText = document.getElementById("objectiveText");
+  const oxygenLabel = document.getElementById("oxygenLabel");
   const oxygenReadout = document.getElementById("oxygenReadout");
+  const powerLabel = document.getElementById("powerLabel");
   const powerReadout = document.getElementById("powerReadout");
   const stressReadout = document.getElementById("stressReadout");
   const threatReadout = document.getElementById("threatReadout");
@@ -206,6 +226,31 @@
   const finalLunaText = document.getElementById("finalLunaText");
   const finalGroundText = document.getElementById("finalGroundText");
   const acknowledgeFinalButton = document.getElementById("acknowledgeFinalButton");
+  const orbitalDialog = document.getElementById("orbitalDialog");
+  const orbitalConsole = orbitalDialog.querySelector(".orbital-console");
+  const orbitalKicker = document.getElementById("orbitalKicker");
+  const orbitalTitle = document.getElementById("orbitalTitle");
+  const orbitalSubtitle = document.getElementById("orbitalSubtitle");
+  const orbitalBudget = document.getElementById("orbitalBudget");
+  const orbitalBriefing = document.getElementById("orbitalBriefing");
+  const orbitalStage = document.getElementById("orbitalStage");
+  const orbitalLinkLayer = document.getElementById("orbitalLinkLayer");
+  const orbitalCoreLayer = document.getElementById("orbitalCoreLayer");
+  const orbitalOrbLayer = document.getElementById("orbitalOrbLayer");
+  const orbitalGateLayer = document.getElementById("orbitalGateLayer");
+  const orbitalCoreControls = document.getElementById("orbitalCoreControls");
+  const orbitalObjectiveList = document.getElementById("orbitalObjectiveList");
+  const orbitalStatus = document.getElementById("orbitalStatus");
+  const orbitalStability = document.getElementById("orbitalStability");
+  const orbitalStatusPanel = orbitalStatus.closest(".orbital-status-panel");
+  const orbitalResult = document.getElementById("orbitalResult");
+  const orbitalResultKicker = document.getElementById("orbitalResultKicker");
+  const orbitalResultTitle = document.getElementById("orbitalResultTitle");
+  const orbitalResultText = document.getElementById("orbitalResultText");
+  const orbitalSlowButton = document.getElementById("orbitalSlowButton");
+  const orbitalResetButton = document.getElementById("orbitalResetButton");
+  const orbitalAbortButton = document.getElementById("orbitalAbortButton");
+  const orbitalCommitButton = document.getElementById("orbitalCommitButton");
   const creditsDialog = document.getElementById("creditsDialog");
 
   function loadState() {
@@ -230,7 +275,7 @@
   function normaliseState(candidate) {
     candidate.introIndex = Math.max(0, Math.min(Number(candidate.introIndex) || 0, introScenes.length - 1));
     candidate.stress = Math.max(0, Math.min(Number(candidate.stress) || 8, 99));
-    candidate.checkpoint = Math.max(0, Math.min(Number(candidate.checkpoint) || 0, 5));
+    candidate.checkpoint = Math.max(0, Math.min(Number(candidate.checkpoint) || 0, 6));
 
     if (candidate.damageLogged) candidate.checkpoint = Math.max(candidate.checkpoint, 1);
     if (candidate.hidingCompleted) candidate.checkpoint = Math.max(candidate.checkpoint, 2);
@@ -240,8 +285,33 @@
       candidate.organismAnalysed = true;
       candidate.lockdownActive = true;
       candidate.investigationUnlocked = true;
-      candidate.checkpoint = 5;
+      candidate.checkpoint = Math.max(candidate.checkpoint, 5);
     }
+    if (candidate.securityOverrideComplete) candidate.southHallUnlocked = true;
+    if (candidate.cloneRevealed) candidate.securityOverrideComplete = true;
+    if (candidate.atmosphereOverrideComplete || candidate.cloneIncapacitated) {
+      candidate.southHallUnlocked = true;
+      candidate.securityOverrideComplete = true;
+      candidate.cloneRevealed = true;
+      candidate.atmosphereOverrideComplete = true;
+      candidate.cloneIncapacitated = true;
+    }
+    if (candidate.tacticalGearCollected) {
+      candidate.southHallUnlocked = true;
+      candidate.securityOverrideComplete = true;
+      candidate.cloneRevealed = true;
+      candidate.atmosphereOverrideComplete = true;
+      candidate.cloneIncapacitated = true;
+      candidate.emergencyRebreather = true;
+      candidate.tacticalHelmet = true;
+      candidate.oxygenTank = true;
+      candidate.flamethrower = true;
+      candidate.plasmaRefills = true;
+      candidate.checkpoint = Math.max(candidate.checkpoint, 6);
+    }
+    candidate.oxygenMinutesRemaining = Math.max(0, Math.min(Number(candidate.oxygenMinutesRemaining) || 1440, 1440));
+    candidate.earthMinutesRemaining = Math.max(0, Math.min(Number(candidate.earthMinutesRemaining) || 2880, 2880));
+    candidate.rebreatherSeconds = Math.max(0, Math.min(Number(candidate.rebreatherSeconds) || 90, 90));
 
     // v0.5.2 removes the Auxiliary Power scavenger chain. Old saves are
     // folded into the single-relay Checkpoint 03 route.
@@ -453,7 +523,9 @@
       "assets/IMG39.png", "assets/IMG40.png",
       "assets/IMG41.png", "assets/IMG42.png", "assets/IMG43.png",
       "assets/IMG44.png", "assets/IMG45.png", "assets/IMG46.png",
-      "assets/IMG47.png", "assets/IMG48.png", "assets/IMG49.png"
+      "assets/IMG47.png", "assets/IMG48.png", "assets/IMG49.png",
+      "assets/IMG50.png", "assets/IMG51.png", "assets/IMG52.png",
+      "assets/IMG53.png", "assets/IMG55.png"
     ];
     const begin = () => preloadImages(sources, 1);
 
@@ -579,6 +651,8 @@
   }
 
   function showTitleScreen() {
+    closeOrbitalPuzzle();
+    stopRebreatherCountdown({ preserve: true });
     cancelActiveSequence();
     closeAllDialogs();
     cinematicShell.hidden = true;
@@ -701,6 +775,20 @@
       investigationUnlocked: false,
       organismAnalysed: false,
       lockdownActive: false,
+      southHallUnlocked: false,
+      securityOverrideComplete: false,
+      cloneRevealed: false,
+      atmosphereOverrideComplete: false,
+      cloneIncapacitated: false,
+      emergencyRebreather: false,
+      rebreatherSeconds: 90,
+      tacticalGearCollected: false,
+      tacticalHelmet: false,
+      oxygenTank: false,
+      flamethrower: false,
+      plasmaRefills: false,
+      oxygenMinutesRemaining: 1440,
+      earthMinutesRemaining: 2880,
       stress: 94
     };
     saveState();
@@ -888,7 +976,7 @@
       storage2: "BLACKOUT STORAGE",
       security: "SECURITY CONTROL",
       armoury: "SECURITY ARMOURY",
-      tactical: "TACTICAL EQUIPMENT BAY"
+      tactical: "TACTICAL SUPPLY"
     };
     return names[room] || String(room).toUpperCase();
   }
@@ -981,34 +1069,45 @@
     }
 
     if (state.mapMode === "lockdown") {
+      const tacticalStatus = state.tacticalGearCollected
+        ? "LOADOUT SECURED"
+        : state.cloneIncapacitated
+          ? "ACCESS READY"
+          : state.securityOverrideComplete
+            ? "BIOLOGICAL OCCUPANT"
+            : "LOCKDOWN SEALED";
       return {
         title: "DECK 07 // EMERGENCY LOCKDOWN",
-        instruction: "BREAK LOCKDOWN // REACH THE SECURITY ARMOURY",
+        instruction: state.tacticalGearCollected
+          ? "TACTICAL LOADOUT SECURED // SHIP OXYGEN REMAINS CRITICAL"
+          : !state.southHallUnlocked
+            ? "BREACH THE SOUTH HALL ORBITAL LOCK"
+            : !state.securityOverrideComplete
+              ? "REACH SECURITY CONTROL AND OVERRIDE THE LOCKDOWN"
+              : !state.cloneIncapacitated
+                ? "ROUTE THE ATMOSPHERE AND INCAPACITATE THE IMITATION"
+                : "ENTER TACTICAL SUPPLY BEFORE THE REBREATHER EXPIRES",
         expanded: true,
         compact: false,
         mission: true,
         interior: true,
         lockdown: true,
         nodes: [
-          { id: "lab", code: "LAB-07", name: "LABORATORY", status: "CHECKPOINT 05", x: 18, y: 50, classes: ["is-complete"] },
-          { id: "south", code: "SH-07", name: "SOUTH HALLWAY", status: "SEALED", x: 42, y: 50, classes: ["is-locked"] },
-          { id: "security", code: "SEC-02", name: "SECURITY CONTROL", status: "ACCESS DENIED", x: 64, y: 28, classes: ["is-locked"] },
-          { id: "tactical", code: "TEB-01", name: "TACTICAL EQUIPMENT", status: "SEALED", x: 64, y: 72, classes: ["is-locked"] },
-          { id: "armoury", code: "ARM-01", name: "SECURITY ARMOURY", status: "WEAPONS LOCKED", x: 86, y: 50, classes: ["is-objective", "is-locked"] }
+          { id: "lab", code: "LAB-07", name: "LABORATORY", status: "CHECKPOINT 05", x: 12, y: 50, classes: ["is-complete"] },
+          { id: "south", code: "SH-07", name: "SOUTH HALL", status: state.southHallUnlocked ? "ACCESS OPEN" : "ORBITAL LOCK", x: 38, y: 50, classes: state.southHallUnlocked ? ["is-complete"] : ["is-objective", "is-hack-target"] },
+          { id: "security", code: "SEC-02", name: "SECURITY CONTROL", status: state.securityOverrideComplete ? "OPERATIONS ONLINE" : state.southHallUnlocked ? "OVERRIDE REQUIRED" : "BEYOND SOUTH HALL", x: 63, y: 28, classes: state.securityOverrideComplete ? ["is-complete"] : state.southHallUnlocked ? ["is-objective", "is-hack-target"] : ["is-locked"] },
+          { id: "tactical", code: "TS-01", name: "TACTICAL SUPPLY", status: state.cloneIncapacitated && !state.emergencyRebreather && !state.tacticalGearCollected ? "REBREATHER REQUIRED" : tacticalStatus, x: 86, y: 50, classes: state.tacticalGearCollected ? ["is-complete"] : state.cloneIncapacitated ? ["is-objective"] : state.securityOverrideComplete ? ["is-biohazard"] : ["is-locked"] }
         ],
         edges: [
-          ["lab", "south", "is-danger"],
-          ["south", "security", "is-danger"],
-          ["south", "tactical", "is-danger"],
-          ["security", "armoury", "is-danger"],
-          ["tactical", "armoury", "is-danger"]
+          ["lab", "south", state.southHallUnlocked ? "" : "is-danger"],
+          ["south", "security", state.southHallUnlocked ? "" : "is-danger"],
+          ["security", "tactical", state.cloneIncapacitated ? "" : "is-danger"]
         ],
         routes: {
           lab: ["south"],
-          south: ["lab", "security", "tactical"],
-          security: ["south", "armoury"],
-          tactical: ["south", "armoury"],
-          armoury: ["security", "tactical"]
+          south: ["lab", "security"],
+          security: ["south", "tactical"],
+          tactical: ["security"]
         }
       };
     }
@@ -1191,8 +1290,20 @@
   }
 
   function getAccessReason(room) {
-    if (state.mapMode === "lockdown" && room !== "lab") {
-      return "EMERGENCY LOCKDOWN // AREA SEALED BY LUNA H. BIOMETRIC AUTHORISATION";
+    if (state.mapMode === "lockdown") {
+      if (room === "south") return "";
+      if (room === "security" && !state.southHallUnlocked) {
+        return "SOUTH HALL SEALED // COMPLETE THE FIRST ORBITAL CIPHER";
+      }
+      if (room === "tactical" && !state.cloneIncapacitated) {
+        return state.securityOverrideComplete
+          ? "TACTICAL SUPPLY BIOHAZARD // ATMOSPHERIC CONTAINMENT REQUIRED"
+          : "TACTICAL SUPPLY SEALED // SECURITY OPERATIONS OFFLINE";
+      }
+      if (room === "tactical" && state.cloneIncapacitated && !state.emergencyRebreather && !state.tacticalGearCollected) {
+        return "EMERGENCY REBREATHER REQUIRED // TAKE IT FROM SECURITY CONTROL";
+      }
+      return "";
     }
 
     if (state.mapMode === "original") {
@@ -1327,7 +1438,13 @@
   }
 
   function deriveObjective() {
-    if (state.lockdownActive) return "Break the emergency lockdown and reach the Security Armoury";
+    if (state.lockdownActive) {
+      if (!state.southHallUnlocked) return "Hack the South Hall blast door with the Orbital Cipher";
+      if (!state.securityOverrideComplete) return "Reach Security Control and breach lockdown operations";
+      if (!state.cloneIncapacitated) return "Purge Tactical Supply and incapacitate the human-form imitation";
+      if (!state.tacticalGearCollected) return "Enter Tactical Supply and secure oxygen, helmet and weapons";
+      return "Tactical loadout secured // prepare to hunt the organism";
+    }
     if (state.investigationUnlocked && !state.organismAnalysed) {
       return state.currentRoom === "lab"
         ? "Load the residue sample into the molecular analysis chamber"
@@ -1435,6 +1552,11 @@
     if (state.engineeringKey) items.push("ENGINEERING KEY");
     if (state.satNavModule) items.push("SAT-NAV MODULE");
     if (state.relayFound && !state.lightsRestored) items.push("POWER RELAY");
+    if (state.emergencyRebreather && !state.tacticalGearCollected) items.push("EMERGENCY REBREATHER");
+    if (state.tacticalHelmet) items.push("TACTICAL HELMET");
+    if (state.oxygenTank) items.push("OXYGEN TANK");
+    if (state.flamethrower) items.push("FLAMETHROWER");
+    if (state.plasmaRefills) items.push("PLASMA CELLS");
 
     inventoryItems.replaceChildren();
     if (items.length === 0) {
@@ -1457,8 +1579,18 @@
   function updateInterface() {
     ensureCurrentRoom();
     objectiveText.textContent = deriveObjective();
-    oxygenReadout.textContent = state.currentRoom === "outside" || state.currentRoom === "satnav" ? "88%" : state.lockdownActive ? "93%" : state.lightsOut ? "91%" : state.fireExtinguished ? "94%" : "96%";
-    powerReadout.textContent = state.lockdownActive ? "74%" : state.lightsOut ? "43%" : state.satNavFailed ? "68%" : state.alienEncountered ? "76%" : state.damageLogged ? "79%" : "81%";
+    gameScreen.classList.toggle("has-mission-clocks", state.lockdownActive);
+    if (state.lockdownActive) {
+      oxygenLabel.textContent = "O₂ LEFT";
+      powerLabel.textContent = "EARTH ETA";
+      oxygenReadout.textContent = formatMissionClock(state.oxygenMinutesRemaining);
+      powerReadout.textContent = formatMissionClock(state.earthMinutesRemaining);
+    } else {
+      oxygenLabel.textContent = "O₂";
+      powerLabel.textContent = "POWER";
+      oxygenReadout.textContent = state.currentRoom === "outside" || state.currentRoom === "satnav" ? "88%" : state.lightsOut ? "91%" : state.fireExtinguished ? "94%" : "96%";
+      powerReadout.textContent = state.lightsOut ? "43%" : state.satNavFailed ? "68%" : state.alienEncountered ? "76%" : state.damageLogged ? "79%" : "81%";
+    }
     stressReadout.textContent = `${String(state.stress).padStart(2, "0")}%`;
     updateThreatReadout();
     updateInventory();
@@ -1543,8 +1675,9 @@
     }
 
     if (state.mapMode === "lockdown") {
-      if (room === "lab") {
-        return {
+      const clocks = `Earth intercept: ${formatMissionClock(state.earthMinutesRemaining)}. Breathable ship oxygen: ${formatMissionClock(state.oxygenMinutesRemaining)}.`;
+      const lockdownRooms = {
+        lab: {
           code: "LAB-07",
           title: "LABORATORY",
           status: "EMERGENCY LOCKDOWN",
@@ -1554,9 +1687,66 @@
           alt: "Luna stands armed inside the Laboratory as red lockdown lights seal the ship.",
           caption: "CHECKPOINT 05 // THE IMITATION",
           mediaClass: "is-alien",
-          text: "Reinforced doors have sealed throughout the ship under Luna's copied biometric authority. The Security Armoury, tactical equipment bay and emergency weapons lockers are inaccessible.\n\nThe organism knows Luna has discovered its weakness. Somewhere beyond the Laboratory door, something strikes the metal once, waits, then strikes again."
-        };
-      }
+          text: `Reinforced doors have sealed throughout the ship under Luna's copied biometric authority. ${clocks}
+
+The ship cannot keep Luna alive until Earth arrival. She must breach the South Hall, seize Security Control and reach the tactical oxygen supply before the reserve fails.`
+        },
+        south: {
+          code: "SH-07",
+          title: "SOUTH HALL BLAST DOOR",
+          status: state.southHallUnlocked ? "ACCESS OPEN" : "ORBITAL LOCK",
+          statusClass: state.southHallUnlocked ? "is-success" : "is-warning",
+          image: "assets/IMG50.png",
+          fallbackImage: "assets/IMG49.png",
+          alt: "Luna operates the emergency interface beside the sealed South Hall blast door.",
+          caption: state.southHallUnlocked ? "SOUTH HALL // SECURITY ROUTE OPEN" : "ORBITAL CIPHER // LOCAL DOOR PROCESSOR",
+          mediaClass: "",
+          text: state.southHallUnlocked
+            ? `The orbital key has stabilised and the blast door is open. Security Control lies beyond. ${clocks}`
+            : `The South Hall door has rejected Luna's copied credentials. Its isolated maintenance processor will accept only a gravitational security key.
+
+${clocks} Luna must reconstruct the orbital cipher and force the door before the oxygen deficit becomes irreversible.`
+        },
+        security: {
+          code: "SEC-02",
+          title: "SECURITY CONTROL",
+          status: state.securityOverrideComplete ? state.cloneIncapacitated ? "CONTAINMENT COMPLETE" : "TACTICAL FEED LIVE" : "OPERATIONS LOCKED",
+          statusClass: state.cloneIncapacitated ? "is-success" : state.securityOverrideComplete ? "is-alien" : "is-warning",
+          image: "assets/IMG51.png",
+          fallbackImage: "assets/IMG04.png",
+          alt: "A compact security control room aboard Luna's small spacecraft.",
+          caption: state.securityOverrideComplete ? "SECURITY OPERATIONS // TACTICAL SUPPLY MONITORED" : "SECURITY MAINFRAME // ORBITAL AUTHENTICATION REQUIRED",
+          mediaClass: state.securityOverrideComplete && !state.cloneIncapacitated ? "is-alien" : "",
+          text: !state.securityOverrideComplete
+            ? `The compact security room is intact, but every lockdown control is sealed behind a second orbital lattice. Breaking it will release the weapons lockers and restore environmental command.
+
+${clocks}`
+            : !state.cloneIncapacitated
+              ? `Security operations are online. The tactical camera identifies a human figure inside Supply as LUNA H. It is standing between Luna and the oxygen tank, helmet, flamethrower and plasma cells.
+
+The imitation has completed a human form. It needs air.`
+              : `Tactical Supply holds at 3.2% oxygen under stable pressure. The copied human body has collapsed. Security Control has released a ninety-second emergency rebreather for the retrieval.
+
+Luna has one brief crossing to secure the real oxygen equipment.`
+        },
+        tactical: {
+          code: "TS-01",
+          title: "TACTICAL SUPPLY",
+          status: state.tacticalGearCollected ? "LOADOUT SECURED" : "ATMOSPHERE PURGED",
+          statusClass: state.tacticalGearCollected ? "is-success" : "is-danger",
+          image: state.tacticalGearCollected ? "assets/IMG55.png" : "assets/IMG53.png",
+          fallbackImage: state.tacticalGearCollected ? "assets/IMG49.png" : "assets/IMG52.png",
+          alt: state.tacticalGearCollected ? "Luna wears a sealed helmet and oxygen tank with her weapons ready." : "Security footage shows the human-form imitation collapsed inside Tactical Supply.",
+          caption: state.tacticalGearCollected ? "TACTICAL LOADOUT // OXYGEN ONLINE" : "TACTICAL SUPPLY // OXYGEN 3.2% // REBREATHER ACTIVE",
+          mediaClass: state.tacticalGearCollected ? "" : "is-alien",
+          text: state.tacticalGearCollected
+            ? "The helmet seals and the oxygen line turns green. Luna seats fresh plasma cells, shoulders the flamethrower and checks the pressure gauge. She can breathe. The ship still cannot."
+            : `The temporary hood fogs with every breath. The imitation lies motionless beside the tactical lockers, its copied lungs defeated by the purge.
+
+REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the locker and connect the proper oxygen system now.`
+        }
+      };
+      if (lockdownRooms[room]) return lockdownRooms[room];
     }
     if (state.blackoutStarted && (state.mapMode === "blackout" || state.mapMode === "act2_control")) {
       const definitions = {
@@ -2146,11 +2336,53 @@
 
   function getMissionActions(room) {
     if (state.lockdownActive) {
-      if (room !== "lab") return [];
-      return [
-        { label: "OPEN CAPTAIN'S LOG", meta: "ORGANISM ANALYSIS", special: true, onClick: openPilotLog },
-        { label: "REVIEW LOCKDOWN SCHEMATIC", meta: "CHECKPOINT 05", onClick: () => showToast("SECURITY ARMOURY SEALED // FIND A MANUAL LOCKDOWN OVERRIDE") }
-      ];
+      if (room === "lab") {
+        return [
+          { label: "APPROACH SOUTH HALL", meta: "ORBITAL LOCK", special: true, onClick: () => moveToRoom("south") },
+          { label: "OPEN CAPTAIN'S LOG", meta: "ORGANISM ANALYSIS", onClick: openPilotLog }
+        ];
+      }
+      if (room === "south") {
+        if (!state.southHallUnlocked) {
+          return [
+            { label: "INITIATE ORBITAL CIPHER", meta: "HACK 01 // ACCESS", special: true, onClick: () => startOrbitalPuzzle("south") },
+            { label: "RETURN TO LABORATORY", meta: "MOVE", onClick: () => moveToRoom("lab") }
+          ];
+        }
+        return [
+          { label: "ENTER SECURITY CONTROL", meta: state.securityOverrideComplete ? "ONLINE" : "HACK REQUIRED", special: true, onClick: () => moveToRoom("security") },
+          { label: "RETURN TO LABORATORY", meta: "MOVE", onClick: () => moveToRoom("lab") }
+        ];
+      }
+      if (room === "security") {
+        const actions = [];
+        if (!state.securityOverrideComplete) {
+          actions.push({ label: "BREACH SECURITY OPERATIONS", meta: "HACK 02 // LOCKDOWN", special: true, onClick: () => startOrbitalPuzzle("security") });
+        } else if (!state.cloneIncapacitated) {
+          actions.push({ label: "ROUTE OXYGEN & INERT GAS", meta: "HACK 03 // ATMOSPHERE", danger: true, onClick: () => startOrbitalPuzzle("atmosphere") });
+          actions.push({ label: "REVIEW TACTICAL CAMERA", meta: "FALSE LUNA", onClick: showCloneSurveillance });
+        } else if (!state.emergencyRebreather) {
+          actions.push({ label: "TAKE EMERGENCY REBREATHER", meta: "90 SEC", special: true, onClick: prepareTacticalRetrieval });
+        } else {
+          actions.push({ label: "ENTER TACTICAL SUPPLY", meta: "LOW OXYGEN", danger: true, onClick: () => moveToRoom("tactical") });
+        }
+        actions.push({ label: "RETURN TO SOUTH HALL", meta: "MOVE", onClick: () => moveToRoom("south") });
+        return actions;
+      }
+      if (room === "tactical") {
+        if (!state.tacticalGearCollected) {
+          return [
+            { label: "OPEN TACTICAL LOCKER", meta: "OXYGEN + WEAPONS", special: true, onClick: collectTacticalLoadout },
+            { label: "RETREAT TO SECURITY CONTROL", meta: "REBREATHER", danger: true, onClick: () => moveToRoom("security") }
+          ];
+        }
+        return [
+          { label: "CHECK TACTICAL LOADOUT", meta: "CHECKPOINT 06", special: true, onClick: showTacticalLoadout },
+          { label: "RETURN TO SECURITY CONTROL", meta: "MOVE", onClick: () => moveToRoom("security") },
+          { label: "OPEN CAPTAIN'S LOG", meta: "PERSONAL NOTES", onClick: openPilotLog }
+        ];
+      }
+      return [];
     }
 
     if (state.investigationUnlocked) {
@@ -2337,6 +2569,8 @@
   }
 
   async function showRoom(room, { immediate = false } = {}) {
+    if (room === "tactical" && state.cloneIncapacitated && !state.tacticalGearCollected) startRebreatherCountdown();
+    else stopRebreatherCountdown({ preserve: true });
     const definition = getRoomDefinition(room);
     roomCode.textContent = definition.code;
     roomTitle.textContent = definition.title;
@@ -3130,6 +3364,624 @@
     });
   }
 
+  function formatMissionClock(totalMinutes) {
+    const safe = Math.max(0, Math.floor(Number(totalMinutes) || 0));
+    const hours = Math.floor(safe / 60);
+    const minutes = safe % 60;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  }
+
+  function formatRebreatherTime(totalSeconds) {
+    const safe = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+    return `${String(Math.floor(safe / 60)).padStart(2, "0")}:${String(safe % 60).padStart(2, "0")}`;
+  }
+
+  function advanceMissionTime(minutes) {
+    const elapsed = Math.max(0, Number(minutes) || 0);
+    state.oxygenMinutesRemaining = Math.max(0, state.oxygenMinutesRemaining - elapsed);
+    state.earthMinutesRemaining = Math.max(0, state.earthMinutesRemaining - elapsed);
+  }
+
+  function stopRebreatherCountdown({ preserve = false } = {}) {
+    window.clearInterval(rebreatherInterval);
+    rebreatherInterval = 0;
+    if (!preserve && !state.tacticalGearCollected) state.rebreatherSeconds = 90;
+  }
+
+  function updateRebreatherReadout() {
+    if (state.currentRoom !== "tactical" || state.tacticalGearCollected) return;
+    const label = threatReadout.querySelector("span");
+    const value = threatReadout.querySelector("strong");
+    threatReadout.className = "danger-readout is-warning";
+    label.textContent = "AIR";
+    value.textContent = formatRebreatherTime(state.rebreatherSeconds);
+    roomNarrative.textContent = getRoomDefinition("tactical").text;
+  }
+
+  function startRebreatherCountdown() {
+    if (state.tacticalGearCollected || rebreatherInterval) return;
+    if (!state.emergencyRebreather) state.emergencyRebreather = true;
+    if (!state.rebreatherSeconds) state.rebreatherSeconds = 90;
+    updateRebreatherReadout();
+    rebreatherInterval = window.setInterval(async () => {
+      if (state.currentRoom !== "tactical" || state.tacticalGearCollected) {
+        stopRebreatherCountdown({ preserve: true });
+        return;
+      }
+      state.rebreatherSeconds = Math.max(0, state.rebreatherSeconds - 1);
+      updateRebreatherReadout();
+      if (state.rebreatherSeconds > 0) return;
+      stopRebreatherCountdown();
+      state.currentRoom = "security";
+      state.stress = 99;
+      saveState();
+      await runCinematicTransition({
+        duration: 1050,
+        fadeInDuration: 480,
+        fadeOutDuration: 720,
+        task: async () => {
+          armMapReveal();
+          updateInterface();
+          await showRoom("security", { immediate: true });
+        }
+      });
+      showToast("REBREATHER EMPTY // LUNA RETREATED TO SECURITY CONTROL");
+    }, 1000);
+  }
+
+  const orbitalPuzzleConfigs = {
+    south: {
+      kicker: "SOUTH HALL // LOCAL DOOR PROCESSOR",
+      title: "ORBITAL CIPHER 01",
+      subtitle: "Construct a stable access key and release the South Hall blast door.",
+      briefing: "Set the destination mass above the source. Wait for the data-orb to align with a gate, then trigger the illuminated transfer.",
+      budget: 8,
+      stability: 4,
+      successTitle: "SOUTH HALL ACCESS RESTORED",
+      successText: "The gravitational key is stable. The blast door and Security Control approach have opened.",
+      cores: [
+        { id: "A", label: "ENTRY CORE", x: 180, y: 325, mass: 2 },
+        { id: "B", label: "RELAY CORE", x: 500, y: 185, mass: 1 },
+        { id: "C", label: "SOUTH LOCK", x: 820, y: 325, mass: 2 }
+      ],
+      links: [["A", "B"], ["B", "C"]],
+      orbs: [{ id: "KEY", label: "ACCESS", color: "#91dcff", core: "A", target: "C", angle: .65, direction: 1 }]
+    },
+    security: {
+      kicker: "SECURITY CONTROL // LOCKDOWN AUTHORITY",
+      title: "ORBITAL CIPHER 02",
+      subtitle: "Rebuild the command lattice and release tactical operations.",
+      briefing: "Two keys share the relay core. Route the cyan key first, then clear the relay for the amber authority key. Occupied gravity fields reject transfers.",
+      budget: 12,
+      stability: 4,
+      successTitle: "SECURITY OPERATIONS ONLINE",
+      successText: "Lockdown authority has been reclaimed. Tactical lockers and environmental systems are now available.",
+      cores: [
+        { id: "A", label: "AUTH ROOT", x: 180, y: 185, mass: 2 },
+        { id: "B", label: "RELAY CORE", x: 500, y: 305, mass: 1 },
+        { id: "C", label: "LOCKDOWN", x: 180, y: 455, mass: 2 },
+        { id: "D", label: "TACTICAL", x: 820, y: 305, mass: 2 }
+      ],
+      links: [["A", "B"], ["C", "B"], ["B", "D"]],
+      orbs: [
+        { id: "OPS", label: "OPS", color: "#91dcff", core: "A", target: "D", angle: .2, direction: 1 },
+        { id: "AUTH", label: "AUTH", color: "#ffbf69", core: "C", target: "A", angle: 2.6, direction: -1 }
+      ]
+    },
+    atmosphere: {
+      kicker: "ENVIRONMENTAL CONTROL // TACTICAL SUPPLY",
+      title: "ORBITAL CIPHER 03",
+      subtitle: "Purge oxygen, inject inert gas and preserve compartment pressure.",
+      briefing: "The manifold accepts only one resource at a time. Route O₂ to bypass, inert gas to the tactical inlet, then lock pressure into the regulator.",
+      budget: 16,
+      stability: 3,
+      successTitle: "ATMOSPHERIC CONTAINMENT COMPLETE",
+      successText: "Tactical Supply is holding at 3.2% oxygen under stable pressure. The biological signature is failing.",
+      cores: [
+        { id: "A", label: "TACTICAL INLET", x: 170, y: 175, mass: 2 },
+        { id: "B", label: "INERT RESERVE", x: 170, y: 465, mass: 2 },
+        { id: "C", label: "PRESSURE LOOP", x: 500, y: 520, mass: 3 },
+        { id: "D", label: "MANIFOLD", x: 505, y: 275, mass: 1 },
+        { id: "E", label: "O₂ BYPASS", x: 830, y: 275, mass: 2 }
+      ],
+      links: [["A", "D"], ["B", "D"], ["C", "D"], ["D", "E"]],
+      orbs: [
+        { id: "O2", label: "O₂", color: "#91dcff", core: "A", target: "E", angle: .45, direction: 1 },
+        { id: "N2", label: "N₂", color: "#d69cff", core: "B", target: "A", angle: 2.1, direction: -1 },
+        { id: "P", label: "PRESS", color: "#86efac", core: "C", target: "D", angle: 4.2, direction: 1 }
+      ]
+    }
+  };
+
+  function cloneOrbitalConfig(config) {
+    return {
+      ...config,
+      cores: config.cores.map((core) => ({ ...core })),
+      links: config.links.map((link) => [...link]),
+      orbs: config.orbs.map((orb) => ({ ...orb })),
+      budgetRemaining: config.budget,
+      stabilityRemaining: config.stability,
+      slow: false,
+      solved: false,
+      activeCandidates: new Map(),
+      onSuccess: null
+    };
+  }
+
+  function orbitalCoreById(id) {
+    return orbitalRuntime?.cores.find((core) => core.id === id);
+  }
+
+  function orbitalOrbAtCore(coreId) {
+    return orbitalRuntime?.orbs.find((orb) => orb.core === coreId);
+  }
+
+  function normaliseAngle(angle) {
+    const tau = Math.PI * 2;
+    return ((angle % tau) + tau) % tau;
+  }
+
+  function angularDistance(a, b) {
+    const tau = Math.PI * 2;
+    const diff = Math.abs(normaliseAngle(a) - normaliseAngle(b));
+    return Math.min(diff, tau - diff);
+  }
+
+  function setOrbitalStatus(message, mode = "") {
+    orbitalStatus.textContent = message;
+    orbitalStatusPanel.classList.remove("is-error", "is-ready", "is-success");
+    if (mode) orbitalStatusPanel.classList.add(`is-${mode}`);
+  }
+
+  function renderOrbitalObjectives() {
+    orbitalObjectiveList.replaceChildren();
+    if (!orbitalRuntime) return;
+    for (const orb of orbitalRuntime.orbs) {
+      const chip = document.createElement("span");
+      chip.className = "orbital-objective-chip";
+      if (orb.core === orb.target) chip.classList.add("is-complete");
+      chip.style.setProperty("--orb-color", orb.color);
+      const dot = document.createElement("i");
+      const target = orbitalCoreById(orb.target);
+      chip.append(dot, document.createTextNode(`${orb.label} → ${target?.label || orb.target}`));
+      orbitalObjectiveList.append(chip);
+    }
+  }
+
+  function createSvgElement(name, attributes = {}) {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+    for (const [key, value] of Object.entries(attributes)) el.setAttribute(key, String(value));
+    return el;
+  }
+
+  function renderOrbitalPuzzle() {
+    if (!orbitalRuntime) return;
+    orbitalLinkLayer.replaceChildren();
+    orbitalCoreLayer.replaceChildren();
+    orbitalOrbLayer.replaceChildren();
+    orbitalGateLayer.replaceChildren();
+    orbitalCoreControls.replaceChildren();
+
+    for (const [index, [fromId, toId]] of orbitalRuntime.links.entries()) {
+      const from = orbitalCoreById(fromId);
+      const to = orbitalCoreById(toId);
+      const line = createSvgElement("line", { x1: from.x, y1: from.y, x2: to.x, y2: to.y, class: "orbital-link" });
+      line.dataset.link = `${fromId}-${toId}`;
+      orbitalLinkLayer.append(line);
+
+      const gate = document.createElement("button");
+      gate.type = "button";
+      gate.className = "orbital-gate-button";
+      gate.style.left = `${((from.x + to.x) / 2) / 10}%`;
+      gate.style.top = `${((from.y + to.y) / 2) / 6.2}%`;
+      gate.textContent = "SYNC";
+      gate.dataset.link = `${fromId}-${toId}`;
+      gate.setAttribute("aria-label", `Transfer gate between ${from.label} and ${to.label}`);
+      gate.addEventListener("click", () => triggerOrbitalGate(index));
+      orbitalGateLayer.append(gate);
+    }
+
+    for (const core of orbitalRuntime.cores) {
+      const group = createSvgElement("g", { class: "orbital-core-group" });
+      group.dataset.core = core.id;
+      group.append(
+        createSvgElement("circle", { cx: core.x, cy: core.y, r: 78, class: "orbital-core-halo" }),
+        createSvgElement("circle", { cx: core.x, cy: core.y, r: 62, class: "orbital-core-orbit" }),
+        createSvgElement("circle", { cx: core.x, cy: core.y, r: 45, class: "orbital-core-orbit secondary" }),
+        createSvgElement("circle", { cx: core.x, cy: core.y, r: 30, class: "orbital-core-pulse" }),
+        createSvgElement("circle", { cx: core.x, cy: core.y, r: 18, class: "orbital-core-sphere" })
+      );
+      const label = createSvgElement("text", { x: core.x, y: core.y + 103, class: "orbital-core-label" });
+      label.textContent = core.label;
+      const mass = createSvgElement("text", { x: core.x, y: core.y + 119, class: "orbital-core-mass" });
+      mass.textContent = `MASS ${core.mass}`;
+      mass.dataset.massFor = core.id;
+      group.append(label, mass);
+      orbitalCoreLayer.append(group);
+
+      const control = document.createElement("button");
+      control.type = "button";
+      control.className = "orbital-core-button";
+      if (orbitalRuntime.orbs.some((orb) => orb.target === core.id)) control.classList.add("is-target");
+      if (orbitalOrbAtCore(core.id)) control.classList.add("is-occupied");
+      control.style.left = `${core.x / 10}%`;
+      control.style.top = `${Math.max(6, (core.y - 100) / 6.2)}%`;
+      control.dataset.core = core.id;
+      control.innerHTML = `<span>${core.label}</span><strong>MASS ${core.mass} // CYCLE</strong>`;
+      control.addEventListener("click", () => cycleOrbitalMass(core.id));
+      orbitalCoreControls.append(control);
+    }
+
+    for (const orb of orbitalRuntime.orbs) {
+      const trail = createSvgElement("path", { class: "orbital-orb-trail", stroke: orb.color });
+      trail.dataset.trailFor = orb.id;
+      const circle = createSvgElement("circle", { r: 9, class: "orbital-orb", fill: orb.color });
+      circle.dataset.orb = orb.id;
+      const label = createSvgElement("text", { class: "orbital-orb-label", fill: orb.color });
+      label.dataset.orbLabel = orb.id;
+      label.textContent = orb.label;
+      orbitalOrbLayer.append(trail, circle, label);
+    }
+
+    orbitalBudget.textContent = String(orbitalRuntime.budgetRemaining).padStart(2, "0");
+    orbitalStability.textContent = `STABILITY ${Math.round((orbitalRuntime.stabilityRemaining / orbitalRuntime.stability) * 100)}%`;
+    orbitalResult.hidden = true;
+    orbitalCommitButton.hidden = true;
+    orbitalSlowButton.setAttribute("aria-pressed", "false");
+    renderOrbitalObjectives();
+    setOrbitalStatus("AWAITING GRAVITY INPUT");
+    updateOrbitalFrame(performance.now(), true);
+  }
+
+  function cycleOrbitalMass(coreId) {
+    if (!orbitalRuntime || orbitalRuntime.solved) return;
+    if (orbitalRuntime.stabilityRemaining <= 0) {
+      setOrbitalStatus("MODEL DESTABILISED // RESET REQUIRED", "error");
+      return;
+    }
+    if (orbitalRuntime.budgetRemaining <= 0) {
+      destabiliseOrbitalModel("GRAVITY BUDGET EXHAUSTED");
+      return;
+    }
+    const core = orbitalCoreById(coreId);
+    core.mass = core.mass >= 3 ? 1 : core.mass + 1;
+    orbitalRuntime.budgetRemaining -= 1;
+    orbitalBudget.textContent = String(orbitalRuntime.budgetRemaining).padStart(2, "0");
+    const massLabel = orbitalCoreLayer.querySelector(`[data-mass-for="${coreId}"]`);
+    if (massLabel) massLabel.textContent = `MASS ${core.mass}`;
+    const button = orbitalCoreControls.querySelector(`[data-core="${coreId}"] strong`);
+    if (button) button.textContent = `MASS ${core.mass} // CYCLE`;
+    setOrbitalStatus(`${core.label} SET TO MASS ${core.mass}`, "ready");
+  }
+
+  function getOrbitalTransferCandidate(from, to) {
+    const orb = orbitalOrbAtCore(from.id);
+    if (!orb || orb.core === orb.target || orbitalOrbAtCore(to.id)) return null;
+    if (to.mass <= from.mass) return null;
+    const linkAngle = Math.atan2(to.y - from.y, to.x - from.x);
+    const threshold = orbitalRuntime.slow ? .55 : .4;
+    if (angularDistance(orb.angle, linkAngle) > threshold) return null;
+    return { orb, from, to };
+  }
+
+  function updateOrbitalGates() {
+    if (!orbitalRuntime) return;
+    orbitalRuntime.activeCandidates.clear();
+    orbitalRuntime.links.forEach(([fromId, toId], index) => {
+      const from = orbitalCoreById(fromId);
+      const to = orbitalCoreById(toId);
+      const candidate = getOrbitalTransferCandidate(from, to) || getOrbitalTransferCandidate(to, from);
+      const key = `${fromId}-${toId}`;
+      const gate = orbitalGateLayer.querySelector(`[data-link="${key}"]`);
+      const line = orbitalLinkLayer.querySelector(`[data-link="${key}"]`);
+      gate?.classList.toggle("is-ready", Boolean(candidate));
+      line?.classList.toggle("is-ready", Boolean(candidate));
+      if (candidate) {
+        orbitalRuntime.activeCandidates.set(index, candidate);
+        gate.textContent = `${candidate.from.id}→${candidate.to.id}`;
+      } else if (gate) gate.textContent = "SYNC";
+    });
+  }
+
+  function triggerOrbitalGate(index) {
+    if (!orbitalRuntime || orbitalRuntime.solved) return;
+    if (orbitalRuntime.stabilityRemaining <= 0) {
+      setOrbitalStatus("MODEL DESTABILISED // RESET REQUIRED", "error");
+      return;
+    }
+    const candidate = orbitalRuntime.activeCandidates.get(index);
+    if (!candidate) {
+      destabiliseOrbitalModel("TRANSFER MISALIGNED");
+      return;
+    }
+    const destinationAngle = Math.atan2(candidate.from.y - candidate.to.y, candidate.from.x - candidate.to.x);
+    candidate.orb.core = candidate.to.id;
+    candidate.orb.angle = destinationAngle;
+    candidate.orb.direction *= -1;
+    const sourceButton = orbitalCoreControls.querySelector(`[data-core="${candidate.from.id}"]`);
+    const targetButton = orbitalCoreControls.querySelector(`[data-core="${candidate.to.id}"]`);
+    sourceButton?.classList.remove("is-occupied");
+    targetButton?.classList.add("is-occupied");
+    setOrbitalStatus(`${candidate.orb.label} CAPTURED BY ${candidate.to.label}`, "ready");
+    renderOrbitalObjectives();
+    checkOrbitalSolution();
+  }
+
+  function destabiliseOrbitalModel(message) {
+    if (!orbitalRuntime || orbitalRuntime.solved) return;
+    orbitalRuntime.stabilityRemaining = Math.max(0, orbitalRuntime.stabilityRemaining - 1);
+    orbitalStability.textContent = `STABILITY ${Math.round((orbitalRuntime.stabilityRemaining / orbitalRuntime.stability) * 100)}%`;
+    setOrbitalStatus(message, "error");
+    orbitalConsole.classList.remove("is-shaking");
+    void orbitalConsole.offsetWidth;
+    orbitalConsole.classList.add("is-shaking");
+    if (orbitalRuntime.stabilityRemaining <= 0) {
+      setOrbitalStatus("MODEL DESTABILISED // RESET REQUIRED", "error");
+    }
+  }
+
+  function checkOrbitalSolution() {
+    if (!orbitalRuntime || orbitalRuntime.solved) return;
+    if (!orbitalRuntime.orbs.every((orb) => orb.core === orb.target)) return;
+    orbitalRuntime.solved = true;
+    orbitalResultKicker.textContent = "GRAVITATIONAL CIPHER STABLE";
+    orbitalResultTitle.textContent = orbitalRuntime.successTitle;
+    orbitalResultText.textContent = orbitalRuntime.successText;
+    orbitalResult.hidden = false;
+    orbitalCommitButton.hidden = false;
+    orbitalAbortButton.hidden = true;
+    orbitalResetButton.disabled = true;
+    orbitalSlowButton.disabled = true;
+    setOrbitalStatus("OVERRIDE ACCEPTED", "success");
+    orbitalRuntime.links.forEach(([from, to]) => {
+      orbitalLinkLayer.querySelector(`[data-link="${from}-${to}"]`)?.classList.add("is-complete");
+    });
+  }
+
+  function updateOrbitalFrame(now, force = false) {
+    if (!orbitalRuntime || !orbitalDialog.open) return;
+    const delta = force ? 0 : Math.min(.05, Math.max(0, (now - orbitalLastFrame) / 1000));
+    orbitalLastFrame = now;
+    if (!orbitalRuntime.solved) {
+      const timeScale = orbitalRuntime.slow ? .34 : 1;
+      for (const orb of orbitalRuntime.orbs) {
+        const core = orbitalCoreById(orb.core);
+        const speed = (.66 + core.mass * .2) * orb.direction * timeScale;
+        orb.angle = normaliseAngle(orb.angle + speed * delta);
+        const radius = 74 - core.mass * 8;
+        const x = core.x + Math.cos(orb.angle) * radius;
+        const y = core.y + Math.sin(orb.angle) * radius;
+        const circle = orbitalOrbLayer.querySelector(`[data-orb="${orb.id}"]`);
+        const label = orbitalOrbLayer.querySelector(`[data-orb-label="${orb.id}"]`);
+        const trail = orbitalOrbLayer.querySelector(`[data-trail-for="${orb.id}"]`);
+        if (circle) { circle.setAttribute("cx", x); circle.setAttribute("cy", y); }
+        if (label) { label.setAttribute("x", x); label.setAttribute("y", y - 15); }
+        if (trail) {
+          const tailAngle = orb.angle - orb.direction * .45;
+          const tx = core.x + Math.cos(tailAngle) * radius;
+          const ty = core.y + Math.sin(tailAngle) * radius;
+          trail.setAttribute("d", `M ${tx} ${ty} Q ${core.x} ${core.y} ${x} ${y}`);
+        }
+      }
+      updateOrbitalGates();
+    }
+    orbitalAnimationFrame = window.requestAnimationFrame(updateOrbitalFrame);
+  }
+
+  function resetOrbitalPuzzle() {
+    if (!orbitalRuntime) return;
+    const id = orbitalRuntime.id;
+    const onSuccess = orbitalRuntime.onSuccess;
+    orbitalRuntime = cloneOrbitalConfig(orbitalPuzzleConfigs[id]);
+    orbitalRuntime.id = id;
+    orbitalRuntime.onSuccess = onSuccess;
+    orbitalAbortButton.hidden = false;
+    orbitalResetButton.disabled = false;
+    orbitalSlowButton.disabled = false;
+    renderOrbitalPuzzle();
+  }
+
+  function closeOrbitalPuzzle() {
+    window.cancelAnimationFrame(orbitalAnimationFrame);
+    orbitalAnimationFrame = 0;
+    orbitalRuntime = null;
+    closeDialog(orbitalDialog);
+    if (state.phase === "game" && !gameScreen.hidden) renderRoomActions(state.currentRoom);
+  }
+
+  function startOrbitalPuzzle(id) {
+    const config = orbitalPuzzleConfigs[id];
+    if (!config) return;
+    stopRebreatherCountdown({ preserve: true });
+    orbitalRuntime = cloneOrbitalConfig(config);
+    orbitalRuntime.id = id;
+    orbitalRuntime.onSuccess = id === "south"
+      ? completeSouthHallHack
+      : id === "security"
+        ? completeSecurityOverride
+        : completeAtmosphericOverride;
+    orbitalKicker.textContent = config.kicker;
+    orbitalTitle.textContent = config.title;
+    orbitalSubtitle.textContent = config.subtitle;
+    orbitalBriefing.textContent = config.briefing;
+    orbitalAbortButton.hidden = false;
+    orbitalCommitButton.hidden = true;
+    openDialog(orbitalDialog);
+    renderOrbitalPuzzle();
+    orbitalLastFrame = performance.now();
+    window.cancelAnimationFrame(orbitalAnimationFrame);
+    orbitalAnimationFrame = window.requestAnimationFrame(updateOrbitalFrame);
+  }
+
+  async function commitOrbitalOverride() {
+    if (!orbitalRuntime?.solved) return;
+    const callback = orbitalRuntime.onSuccess;
+    closeOrbitalPuzzle();
+    if (typeof callback === "function") await callback();
+  }
+
+  async function completeSouthHallHack() {
+    state.southHallUnlocked = true;
+    state.stress = 99;
+    advanceMissionTime(12);
+    saveState();
+    await runCinematicTransition({
+      duration: 1150,
+      fadeInDuration: 500,
+      fadeOutDuration: 760,
+      task: async () => {
+        armMapReveal();
+        updateInterface();
+        await showRoom("south", { immediate: true });
+      }
+    });
+    showToast("SOUTH HALL OPEN // SECURITY CONTROL ACCESSIBLE");
+  }
+
+  async function completeSecurityOverride() {
+    state.securityOverrideComplete = true;
+    state.cloneRevealed = true;
+    state.stress = 99;
+    advanceMissionTime(25);
+    saveState();
+    runSequence([
+      {
+        image: "assets/IMG52.png",
+        fallbackImage: "assets/IMG51.png",
+        alt: "A security camera shows a motionless figure resembling Luna inside Tactical Supply.",
+        code: "CAM 07 // TACTICAL SUPPLY // BIOMETRIC MATCH LUNA H.",
+        title: "SOMEONE IS ALREADY INSIDE",
+        text: "The tactical locks release, but the camera feed stops Luna cold. A woman stands inside Supply wearing her proportions, her posture and her face. The system identifies both figures as Luna H.\n\nThe imitation is blocking the oxygen equipment and weapons. Its completed human body is breathing ship air.",
+        button: "OPEN ENVIRONMENTAL CONTROL",
+        presentation: "surveillance"
+      }
+    ], async () => {
+      await runCinematicTransition({
+        duration: 1050,
+        fadeInDuration: 470,
+        fadeOutDuration: 720,
+        task: async () => {
+          armMapReveal();
+          updateInterface();
+          await showRoom("security", { immediate: true });
+        }
+      });
+      showToast("TACTICAL SUPPLY FEED LIVE // HUMAN-FORM ORGANISM CONFIRMED");
+    });
+  }
+
+  function showCloneSurveillance() {
+    runSequence([
+      {
+        image: "assets/IMG52.png",
+        fallbackImage: "assets/IMG51.png",
+        alt: "The false Luna stands inside Tactical Supply under surveillance.",
+        code: "CAM 07 // TACTICAL SUPPLY",
+        title: "BIOMETRIC DUPLICATE",
+        text: "The figure remains almost perfectly still. The chest rises and falls. The completed human form requires oxygen, exactly as the Laboratory predicted.",
+        button: "RETURN TO SECURITY",
+        presentation: "surveillance"
+      }
+    ], () => showRoom("security"));
+  }
+
+  async function completeAtmosphericOverride() {
+    state.atmosphereOverrideComplete = true;
+    state.cloneIncapacitated = true;
+    state.emergencyRebreather = false;
+    state.rebreatherSeconds = 90;
+    state.stress = 99;
+    advanceMissionTime(30);
+    saveState();
+    runSequence([
+      {
+        image: "assets/IMG53.png",
+        fallbackImage: "assets/IMG52.png",
+        alt: "The human-form imitation lies collapsed inside Tactical Supply after the oxygen purge.",
+        code: "TACTICAL SUPPLY // O₂ 3.2% // PRESSURE STABLE",
+        title: "THE HUMAN FORM COLLAPSES",
+        text: "Oxygen drains from the compartment while inert gas holds the pressure. The copied body staggers, reaches for the locked tactical case and falls. Its lungs have failed.\n\nSecurity releases one emergency rebreather: ninety seconds of air for Luna to cross the purged room and reach the proper helmet and tank.",
+        button: "PREPARE THE RETRIEVAL",
+        presentation: "combat"
+      }
+    ], async () => {
+      await runCinematicTransition({
+        duration: 1150,
+        fadeInDuration: 500,
+        fadeOutDuration: 760,
+        task: async () => {
+          armMapReveal();
+          updateInterface();
+          await showRoom("security", { immediate: true });
+        }
+      });
+      showToast("ATMOSPHERIC CONTAINMENT COMPLETE // REBREATHER READY");
+    });
+  }
+
+  function prepareTacticalRetrieval() {
+    state.emergencyRebreather = true;
+    state.rebreatherSeconds = 90;
+    saveState();
+    updateInterface();
+    showRoom("security");
+    showToast("EMERGENCY REBREATHER SECURED // 90 SECONDS OF AIR");
+  }
+
+  async function collectTacticalLoadout() {
+    stopRebreatherCountdown({ preserve: true });
+    state.tacticalGearCollected = true;
+    state.tacticalHelmet = true;
+    state.oxygenTank = true;
+    state.flamethrower = true;
+    state.plasmaRefills = true;
+    state.emergencyRebreather = false;
+    state.rebreatherSeconds = 0;
+    state.checkpoint = 6;
+    state.stress = 92;
+    advanceMissionTime(8);
+    saveState();
+    runSequence([
+      {
+        image: "assets/IMG55.png",
+        fallbackImage: "assets/IMG49.png",
+        alt: "Luna wears a full sealed helmet and oxygen tank with tactical weapons ready.",
+        code: "TACTICAL LOADOUT // OXYGEN LINE ONLINE",
+        title: "LUNA CAN BREATHE",
+        text: "The helmet locks against Luna's suit and the tank valve opens. Clean oxygen floods the mask. She loads fresh plasma cells and takes the flamethrower from its rack.\n\nThe ship has less than twenty-three hours of breathable reserve left, but Luna is no longer helpless inside it.",
+        button: "SECURE CHECKPOINT 06",
+        presentation: "restored"
+      }
+    ], async () => {
+      await runCinematicTransition({
+        duration: 1250,
+        fadeInDuration: 520,
+        fadeOutDuration: 820,
+        task: async () => {
+          armMapReveal();
+          updateInterface();
+          await showRoom("tactical", { immediate: true });
+        }
+      });
+      showToast("CHECKPOINT 06 SAVED // TACTICAL LOADOUT SECURED");
+    });
+  }
+
+  function showTacticalLoadout() {
+    runSequence([
+      {
+        image: "assets/IMG55.png",
+        fallbackImage: "assets/IMG49.png",
+        alt: "Luna stands equipped with a sealed helmet, oxygen tank and weapons.",
+        code: "CHECKPOINT 06 // TACTICAL ADVANTAGE",
+        title: "LOADOUT SECURED",
+        text: "Tactical helmet sealed. Oxygen tank online. Flamethrower acquired. Plasma ammunition replenished. Luna is ready to take the hunt back into the ship.",
+        button: "RETURN TO MAP",
+        presentation: "restored"
+      }
+    ], () => showRoom("tactical"));
+  }
+
   async function beginInvestigationRoute() {
     state.investigationUnlocked = true;
     state.mapMode = "investigation";
@@ -3269,6 +4121,9 @@
     state.checkpoint = 5;
     state.mapMode = "lockdown";
     state.currentRoom = "lab";
+    state.oxygenMinutesRemaining = 1440;
+    state.earthMinutesRemaining = 2880;
+    state.rebreatherSeconds = 90;
     state.stress = 99;
     saveState();
     syncCaptainLogUI();
@@ -3485,6 +4340,8 @@
   }
 
   async function restartGame() {
+    closeOrbitalPuzzle();
+    stopRebreatherCountdown();
     cancelActiveSequence();
     mediaSwapToken += 1;
     roomFadeToken += 1;
@@ -3499,6 +4356,19 @@
   returnCheckpointButton.addEventListener("click", returnToCheckpointFromLoss);
   restartMissionButton.addEventListener("click", restartFromLoss);
   quitTitleButton.addEventListener("click", quitFromLossToTitle);
+  orbitalSlowButton.addEventListener("click", () => {
+    if (!orbitalRuntime || orbitalRuntime.solved) return;
+    orbitalRuntime.slow = !orbitalRuntime.slow;
+    orbitalSlowButton.setAttribute("aria-pressed", String(orbitalRuntime.slow));
+    setOrbitalStatus(orbitalRuntime.slow ? "TIME DILATION ACTIVE" : "REAL-TIME ORBITS RESTORED", "ready");
+  });
+  orbitalResetButton.addEventListener("click", resetOrbitalPuzzle);
+  orbitalAbortButton.addEventListener("click", closeOrbitalPuzzle);
+  orbitalCommitButton.addEventListener("click", commitOrbitalOverride);
+  orbitalDialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    closeOrbitalPuzzle();
+  });
 
   continueButton.addEventListener("click", advanceIntro);
   acknowledgeGroundButton.addEventListener("click", acknowledgeGroundControl);

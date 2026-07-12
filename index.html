@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#05070a">
-  <meta name="game-version" content="0.7.0">
+  <meta name="game-version" content="0.8.0">
   <meta name="description" content="The Void, a cinematic solo sci-fi survival adventure.">
   <title>The Void</title>
 
@@ -18,6 +18,8 @@
   <link rel="prefetch" as="image" href="assets/IMG30.png">
   <link rel="prefetch" as="image" href="assets/IMG41.png">
   <link rel="prefetch" as="image" href="assets/IMG42.png">
+  <link rel="prefetch" as="image" href="assets/IMG50.png">
+  <link rel="prefetch" as="image" href="assets/IMG51.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -26,7 +28,7 @@
 
   <audio
     id="titleMusic"
-    src="https://pub-fcb7451138fa4bf39b6e0d6f01a687a6.r2.dev/My%20Song%2063%20(Proton)%20mastered%20loud.wav"
+    src="https://pub-00000000000000000000000000000000.r2.dev/the-void-title-theme.mp3"
     preload="auto"
     autoplay
     loop
@@ -68,7 +70,7 @@
         </div>
         <p class="title-enter-hint" id="titleEnterHint">PRESS ENTER OR SELECT PLAY</p>
       </div>
-      <div class="title-build">BUILD 0.7.0</div>
+      <div class="title-build">BUILD 0.8.0</div>
     </section>
 
     <section class="cinematic-shell" id="cinematicShell" hidden>
@@ -129,8 +131,8 @@
         </div>
 
         <div class="hud-readouts" aria-label="Ship and pilot status">
-          <div><span>O₂</span><strong id="oxygenReadout">96%</strong></div>
-          <div><span>POWER</span><strong id="powerReadout">81%</strong></div>
+          <div><span id="oxygenLabel">O₂</span><strong id="oxygenReadout">96%</strong></div>
+          <div><span id="powerLabel">POWER</span><strong id="powerReadout">81%</strong></div>
           <div><span>STRESS</span><strong id="stressReadout">08%</strong></div>
           <div class="danger-readout" id="threatReadout"><span>ALERT</span><strong>FIRE</strong></div>
         </div>
@@ -474,6 +476,81 @@
     </div>
   </dialog>
 
+  <dialog class="orbital-dialog" id="orbitalDialog" aria-labelledby="orbitalTitle">
+    <div class="orbital-console">
+      <header class="orbital-header">
+        <div>
+          <span class="orbital-kicker" id="orbitalKicker">DEEP SYSTEM OVERRIDE // GRAVITATIONAL PROCESSOR</span>
+          <h2 id="orbitalTitle">ORBITAL CIPHER</h2>
+          <p id="orbitalSubtitle">Construct a stable transfer route through the security lattice.</p>
+        </div>
+        <div class="orbital-header-readout" aria-live="polite">
+          <span>GRAVITY BUDGET</span>
+          <strong id="orbitalBudget">08</strong>
+        </div>
+      </header>
+
+      <section class="orbital-briefing" aria-label="Orbital Cipher instructions">
+        <p id="orbitalBriefing">Increase a destination core above the source mass. When an orbit crosses a transfer gate, trigger the illuminated link.</p>
+        <div class="orbital-legend" aria-hidden="true">
+          <span><i class="legend-core"></i> GRAVITY CORE</span>
+          <span><i class="legend-orb"></i> DATA ORB</span>
+          <span><i class="legend-gate"></i> TRANSFER GATE</span>
+        </div>
+      </section>
+
+      <div class="orbital-stage-shell">
+        <svg id="orbitalStage" class="orbital-stage" viewBox="0 0 1000 620" role="img" aria-label="Animated gravitational security lattice">
+          <defs>
+            <radialGradient id="coreGlow" cx="50%" cy="44%" r="62%">
+              <stop offset="0%" stop-color="#eefaff" stop-opacity="1"></stop>
+              <stop offset="18%" stop-color="#8bdcff" stop-opacity=".96"></stop>
+              <stop offset="55%" stop-color="#176f9f" stop-opacity=".76"></stop>
+              <stop offset="100%" stop-color="#06111b" stop-opacity=".16"></stop>
+            </radialGradient>
+            <filter id="orbitalGlow" x="-80%" y="-80%" width="260%" height="260%">
+              <feGaussianBlur stdDeviation="5" result="blur"></feGaussianBlur>
+              <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+            </filter>
+            <filter id="orbitalSoftGlow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="2.4" result="blur"></feGaussianBlur>
+              <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+            </filter>
+          </defs>
+          <g id="orbitalLinkLayer"></g>
+          <g id="orbitalCoreLayer"></g>
+          <g id="orbitalOrbLayer"></g>
+        </svg>
+        <div class="orbital-gates" id="orbitalGateLayer" aria-label="Transfer gates"></div>
+        <div class="orbital-controls" id="orbitalCoreControls" aria-label="Gravity core controls"></div>
+        <div class="orbital-scan" aria-hidden="true"></div>
+        <div class="orbital-result" id="orbitalResult" hidden>
+          <span id="orbitalResultKicker">CIPHER STABLE</span>
+          <strong id="orbitalResultTitle">OVERRIDE ACCEPTED</strong>
+          <p id="orbitalResultText">All data-orbs are locked into their receivers.</p>
+        </div>
+      </div>
+
+      <footer class="orbital-footer">
+        <div class="orbital-objectives">
+          <span>ACTIVE RECEIVERS</span>
+          <div id="orbitalObjectiveList"></div>
+        </div>
+        <div class="orbital-status-panel" aria-live="polite">
+          <span>SYSTEM STATUS</span>
+          <strong id="orbitalStatus">AWAITING INPUT</strong>
+          <small id="orbitalStability">STABILITY 100%</small>
+        </div>
+        <div class="orbital-actions">
+          <button class="dialog-button orbital-slow-button" id="orbitalSlowButton" type="button" aria-pressed="false">TIME DILATION</button>
+          <button class="dialog-button" id="orbitalResetButton" type="button">RESET MODEL</button>
+          <button class="dialog-button" id="orbitalAbortButton" type="button">ABORT HACK</button>
+          <button class="dialog-button orbital-commit-button" id="orbitalCommitButton" type="button" hidden>COMMIT OVERRIDE</button>
+        </div>
+      </footer>
+    </div>
+  </dialog>
+
   <dialog class="system-dialog credits-dialog" id="creditsDialog">
     <form method="dialog" class="system-window credits-window">
       <header>
@@ -490,7 +567,7 @@
         <dl>
           <div><dt>Created, designed and directed by</dt><dd>James Ritchie</dd></div>
           <div><dt>Lead character</dt><dd>Luna H.</dd></div>
-          <div><dt>Current build</dt><dd>0.7.0</dd></div>
+          <div><dt>Current build</dt><dd>0.8.0</dd></div>
         </dl>
       </div>
       <footer>
