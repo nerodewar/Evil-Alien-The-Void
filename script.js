@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v093";
+  const SAVE_KEY = "theVoidSave_v092";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
   const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
@@ -1831,136 +1831,6 @@
     return `M ${start.x} ${start.y} V ${middleY} H ${end.x} V ${end.y}`;
   }
 
-
-  function splitRoomName(name) {
-    if (name.includes(" / ")) return name.split(" / ");
-    const words = name.split(" ");
-    if (words.length <= 2) return words;
-    const midpoint = Math.ceil(words.length / 2);
-    return [words.slice(0, midpoint).join(" "), words.slice(midpoint).join(" ")];
-  }
-
-  function roomStatusType(node, accessReason) {
-    if (node.alert || /FIRE|BIOHAZARD/i.test(node.status)) return "danger";
-    if (accessReason || /LOCKED|SEALED|SAFETY LOCK/i.test(node.status)) return "locked";
-    if (/UNSCANNED|UNKNOWN/i.test(node.status)) return "unknown";
-    if (node.id === state.currentRoom) return "current";
-    const adjacent = getActiveRoutes()[state.currentRoom]?.includes(node.id);
-    if (adjacent) return "reachable";
-    return "normal";
-  }
-
-  function appendRoomInteriorArt(group, frame, node, accessReason) {
-    const { x, y, width, height, cx, cy } = frame;
-    const insetX = x + 1.4;
-    const insetY = y + 3.2;
-    const innerW = Math.max(3, width - 2.8);
-    const innerH = Math.max(3, height - 4.6);
-    const art = createMapSvgElement("g", { class: `cutaway-room-art room-${node.id}` });
-
-    const addRect = (rx, ry, rw, rh, cls = "cutaway-console") => art.append(createMapSvgElement("rect", { x: rx, y: ry, width: rw, height: rh, rx: ".5", class: cls }));
-    const addCircle = (ccx, ccy, r, cls = "cutaway-console-ring") => art.append(createMapSvgElement("circle", { cx: ccx, cy: ccy, r, class: cls }));
-    const addLine = (x1, y1, x2, y2, cls = "cutaway-room-line") => art.append(createMapSvgElement("path", { d: `M ${x1} ${y1} L ${x2} ${y2}`, class: cls }));
-
-    if (["hallway", "south", "darkcorridor", "tunnels", "outside"].includes(node.id)) {
-      for (let i = 1; i <= 4; i += 1) {
-        const px = x + width * (i / 5);
-        addLine(px, y + 1.9, px, y + height - 1.7, "cutaway-corridor-rib");
-      }
-      addLine(x + 2, cy, x + width - 2, cy, "cutaway-corridor-lane");
-      for (let i = 0; i < 3; i += 1) {
-        const ax = x + 3.2 + i * ((width - 6.4) / 3);
-        const arrow = createMapSvgElement("path", { d: `M ${ax} ${cy - 1} L ${ax + 1.2} ${cy} L ${ax} ${cy + 1}` , class: "cutaway-arrow" });
-        art.append(arrow);
-      }
-    } else if (node.id === "control") {
-      addCircle(cx, cy + 1, Math.min(innerW, innerH) * .21, "cutaway-command-chair");
-      addCircle(cx, cy + 1, Math.min(innerW, innerH) * .33, "cutaway-console-ring");
-      addRect(insetX + 1.1, insetY + 1.1, innerW - 2.2, 1.5, "cutaway-monitor-bank");
-      addRect(insetX + .8, insetY + innerH - 3.2, innerW - 1.6, 1.8, "cutaway-console");
-      addRect(insetX + 1.5, insetY + innerH - 5.2, 2.4, 1.3, "cutaway-console");
-      addRect(insetX + innerW - 3.9, insetY + innerH - 5.2, 2.4, 1.3, "cutaway-console");
-    } else if (node.id === "crew") {
-      addRect(insetX + 1, insetY + 1.3, innerW * .36, innerH * .28, "cutaway-bed");
-      addRect(insetX + innerW * .58, insetY + 1.3, innerW * .28, innerH * .28, "cutaway-bed");
-      addRect(insetX + 1, insetY + innerH * .55, innerW * .36, innerH * .22, "cutaway-bed");
-      addRect(insetX + innerW * .58, insetY + innerH * .55, innerW * .28, innerH * .22, "cutaway-bed");
-      addRect(cx - 1.2, cy - .8, 2.4, 1.6, "cutaway-table");
-    } else if (node.id === "life") {
-      addCircle(cx, cy + 1.1, Math.min(innerW, innerH) * .28, "cutaway-life-ring");
-      addCircle(cx, cy + 1.1, Math.min(innerW, innerH) * .14, "cutaway-life-core");
-      addRect(insetX + .8, insetY + innerH - 3.2, innerW * .28, 1.8, "cutaway-console");
-      addRect(insetX + innerW - 4.1, insetY + innerH - 3.2, innerW * .28, 1.8, "cutaway-console");
-    } else if (node.id === "lab") {
-      addRect(insetX + .8, insetY + 1.2, innerW - 1.6, 1.5, "cutaway-bench");
-      addRect(insetX + 1.3, insetY + innerH - 3.4, innerW - 2.6, 1.8, "cutaway-bench");
-      addRect(cx - 2.4, cy - 1.8, 4.8, 3.6, "cutaway-specimen");
-      const q = createMapSvgElement("text", { x: cx, y: cy + .9, class: "cutaway-room-glyph" });
-      q.textContent = state.mapMode === "original" && !state.investigationUnlocked ? "?" : "";
-      art.append(q);
-    } else if (node.id === "store") {
-      for (let r=0;r<2;r+=1) {
-        for (let c=0;c<3;c+=1) {
-          addRect(insetX + 1 + c * 2.3, insetY + 1.3 + r * 2.5, 1.6, 1.6, "cutaway-crate");
-        }
-      }
-    } else if (node.id === "kitchen") {
-      addRect(insetX + 1, insetY + 1.2, innerW - 2, 1.5, "cutaway-counter");
-      addRect(cx - 1.6, cy - .6, 3.2, 2.1, "cutaway-table");
-      addRect(insetX + 1.2, insetY + innerH - 3, 2.2, 1.4, "cutaway-console");
-      addRect(insetX + innerW - 3.4, insetY + innerH - 3, 2.2, 1.4, "cutaway-console");
-    } else if (["engineering", "engine", "power"].includes(node.id)) {
-      addCircle(cx, cy + .7, Math.min(innerW, innerH) * .28, "cutaway-reactor-ring");
-      addCircle(cx, cy + .7, Math.min(innerW, innerH) * .13, "cutaway-reactor-core");
-      addRect(insetX + 1, insetY + 1.4, 2.2, 1.6, "cutaway-console");
-      addRect(insetX + innerW - 3.2, insetY + 1.4, 2.2, 1.6, "cutaway-console");
-    } else if (node.id === "security") {
-      for (let i=0;i<3;i+=1) addRect(insetX + 1.1 + i*2.7, insetY + 1.4, 2.1, 1.4, "cutaway-monitor-bank");
-      addRect(insetX + 1.2, insetY + innerH - 3, innerW - 2.4, 1.6, "cutaway-console");
-    } else if (node.id === "tactical") {
-      addRect(insetX + 1.1, insetY + 1.2, innerW - 2.2, 1.6, "cutaway-locker");
-      addRect(insetX + 1.1, insetY + 4, innerW - 2.2, 1.6, "cutaway-locker");
-      addRect(cx - 2.1, cy + 2.1, 4.2, 1.4, "cutaway-locker");
-    } else if (["airlock", "satnav"].includes(node.id)) {
-      addCircle(cx, cy, Math.min(innerW, innerH) * .24, "cutaway-airlock-ring");
-      addLine(cx - 2, cy, cx + 2, cy, "cutaway-room-line");
-      addLine(cx, cy - 2, cx, cy + 2, "cutaway-room-line");
-    } else {
-      addRect(insetX + 1.1, insetY + 1.1, innerW - 2.2, innerH - 2.2, "cutaway-console");
-    }
-
-    if (accessReason || /LOCKED|SEALED/i.test(node.status)) {
-      const shield = createMapSvgElement("g", { class: "cutaway-room-lock" });
-      shield.append(
-        createMapSvgElement("rect", { x: cx - 1.6, y: cy + innerH * .18, width: 3.2, height: 2.2, rx: ".45", class: "cutaway-lock-body" }),
-        createMapSvgElement("path", { d: `M ${cx - 1} ${cy + innerH * .18} V ${cy + innerH * .18 - 1} Q ${cx - 1} ${cy + innerH * .18 - 2.2} ${cx} ${cy + innerH * .18 - 2.2} Q ${cx + 1} ${cy + innerH * .18 - 2.2} ${cx + 1} ${cy + innerH * .18 - 1} V ${cy + innerH * .18}`, class: "cutaway-lock-shackle" })
-      );
-      art.append(shield);
-    }
-    group.append(art);
-  }
-
-  function appendRoomTextOverlay(group, frame, node, accessReason) {
-    const titleLines = splitRoomName(node.name.toUpperCase());
-    const statusType = roomStatusType(node, accessReason);
-    const ui = createMapSvgElement("g", { class: `cutaway-room-ui is-${statusType}` });
-    const tx = frame.x + 1.8;
-    const ty = frame.y + 2.35;
-    ui.append(createMapSvgElement("circle", { cx: tx, cy: ty - .25, r: ".48", class: "cutaway-room-dot" }));
-    const code = createMapSvgElement("text", { x: tx + 1.15, y: ty, class: "cutaway-room-code" });
-    code.textContent = node.code;
-    ui.append(code);
-    titleLines.slice(0,2).forEach((line, index) => {
-      const t = createMapSvgElement("text", { x: tx, y: ty + 2.5 + index * 2.1, class: "cutaway-room-name" });
-      t.textContent = line;
-      ui.append(t);
-    });
-    const status = createMapSvgElement("text", { x: tx, y: frame.y + frame.height - 1.3, class: "cutaway-room-status" });
-    status.textContent = (node.status || "").toUpperCase();
-    ui.append(status);
-    group.append(ui);
-  }
-
   function appendHull(svg, uid, geometry, config) {
     const shadow = createMapSvgElement("path", {
       class: "cutaway-hull-shadow",
@@ -2043,59 +1913,51 @@
         node.id === state.currentRoom ? "current-room" : "",
         adjacent && !accessReason ? "reachable" : "",
         accessReason ? "is-locked" : "",
-        /UNSCANNED|UNKNOWN/i.test(node.status) ? "is-unknown" : "",
         node.alert ? "alert-room" : ""
       ].filter(Boolean).join(" ");
       const group = createMapSvgElement("g", { class: `cutaway-compartment ${stateClasses}`.trim() });
       group.style.setProperty("--reveal-index", String(nodeIndex));
       const shadow = createMapSvgElement("rect", {
-        x: x + .65,
-        y: y + 1.05,
+        x: x + .55,
+        y: y + .85,
         width,
         height,
-        rx: "2.1",
+        rx: "1.4",
         class: "cutaway-compartment-shadow"
       });
-      const hull = createMapSvgElement("rect", {
+      const room = createMapSvgElement("rect", {
         x,
         y,
         width,
         height,
-        rx: "2.3",
-        class: "cutaway-compartment-hull"
+        rx: "1.4",
+        class: "cutaway-compartment-room",
+        fill: `url(#${uid}-compartment)`
       });
-      const room = createMapSvgElement("rect", {
+      const rim = createMapSvgElement("rect", {
         x: x + .7,
         y: y + .7,
         width: Math.max(1, width - 1.4),
         height: Math.max(1, height - 1.4),
-        rx: "1.8",
-        class: "cutaway-compartment-room",
-        fill: `url(#${uid}-compartment)`
-      });
-      const interior = createMapSvgElement("rect", {
-        x: x + 1.5,
-        y: y + 1.5,
-        width: Math.max(1, width - 3),
-        height: Math.max(1, height - 3),
-        rx: "1.1",
-        class: "cutaway-compartment-interior"
-      });
-      const rim = createMapSvgElement("rect", {
-        x: x + .9,
-        y: y + .9,
-        width: Math.max(1, width - 1.8),
-        height: Math.max(1, height - 1.8),
-        rx: "1.4",
+        rx: ".9",
         class: "cutaway-compartment-rim"
       });
-      const light = createMapSvgElement("path", {
-        d: `M ${x + 2.2} ${y + 1.65} H ${x + width - 2.2}`,
+      const topLine = createMapSvgElement("path", {
+        d: `M ${x + 2} ${y + 1.35} H ${x + width - 2}`,
         class: "cutaway-compartment-light"
       });
-      group.append(shadow, hull, room, interior, rim, light);
-      appendRoomInteriorArt(group, frame, node, accessReason);
-      appendRoomTextOverlay(group, frame, node, accessReason);
+      group.append(shadow, room, rim, topLine);
+
+      if (["engine", "engineering", "power"].includes(node.id)) {
+        group.append(
+          createMapSvgElement("circle", { cx: frame.cx, cy: frame.cy, r: Math.min(width, height) * .18, class: "cutaway-reactor-ring" }),
+          createMapSvgElement("circle", { cx: frame.cx, cy: frame.cy, r: Math.min(width, height) * .07, class: "cutaway-reactor-core" })
+        );
+      } else if (node.id === "airlock") {
+        group.append(createMapSvgElement("path", { d: `M ${x + width * .36} ${y + 2} V ${y + height - 2} M ${x + width * .64} ${y + 2} V ${y + height - 2}`, class: "cutaway-airlock-bars" }));
+      } else {
+        group.append(createMapSvgElement("path", { d: `M ${x + 1.7} ${y + height - 1.8} H ${x + width * .4} M ${x + width * .6} ${y + height - 1.8} H ${x + width - 1.7}`, class: "cutaway-room-detail" }));
+      }
       layer.append(group);
     }
     svg.append(layer);
@@ -2143,22 +2005,45 @@
       const frame = frames[node.id];
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "room-node cutaway-room-hitbox";
+      button.className = "room-node cutaway-room-label";
       for (const className of node.classes || []) button.classList.add(className);
       button.dataset.room = node.id;
-      button.style.setProperty("--x", `${frame.x}%`);
-      button.style.setProperty("--y", `${frame.y}%`);
-      button.style.setProperty("--w", `${frame.width}%`);
-      button.style.setProperty("--h", `${frame.height}%`);
+      button.style.setProperty("--x", `${frame.cx}%`);
+      button.style.setProperty("--y", `${frame.cy}%`);
       button.style.setProperty("--reveal-index", String(nodeIndex));
+
+      if (node.alert) {
+        const ring = document.createElement("span");
+        ring.className = "alert-ring";
+        ring.setAttribute("aria-hidden", "true");
+        const badge = document.createElement("span");
+        badge.className = "alert-badge";
+        badge.textContent = "FIRE";
+        button.append(ring, badge);
+      }
+
+      const plate = document.createElement("span");
+      plate.className = "cutaway-label-plate";
+      const signal = document.createElement("span");
+      signal.className = "cutaway-signal";
+      const code = document.createElement("span");
+      code.className = "node-code";
+      code.textContent = node.code;
+      const strong = document.createElement("strong");
+      strong.textContent = node.name;
+      const small = document.createElement("small");
+      small.textContent = node.status;
+      plate.append(signal, code, strong, small);
+      const beacon = document.createElement("span");
+      beacon.className = "cutaway-signal-beacon";
+      beacon.setAttribute("aria-hidden", "true");
+      button.append(beacon, plate);
 
       const accessReason = getAccessReason(node.id);
       const adjacent = getActiveRoutes()[state.currentRoom]?.includes(node.id);
       button.classList.toggle("current-room", node.id === state.currentRoom);
       button.classList.toggle("reachable", Boolean(adjacent && !accessReason));
       button.classList.toggle("is-locked", Boolean(accessReason));
-      if (/UNSCANNED|UNKNOWN/i.test(node.status)) button.classList.add("is-unknown");
-      if (node.alert) button.classList.add("alert-room");
       button.setAttribute("aria-disabled", String(Boolean(accessReason)));
       button.setAttribute("aria-label", `${node.name}. ${node.status}${accessReason ? `. Locked: ${accessReason}` : ""}`);
       button.addEventListener("click", () => moveToRoom(node.id));
