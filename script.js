@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v090";
+  const SAVE_KEY = "theVoidSave_v091";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
   const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
@@ -1588,63 +1588,63 @@
   function cutawayHullGeometry(profile) {
     const geometries = {
       "habitation-local": {
-        outer: "M4 55 L13 28 Q16 18 27 14 L53 7 Q64 6 73 15 L95 38 L97 58 L83 76 L53 92 L20 85 Q10 80 6 69 Z",
-        accent: "M15 31 L48 14 L72 20 L90 42 M18 76 L50 86 L78 72",
-        glowX: 72,
-        glowY: 17
+        outer: "M7 52 Q7 44 15 44 L83 44 Q91 44 95 50 Q96 52 96 56 Q96 60 94 62 Q90 68 82 68 L15 68 Q7 68 7 60 Z",
+        accent: "M17 47 H80 M17 65 H80 M20 44 V68 M37 44 V68 M54 44 V68 M71 44 V68",
+        glowX: 76,
+        glowY: 23
       },
       "habitation-full": {
-        outer: "M3 20 Q8 8 23 7 L56 4 Q67 5 73 16 L92 27 Q98 33 97 45 L91 64 L76 73 L71 94 Q68 98 58 98 L31 97 Q23 96 18 87 L7 72 Q3 66 4 55 Z",
-        accent: "M13 18 L53 10 L69 22 L88 33 M10 67 L31 83 L67 84 L84 66 M23 14 L18 84",
-        glowX: 79,
-        glowY: 20
+        outer: "M8 15 Q8 10 13 10 L70 10 Q76 10 80 15 Q82 17 82 21 Q82 24 81 26 L81 34 Q81 39 76 39 L72 39 L72 86 Q72 91 67 91 L59 91 Q54 91 54 86 L54 39 L13 39 Q8 39 8 34 Z",
+        accent: "M13 14 H76 M13 35 H76 M20 10 V39 M37 10 V39 M54 10 V39 M71 10 V39 M58 43 H68 M58 57 H68 M58 71 H68 M58 85 H68",
+        glowX: 80,
+        glowY: 16
       },
       "research-wing": {
-        outer: "M3 12 Q7 5 18 5 L60 7 Q69 8 74 17 L97 60 Q99 68 94 79 L87 95 L50 90 L31 72 L8 42 Q3 34 3 24 Z",
-        accent: "M12 14 L57 14 L70 25 L90 65 M15 39 L45 66 L82 88",
-        glowX: 79,
-        glowY: 26
+        outer: "M9 13 Q9 9 14 9 L69 9 Q75 9 79 14 Q81 16 81 20 Q81 23 80 25 L80 30 Q80 35 75 35 L70 35 L70 84 Q70 89 65 89 L57 89 Q52 89 52 84 L52 35 L14 35 Q9 35 9 30 Z",
+        accent: "M14 13 H75 M14 31 H75 M21 9 V35 M38 9 V35 M55 9 V35 M72 9 V35 M56 40 H66 M56 56 H66 M56 72 H66 M56 88 H66",
+        glowX: 82,
+        glowY: 20
       },
       "security-wing": {
-        outer: "M3 35 L13 17 Q17 10 29 9 L75 9 Q83 10 88 18 L98 36 L97 67 L84 86 Q79 92 68 91 L25 90 Q15 89 10 80 L3 65 Z",
-        accent: "M14 28 L37 16 L70 16 L89 31 M12 72 L35 84 L72 83 L89 67",
-        glowX: 84,
-        glowY: 22
+        outer: "M8 45 Q8 40 13 40 L86 40 Q91 40 94 45 Q96 48 96 52 Q96 56 94 59 Q90 64 85 64 L69 64 L69 38 Q69 33 64 33 L56 33 Q51 33 51 38 L51 64 L13 64 Q8 64 8 59 Z",
+        accent: "M13 44 H90 M13 60 H90 M20 40 V64 M37 40 V64 M54 40 V64 M71 40 V64 M55 36 H65 M55 33 V64",
+        glowX: 88,
+        glowY: 23
       },
       "engineering-spine": {
-        outer: "M31 3 L69 3 L84 17 L78 53 L72 86 L62 98 L38 98 L28 86 L22 53 L16 17 Z",
-        accent: "M29 13 L50 8 L71 13 M25 49 L50 55 L75 49 M34 88 L50 94 L66 88",
-        glowX: 65,
-        glowY: 14
+        outer: "M43 7 Q43 4 46 4 L54 4 Q57 4 57 7 L57 93 Q57 96 54 96 L46 96 Q43 96 43 93 Z",
+        accent: "M45 11 H55 M45 26 H55 M45 41 H55 M45 56 H55 M45 71 H55 M45 86 H55",
+        glowX: 61,
+        glowY: 15
       },
       "maintenance-spine": {
-        outer: "M35 4 L65 4 L77 18 L70 83 L61 97 L39 97 L30 83 L23 18 Z",
-        accent: "M32 17 L50 10 L68 17 M31 80 L50 91 L69 80",
-        glowX: 66,
+        outer: "M43 8 Q43 5 46 5 L54 5 Q57 5 57 8 L57 92 Q57 95 54 95 L46 95 Q43 95 43 92 Z",
+        accent: "M45 14 H55 M45 32 H55 M45 50 H55 M45 68 H55 M45 86 H55",
+        glowX: 63,
         glowY: 13
       },
       "command-airlock": {
-        outer: "M10 8 L83 7 Q91 9 95 19 L96 32 L72 43 L68 92 Q66 98 57 98 L30 97 Q24 96 23 88 L20 43 L5 31 Q2 22 6 14 Z",
-        accent: "M15 14 L73 13 L89 23 L67 36 M25 41 L45 47 L64 41 M29 87 L46 93 L63 87",
-        glowX: 82,
-        glowY: 18
+        outer: "M35 9 Q35 6 38 6 L46 6 Q49 6 49 9 L49 28 L79 28 Q84 28 87 31 Q90 34 90 39 L90 47 Q90 52 86 55 Q84 57 79 57 L49 57 L49 91 Q49 94 46 94 L38 94 Q35 94 35 91 L35 9 Z",
+        accent: "M37 12 H47 M37 28 H47 M37 44 H47 M37 60 H47 M37 76 H47 M37 92 H47 M52 31 H86 M52 54 H86",
+        glowX: 83,
+        glowY: 17
       },
       "outer-hull": {
-        outer: "M3 45 L16 28 L45 18 L74 21 L96 40 L95 59 L75 72 L42 78 L13 67 Z",
-        accent: "M10 44 L43 25 L72 29 L89 43 M15 63 L43 70 L74 65",
-        glowX: 77,
+        outer: "M11 45 Q11 40 16 40 L84 40 Q89 40 92 45 Q94 48 94 50 Q94 52 92 55 Q89 60 84 60 L16 60 Q11 60 11 55 Z",
+        accent: "M16 44 H87 M16 56 H87 M23 40 V60 M40 40 V60 M57 40 V60 M74 40 V60",
+        glowX: 79,
         glowY: 19
       },
       "power-spine": {
-        outer: "M7 5 L89 5 L97 18 L73 36 L68 94 Q66 98 57 98 L36 98 Q31 97 30 91 L26 36 L5 20 Z",
-        accent: "M15 13 L50 10 L84 14 M29 32 L50 40 L70 32 M35 88 L49 94 L63 88",
-        glowX: 78,
-        glowY: 13
+        outer: "M13 16 Q13 12 18 12 L54 12 Q59 12 62 17 Q64 20 64 24 Q64 27 63 28 L63 36 Q63 40 60 43 L57 46 L57 89 Q57 93 53 93 L45 93 Q41 93 41 89 L41 47 L38 44 Q35 41 35 36 L35 28 L18 28 Q13 28 13 23 Z",
+        accent: "M18 16 H59 M18 24 H59 M25 12 V28 M42 12 V28 M59 12 V28 M43 47 H55 M43 63 H55 M43 79 H55 M43 93 H55",
+        glowX: 77,
+        glowY: 14
       },
       "command-pod": {
-        outer: "M18 50 Q18 22 38 12 L62 12 Q82 22 82 50 Q82 78 62 88 L38 88 Q18 78 18 50 Z",
-        accent: "M28 28 L50 18 L72 28 M28 72 L50 82 L72 72",
-        glowX: 68,
+        outer: "M30 36 Q30 24 39 19 L61 19 Q70 24 70 36 L70 64 Q70 76 61 81 L39 81 Q30 76 30 64 Z",
+        accent: "M37 24 H63 M37 76 H63 M33 36 H67 M33 64 H67",
+        glowX: 67,
         glowY: 23
       }
     };
@@ -1746,12 +1746,12 @@
   }
 
   function nodeCompartmentSize(node, config) {
-    const longRooms = new Set(["hallway", "south", "darkcorridor", "tunnels", "outside"]);
-    const largeRooms = new Set(["control", "engineering", "engine", "security", "tactical", "lab", "life"]);
-    if (config.final) return { width: 27, height: 18 };
-    if (longRooms.has(node.id)) return { width: config.compact ? 25 : 22, height: 8.5 };
-    if (largeRooms.has(node.id)) return { width: config.compact ? 22 : 18, height: 12.5 };
-    return { width: config.compact ? 20 : 16.5, height: 10.5 };
+    const corridorRooms = new Set(["hallway", "south", "darkcorridor", "tunnels", "outside"]);
+    const largeRooms = new Set(["control", "engineering", "engine", "security", "tactical", "lab", "life", "airlock", "satnav", "power"]);
+    if (config.final) return { width: 24, height: 18 };
+    if (corridorRooms.has(node.id)) return { width: config.compact ? 13.5 : 14.5, height: config.compact ? 13.5 : 14.5 };
+    if (largeRooms.has(node.id)) return { width: config.compact ? 16.5 : 18.5, height: config.compact ? 16.5 : 17.5 };
+    return { width: config.compact ? 15 : 16, height: config.compact ? 15 : 16 };
   }
 
   function mapCorridorPath(from, to) {
@@ -1805,7 +1805,7 @@
   }
 
   function appendCorridors(svg, uid, config, byId) {
-    const layer = createMapSvgElement("g", { class: "cutaway-corridors", "clip-path": `url(#${uid}-clip)` });
+    const layer = createMapSvgElement("g", { class: "cutaway-corridors" });
     for (const [edgeIndex, edge] of config.edges.entries()) {
       const [fromId, toId, edgeClass = ""] = edge;
       const from = byId[fromId];
@@ -1814,26 +1814,30 @@
       const d = mapCorridorPath(from, to);
       const activeRoute = (fromId === state.currentRoom && !getAccessReason(toId)) || (toId === state.currentRoom && !getAccessReason(fromId));
       const classes = `${edgeClass} ${activeRoute ? "is-active-route" : ""}`.trim();
+      const casing = createMapSvgElement("path", { d, class: `cutaway-corridor-casing ${classes}`.trim() });
+      casing.style.setProperty("--reveal-index", String(edgeIndex));
       const shell = createMapSvgElement("path", { d, class: `cutaway-corridor-shell ${classes}`.trim() });
       shell.style.setProperty("--reveal-index", String(edgeIndex));
       const floor = createMapSvgElement("path", { d, class: `connection-line cutaway-corridor ${classes}`.trim() });
       floor.style.setProperty("--reveal-index", String(edgeIndex));
-      layer.append(shell, floor);
+      const highlight = createMapSvgElement("path", { d, class: `cutaway-corridor-highlight ${classes}`.trim() });
+      highlight.style.setProperty("--reveal-index", String(edgeIndex));
+      layer.append(casing, shell, floor, highlight);
       if (activeRoute) {
         const pulse = createMapSvgElement("path", { d, class: "cutaway-corridor-pulse" });
         pulse.style.setProperty("--flow-delay", `${edgeIndex * .23}s`);
         layer.append(pulse);
       }
       layer.append(
-        createMapSvgElement("circle", { cx: from.x, cy: from.y, r: ".62", class: "cutaway-bulkhead" }),
-        createMapSvgElement("circle", { cx: to.x, cy: to.y, r: ".62", class: "cutaway-bulkhead" })
+        createMapSvgElement("circle", { cx: from.x, cy: from.y, r: ".75", class: "cutaway-bulkhead" }),
+        createMapSvgElement("circle", { cx: to.x, cy: to.y, r: ".75", class: "cutaway-bulkhead" })
       );
     }
     svg.append(layer);
   }
 
   function appendCompartments(svg, uid, config) {
-    const layer = createMapSvgElement("g", { class: "cutaway-compartments", "clip-path": `url(#${uid}-clip)` });
+    const layer = createMapSvgElement("g", { class: "cutaway-compartments" });
     for (const [nodeIndex, node] of config.nodes.entries()) {
       const { width, height } = nodeCompartmentSize(node, config);
       const x = Math.max(1.5, Math.min(98.5 - width, node.x - width / 2));

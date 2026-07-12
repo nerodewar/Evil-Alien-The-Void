@@ -4263,7 +4263,7 @@ body.credits-open {
 }
 
 .ship-map.cutaway-map::after {
-  content: "CUTAWAY DECK VISUALISATION // LOCAL SHIP TELEMETRY";
+  content: "SECTIONAL HULL CUTAWAY // LOCAL SHIP TELEMETRY";
   position: absolute;
   z-index: 7;
   left: 16px;
@@ -4355,26 +4355,45 @@ body.credits-open {
   vector-effect: non-scaling-stroke;
 }
 
+.cutaway-corridor-casing {
+  fill: none;
+  stroke: rgba(239,247,255,.18);
+  stroke-width: 16;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 7px rgba(212,232,255,.08));
+}
+
 .cutaway-corridor-shell {
   fill: none;
-  stroke: rgba(0,4,8,.92);
-  stroke-width: 13;
-  stroke-linecap: square;
+  stroke: rgba(4,10,16,.94);
+  stroke-width: 11.6;
+  stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 
 .connection-line.cutaway-corridor {
   fill: none;
-  stroke: rgba(132,178,207,.32);
-  stroke-width: 5.4;
-  stroke-linecap: square;
+  stroke: rgba(132,178,207,.34);
+  stroke-width: 5.7;
+  stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: none;
   vector-effect: non-scaling-stroke;
   filter:
     drop-shadow(0 0 3px rgba(93,184,231,.12))
     drop-shadow(0 0 8px rgba(80,148,188,.08));
+}
+
+.cutaway-corridor-highlight {
+  fill: none;
+  stroke: rgba(231,242,255,.26);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .connection-line.cutaway-corridor.is-danger,
@@ -4417,8 +4436,8 @@ body.credits-open {
 }
 
 .cutaway-compartment-room {
-  stroke: rgba(138,186,216,.38);
-  stroke-width: .7;
+  stroke: rgba(160,205,232,.48);
+  stroke-width: .8;
   vector-effect: non-scaling-stroke;
   filter: drop-shadow(0 0 7px rgba(63,139,184,.1));
 }
@@ -4692,8 +4711,9 @@ body.credits-open {
   }
   .room-node.cutaway-room-label strong { font-size: .56rem; }
   .room-node.cutaway-room-label small { font-size: .4rem; }
-  .connection-line.cutaway-corridor { stroke-width: 4.4; }
-  .cutaway-corridor-shell { stroke-width: 10; }
+  .connection-line.cutaway-corridor { stroke-width: 4.6; }
+  .cutaway-corridor-shell { stroke-width: 10.2; }
+  .cutaway-corridor-casing { stroke-width: 14; }
 }
 
 @media (max-width: 520px) {
@@ -4710,6 +4730,7 @@ body.credits-open {
   .cutaway-star,
   .cutaway-hull-shell,
   .cutaway-corridor-pulse,
+  .cutaway-corridor-highlight,
   .cutaway-compartment.reachable .cutaway-compartment-rim,
   .ship-map.is-cinematic-reveal .cutaway-hull-shell,
   .ship-map.is-cinematic-reveal .cutaway-deck,
