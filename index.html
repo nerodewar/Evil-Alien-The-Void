@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#05070a">
-  <meta name="game-version" content="0.9.3">
+  <meta name="game-version" content="0.9.5">
   <meta name="description" content="The Void, a cinematic solo sci-fi survival adventure.">
   <title>The Void</title>
 
@@ -79,7 +79,7 @@
         </div>
         <p class="title-enter-hint" id="titleEnterHint">PRESS ENTER OR SELECT PLAY</p>
       </div>
-      <div class="title-build">BUILD 0.9.3</div>
+      <div class="title-build">BUILD 0.9.5</div>
     </section>
 
     <section class="cinematic-shell" id="cinematicShell" hidden>
@@ -500,11 +500,30 @@
       </header>
 
       <section class="orbital-briefing" aria-label="Orbital Cipher instructions">
-        <p id="orbitalBriefing">Increase a destination core above the source mass. When an orbit crosses a transfer gate, trigger the illuminated link.</p>
+        <div class="orbital-briefing-copy">
+          <span class="orbital-briefing-label">HOW TO SOLVE</span>
+          <p id="orbitalBriefing">Increase a destination core above the source mass. When an orbit crosses a transfer gate, trigger the illuminated link.</p>
+        </div>
+        <button class="orbital-demo-button" id="orbitalDemoButton" type="button" aria-expanded="false">SHOW 3-STEP DEMO</button>
         <div class="orbital-legend" aria-hidden="true">
           <span><i class="legend-core"></i> GRAVITY CORE</span>
           <span><i class="legend-orb"></i> DATA ORB</span>
           <span><i class="legend-gate"></i> TRANSFER GATE</span>
+        </div>
+      </section>
+
+      <section class="orbital-demo" id="orbitalDemo" hidden aria-label="Orbital Cipher demonstration">
+        <div class="orbital-demo-copy">
+          <span>QUICK DEMONSTRATION</span>
+          <strong>MAKE THE DESTINATION HEAVIER, THEN PRESS THE GLOWING LINK.</strong>
+          <p>The moving tag is the resource. The large labelled circles are gravity cores. You do not drag anything.</p>
+        </div>
+        <div class="orbital-demo-steps" id="orbitalGuideSteps"></div>
+        <div class="orbital-demo-animation" aria-hidden="true">
+          <div class="demo-core demo-source"><i></i><span>SOURCE<br>MASS 1</span></div>
+          <div class="demo-route"><b>2. WAIT FOR THE LINE TO GLOW</b><em>3. PRESS LINK</em></div>
+          <div class="demo-orb">O₂</div>
+          <div class="demo-core demo-target"><i></i><span>DESTINATION<br>MASS 2</span></div>
         </div>
       </section>
 
@@ -658,7 +677,7 @@
 
                   <section class="credits-block credits-closing-block">
                     <h4>THANK YOU FOR PLAYING</h4>
-                    <p>Build 0.9.4</p>
+                    <p>Build 0.9.5</p>
                   </section>
                 </div>
                 <div class="credits-roll-spacer credits-roll-spacer-end" aria-hidden="true"></div>

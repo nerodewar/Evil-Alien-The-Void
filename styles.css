@@ -5707,3 +5707,94 @@ body.credits-open {
     min-height: 27px;
   }
 }
+
+
+/* v0.9.5 micro-polish + Orbital Cipher remaster */
+.orbital-console {
+  border-color: rgba(157, 226, 255, .42);
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(39, 161, 224, .18), transparent 39%),
+    radial-gradient(circle at 12% 22%, rgba(117, 93, 255, .08), transparent 24%),
+    linear-gradient(145deg, rgba(255,255,255,.035), transparent 38%),
+    #010509;
+  box-shadow: 0 42px 150px rgba(0,0,0,.96), inset 0 0 100px rgba(46,153,210,.075), 0 0 0 1px rgba(145,220,255,.05);
+}
+.orbital-header { padding: 25px 31px 21px; }
+.orbital-header h2 { text-shadow: 0 0 30px rgba(145,220,255,.18); }
+.orbital-header-readout { border-radius: 3px; box-shadow: inset 0 0 24px rgba(65,168,215,.08); }
+.orbital-briefing { align-items: center; padding: 13px 28px; background: rgba(3,12,18,.82); }
+.orbital-briefing-copy { display: flex; align-items: flex-start; gap: 15px; min-width: 0; }
+.orbital-briefing-label { flex: 0 0 auto; color: #b7eaff; font-weight: 800; }
+.orbital-briefing-copy p { color: #a8bac6; font-size: .6rem; }
+.orbital-demo-button {
+  flex: 0 0 auto; min-height: 34px; padding: 0 13px; border: 1px solid rgba(145,220,255,.34); border-radius: 2px;
+  color: #dff7ff; background: rgba(39,119,156,.15); cursor: pointer;
+  font: 760 .5rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .12em;
+}
+.orbital-demo-button:hover, .orbital-demo-button:focus-visible { border-color: rgba(145,220,255,.8); background: rgba(48,146,190,.25); outline: 2px solid rgba(255,255,255,.72); outline-offset: 3px; }
+.orbital-demo {
+  position: relative; z-index: 5; display: grid; grid-template-columns: minmax(250px,.7fr) minmax(330px,1fr) minmax(360px,1.15fr);
+  gap: 18px; align-items: center; padding: 16px 28px 18px; border-bottom: 1px solid rgba(145,220,255,.14);
+  background: linear-gradient(90deg, rgba(31,111,151,.15), rgba(7,17,25,.96) 42%, rgba(24,78,105,.11));
+}
+.orbital-demo[hidden] { display: none; }
+.orbital-demo-copy span { color:#76cce9; font:700 .5rem/1 ui-monospace,monospace; letter-spacing:.15em; }
+.orbital-demo-copy strong { display:block; margin-top:8px; color:#effbff; font-size:.77rem; line-height:1.45; letter-spacing:.05em; }
+.orbital-demo-copy p { margin:8px 0 0; color:#8398a5; font-size:.68rem; line-height:1.5; }
+.orbital-demo-steps { display:grid; gap:6px; }
+.orbital-demo-step { display:grid; grid-template-columns:30px 1fr; gap:9px; align-items:center; padding:7px 9px; border:1px solid rgba(145,220,255,.1); background:rgba(2,8,12,.68); }
+.orbital-demo-step span { color:#91dcff; font:700 .53rem/1 ui-monospace,monospace; }
+.orbital-demo-step p { margin:0; color:#b5c5ce; font-size:.62rem; line-height:1.4; }
+.orbital-demo-animation { position:relative; min-height:116px; display:flex; align-items:center; justify-content:space-between; padding:10px 16px; overflow:hidden; border:1px solid rgba(145,220,255,.16); background:radial-gradient(circle at 50% 50%, rgba(50,158,208,.11), transparent 60%), #02070b; }
+.demo-core { position:relative; width:74px; height:74px; display:grid; place-items:center; border:1px solid rgba(145,220,255,.22); border-radius:50%; }
+.demo-core i { width:22px; height:22px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #fff, #6ec9ee 32%, #0b5378 70%); box-shadow:0 0 20px rgba(145,220,255,.55); }
+.demo-core span { position:absolute; top:79px; width:110px; color:#9fb2be; text-align:center; font:650 .43rem/1.35 ui-monospace,monospace; letter-spacing:.08em; }
+.demo-route { position:absolute; left:27%; right:27%; top:50%; height:2px; background:linear-gradient(90deg, rgba(145,220,255,.18), #91dcff, rgba(145,220,255,.18)); box-shadow:0 0 14px rgba(145,220,255,.42); animation:orbital-link-flow .8s linear infinite; }
+.demo-route b { position:absolute; left:50%; top:-35px; transform:translateX(-50%); width:180px; color:#87a7b8; text-align:center; font:650 .42rem/1.3 ui-monospace,monospace; letter-spacing:.07em; }
+.demo-route em { position:absolute; left:50%; top:9px; transform:translateX(-50%); min-width:95px; padding:6px 8px; border:1px solid #91dcff; color:#effbff; background:#123d51; box-shadow:0 0 18px rgba(145,220,255,.35); text-align:center; font:760 .45rem/1 ui-monospace,monospace; letter-spacing:.08em; font-style:normal; }
+.demo-orb { position:absolute; z-index:3; left:25%; top:calc(50% - 10px); width:20px; height:20px; display:grid; place-items:center; border-radius:50%; color:#dff7ff; background:#67c8f2; box-shadow:0 0 16px #67c8f2; font:800 .38rem/1 ui-monospace,monospace; animation:orbital-demo-orb 3.2s ease-in-out infinite; }
+@keyframes orbital-demo-orb { 0%,18%{left:25%} 75%,100%{left:72%} }
+.orbital-stage-shell { height:min(60vh,650px); background:radial-gradient(circle at 50% 50%, rgba(41,159,219,.15), transparent 38%), radial-gradient(circle at 25% 30%, rgba(106,86,255,.06), transparent 24%), linear-gradient(rgba(145,220,255,.028) 1px, transparent 1px), linear-gradient(90deg, rgba(145,220,255,.028) 1px, transparent 1px), #010508; background-size:auto,auto,40px 40px,40px 40px,auto; }
+.orbital-stage-shell::before { background:radial-gradient(circle at 50% 50%, transparent 45%, rgba(0,0,0,.68)); }
+.orbital-core-halo { fill:rgba(36,142,194,.055); stroke:rgba(145,220,255,.16); }
+.orbital-core-orbit { stroke:rgba(145,220,255,.24); }
+.orbital-core-sphere { stroke-width:1.8; }
+.orbital-link { stroke-width:2.4; }
+.orbital-link.is-ready { stroke-width:4; }
+.orbital-gates { z-index:9; }
+.orbital-controls { z-index:7; }
+.orbital-gate-button { min-width:92px; min-height:36px; color:#8298a5; border-color:rgba(145,220,255,.23); background:rgba(1,7,11,.96); box-shadow:0 7px 22px rgba(0,0,0,.58); }
+.orbital-gate-button.is-ready { min-width:118px; color:#fff; border-color:#a8e7ff; background:linear-gradient(90deg, rgba(31,112,148,.96), rgba(15,66,91,.96)); box-shadow:0 0 0 1px rgba(145,220,255,.18),0 0 34px rgba(67,181,232,.55); }
+.orbital-orb-label { paint-order:stroke; stroke:#020508; stroke-width:5px; stroke-linejoin:round; font-size:12px; font-weight:800; letter-spacing:1.5px; }
+.orbital-orb { r:10; }
+.orbital-core-button { width:116px; min-height:48px; border-color:rgba(145,220,255,.27); background:linear-gradient(180deg, rgba(9,26,36,.96), rgba(1,7,11,.96)); }
+.orbital-core-button::before { content:"CLICK TO CHANGE"; display:block; margin-bottom:3px; color:#526b7a; font-size:.38rem; letter-spacing:.08em; }
+.orbital-objective-chip { padding:8px 10px; line-height:1.35; }
+.orbital-status-panel { box-shadow:inset 0 0 24px rgba(75,174,218,.04); }
+
+/* ship-interface micro motion */
+.room-node.current-room { animation:room-current-breathe 3.8s ease-in-out infinite; }
+.room-node.reachable:not(.current-room) { animation:room-ready-whisper 4.6s ease-in-out infinite; }
+@keyframes room-current-breathe { 0%,100%{filter:brightness(.96)} 50%{filter:brightness(1.08)} }
+@keyframes room-ready-whisper { 0%,100%{filter:brightness(.93)} 50%{filter:brightness(1.03)} }
+.room-media img { transition:opacity .24s ease, transform 7s ease-out, filter .25s ease; }
+.action-button:not(:disabled)::after { content:""; position:absolute; left:-35%; bottom:0; width:28%; height:1px; background:linear-gradient(90deg,transparent,currentColor,transparent); opacity:.35; animation:button-signal 4.8s ease-in-out infinite; }
+@keyframes button-signal { 0%,30%{left:-35%} 70%,100%{left:110%} }
+
+@media (max-width:1050px) {
+  .orbital-demo { grid-template-columns:1fr 1fr; }
+  .orbital-demo-animation { grid-column:1/-1; min-height:125px; }
+}
+@media (max-width:720px) {
+  .orbital-briefing { align-items:stretch; }
+  .orbital-briefing-copy { display:block; }
+  .orbital-briefing-label { display:block; margin-bottom:6px; }
+  .orbital-demo-button { width:100%; }
+  .orbital-demo { grid-template-columns:1fr; padding:14px 16px 18px; }
+  .orbital-demo-animation { grid-column:auto; }
+  .orbital-gate-button { min-width:72px; }
+  .orbital-gate-button.is-ready { min-width:96px; font-size:.38rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-orb,.room-node.current-room,.room-node.reachable,.action-button::after { animation:none!important; }
+}

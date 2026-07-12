@@ -185,9 +185,10 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
     // POWER RELAY
     "findrelay.powerRelayRecovered": ({ state = {}, clocks = "", checkpointText = "" } = {}) => ("Luna finds the relay secured beneath a storage crate. It has not failed. Someone removed it from the lighting grid and hid it here.\n\nA heavy impact sounds once in the corridor outside."),
 
-    // BLACKOUT HIDING FAILURE
+    // BLACKOUT HIDING ENCOUNTER
     "hideandfailblackout.itHeardHer": ({ state = {}, clocks = "", checkpointText = "" } = {}) => ("Luna kills the flashlight and folds into the maintenance recess. The corridor becomes completely black.\n\nThe organism stops outside. A hand, almost shaped like hers, closes around the edge of the hiding place."),
-    "hideandfailblackout.totalFailure": ({ state = {}, clocks = "", checkpointText = "" } = {}) => ("It finds her.\n\nThe last image recorded by Luna's suit is a black face opening directly in front of her."),
+    "hideandfailblackout.found": ({ state = {}, clocks = "", checkpointText = "" } = {}) => ("It finds her. The creature surges into the recess, its false face opening at point-blank range.\n\nLuna is frightened, but she is not helpless."),
+    "hideandfailblackout.counterattack": ({ state = {}, clocks = "", checkpointText = "" } = {}) => ("Luna drives the plasma gun between them and fires. Blue-white energy tears through the organism and blasts it backward into the conduits.\n\nHiding bought her one breath. Courage decides what she does with it."),
 
     // BLACKOUT CONFRONTATION
     "facealienblackout.faceIt": ({ state = {}, clocks = "", checkpointText = "" } = {}) => ("Luna plants her boots, raises the plasma gun and fires. The blast tears through the organism's outer shape and throws it backward into the conduits. Its scream travels through every speaker on the deck."),

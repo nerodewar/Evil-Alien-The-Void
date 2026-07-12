@@ -10,11 +10,11 @@
   };
 
 
-  const SAVE_KEY = "theVoidSave_v094";
+  const SAVE_KEY = "theVoidSave_v095";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
   const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
-  const LEGACY_KEYS = ["theVoidSave_v093", "theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const LEGACY_KEYS = ["theVoidSave_v094", "theVoidSave_v093", "theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -239,6 +239,9 @@
   const orbitalSubtitle = document.getElementById("orbitalSubtitle");
   const orbitalBudget = document.getElementById("orbitalBudget");
   const orbitalBriefing = document.getElementById("orbitalBriefing");
+  const orbitalDemoButton = document.getElementById("orbitalDemoButton");
+  const orbitalDemo = document.getElementById("orbitalDemo");
+  const orbitalGuideSteps = document.getElementById("orbitalGuideSteps");
   const orbitalStage = document.getElementById("orbitalStage");
   const orbitalLinkLayer = document.getElementById("orbitalLinkLayer");
   const orbitalCoreLayer = document.getElementById("orbitalCoreLayer");
@@ -3338,7 +3341,7 @@
         }
         if (!state.alienRepelled) {
           return [
-            { label: "HIDE", meta: "FAILURE", danger: true, onClick: hideAndFailBlackout },
+            { label: "HIDE", meta: "RISKY", danger: true, onClick: hideAndFailBlackout },
             { label: "FACE IT", meta: "PLASMA GUN", special: true, onClick: faceAlienBlackout }
           ];
         }
@@ -4042,6 +4045,25 @@
     });
   }
 
+  function completeBlackoutCounterattack() {
+    state.alienRepelled = true;
+    state.lightsRestored = true;
+    state.lightsOut = false;
+    state.currentRoom = "control";
+    state.stress = Math.min(99, state.stress + 4);
+    saveState();
+    return runCinematicTransition({
+      kicker: "LIGHTING GRID // ONLINE",
+      title: "CONTROL ROOM RESTORED",
+      text: story("facealienblackout.controlRoomRestored", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
+      duration: 720,
+      task: async () => {
+        updateInterface();
+        await showRoom("control", { immediate: true });
+      }
+    }).then(() => showToast("LIGHTING RESTORED // COMMUNICATIONS ONLINE"));
+  }
+
   function hideAndFailBlackout() {
     runSequence([
       {
@@ -4051,20 +4073,50 @@
         code: "BIOLOGICAL SIGNAL // ZERO METRES",
         title: "IT HEARD HER",
         text: story("hideandfailblackout.itHeardHer", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
-        button: "DO NOT BREATHE",
-        presentation: "failure"
+        button: "STAY STILL",
+        presentation: "tension"
       },
       {
         image: "assets/IMG32.png",
         fallbackImage: "assets/IMG31.png",
-        alt: "The alien overwhelms Luna at point-blank range.",
-        code: "BIOLOGICAL STATUS // SIGNAL LOST",
-        title: "TOTAL FAILURE",
-        text: story("hideandfailblackout.totalFailure", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
-        button: "CONTINUE",
-        presentation: "failure"
+        alt: "The alien lunges at Luna at point-blank range.",
+        code: "BIOLOGICAL CONTACT // IMMEDIATE",
+        title: "IT FINDS HER",
+        text: story("hideandfailblackout.found", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
+        button: "DRAW THE PLASMA GUN",
+        presentation: "threat"
+      },
+      {
+        image: "assets/IMG34.png",
+        fallbackImage: "assets/IMG30.png",
+        alt: "Luna fires the plasma gun and drives the alien back.",
+        code: "BIOLOGICAL CONTACT // PLASMA DISCHARGE",
+        title: "FIGHT BACK",
+        text: story("hideandfailblackout.counterattack", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
+        button: "REACH THE POWER JUNCTION",
+        presentation: "combat"
+      },
+      {
+        image: "assets/IMG33.png",
+        fallbackImage: "assets/IMG23.png",
+        alt: "Luna installs the recovered relay at the Power Junction.",
+        code: "POWER JUNCTION // RELAY INSTALLATION",
+        title: "RESTORE THE GRID",
+        text: story("facealienblackout.restoreTheGrid", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
+        button: "RESTART LIGHTING GRID",
+        presentation: "repair"
+      },
+      {
+        image: "assets/IMG35.png",
+        fallbackImage: "assets/IMG21.png",
+        alt: "The corridor lighting returns beside the restored Power Junction.",
+        code: "LIGHTING GRID // ONLINE",
+        title: "THE LIGHTS RETURN",
+        text: story("facealienblackout.theLightsReturn", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
+        button: "RETURN TO COMMUNICATIONS",
+        presentation: "restored"
       }
-    ], showLoseScreen);
+    ], completeBlackoutCounterattack);
   }
 
   function faceAlienBlackout() {
@@ -4099,25 +4151,7 @@
         button: "RETURN TO COMMUNICATIONS",
         presentation: "restored"
       }
-    ], async () => {
-      state.alienRepelled = true;
-      state.lightsRestored = true;
-      state.lightsOut = false;
-      state.currentRoom = "control";
-      state.stress = Math.min(99, state.stress + 4);
-      saveState();
-      await runCinematicTransition({
-        kicker: "LIGHTING GRID // ONLINE",
-        title: "CONTROL ROOM RESTORED",
-        text: story("facealienblackout.controlRoomRestored", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
-        duration: 720,
-        task: async () => {
-          updateInterface();
-          await showRoom("control", { immediate: true });
-        }
-      });
-      showToast("LIGHTING RESTORED // COMMUNICATIONS ONLINE");
-    });
+    ], completeBlackoutCounterattack);
   }
 
   async function restartBlackoutCheckpoint({ stateAlreadyReset = false } = {}) {
@@ -4314,7 +4348,8 @@
       kicker: "SOUTH HALL // LOCAL DOOR PROCESSOR",
       title: "ORBITAL CIPHER 01",
       subtitle: "Construct a stable access key and release the South Hall blast door.",
-      briefing: "Set the destination mass above the source. Wait for the data-orb to align with a gate, then trigger the illuminated transfer.",
+      briefing: "Click a core to cycle its mass. Make the next core heavier than the one holding ACCESS. When the connecting LINK button flashes, press it. Repeat until ACCESS reaches SOUTH LOCK.",
+      guideSteps: ["Click RELAY CORE until its mass is higher than ENTRY CORE.", "Wait for ACCESS to pass the A→B route and press the glowing LINK button.", "Make SOUTH LOCK heavier than RELAY CORE, then repeat for B→C."],
       budget: 8,
       stability: 4,
       successTitle: "SOUTH HALL ACCESS RESTORED",
@@ -4331,7 +4366,8 @@
       kicker: "SECURITY CONTROL // LOCKDOWN AUTHORITY",
       title: "ORBITAL CIPHER 02",
       subtitle: "Rebuild the command lattice and release tactical operations.",
-      briefing: "Two keys share the relay core. Route the cyan key first, then clear the relay for the amber authority key. Occupied gravity fields reject transfers.",
+      briefing: "Move one key at a time. A core cannot receive a key while another key is already there. Route cyan OPS to TACTICAL first, then route amber AUTH to AUTH ROOT.",
+      guideSteps: ["Move cyan OPS: AUTH ROOT → RELAY CORE → TACTICAL.", "The RELAY CORE must be empty before AUTH can use it.", "Move amber AUTH: LOCKDOWN → RELAY CORE → AUTH ROOT."],
       budget: 12,
       stability: 4,
       successTitle: "SECURITY OPERATIONS ONLINE",
@@ -4352,7 +4388,8 @@
       kicker: "ENVIRONMENTAL CONTROL // TACTICAL SUPPLY",
       title: "ORBITAL CIPHER 03",
       subtitle: "Purge oxygen, inject inert gas and preserve compartment pressure.",
-      briefing: "The manifold accepts only one resource at a time. Route O₂ to bypass, inert gas to the tactical inlet, then lock pressure into the regulator.",
+      briefing: "Follow the numbered order below. The moving labels O₂, N₂ and PRESS are resources, not buttons. Click cores to change mass; press a LINK only while it is glowing.",
+      guideSteps: ["1. Move O₂: TACTICAL INLET → MANIFOLD → O₂ BYPASS.", "2. Move N₂: INERT RESERVE → MANIFOLD → TACTICAL INLET.", "3. Move PRESS: PRESSURE LOOP → MANIFOLD."],
       budget: 16,
       stability: 3,
       successTitle: "ATMOSPHERIC CONTAINMENT COMPLETE",
@@ -4423,7 +4460,9 @@
       chip.style.setProperty("--orb-color", orb.color);
       const dot = document.createElement("i");
       const target = orbitalCoreById(orb.target);
-      chip.append(dot, document.createTextNode(`${orb.label} → ${target?.label || orb.target}`));
+      const source = orbitalCoreById(orb.core);
+      const verb = orb.core === orb.target ? "LOCKED" : "MOVE";
+      chip.append(dot, document.createTextNode(`${verb} ${orb.label}: ${source?.label || orb.core} → ${target?.label || orb.target}`));
       orbitalObjectiveList.append(chip);
     }
   }
@@ -4432,6 +4471,28 @@
     const el = document.createElementNS("http://www.w3.org/2000/svg", name);
     for (const [key, value] of Object.entries(attributes)) el.setAttribute(key, String(value));
     return el;
+  }
+
+  function renderOrbitalGuide() {
+    if (!orbitalGuideSteps || !orbitalRuntime) return;
+    orbitalGuideSteps.replaceChildren();
+    for (const [index, instruction] of (orbitalRuntime.guideSteps || []).entries()) {
+      const step = document.createElement("div");
+      step.className = "orbital-demo-step";
+      const number = document.createElement("span");
+      number.textContent = String(index + 1).padStart(2, "0");
+      const copy = document.createElement("p");
+      copy.textContent = instruction.replace(/^\d+\.\s*/, "");
+      step.append(number, copy);
+      orbitalGuideSteps.append(step);
+    }
+  }
+
+  function setOrbitalDemo(open) {
+    if (!orbitalDemo || !orbitalDemoButton) return;
+    orbitalDemo.hidden = !open;
+    orbitalDemoButton.setAttribute("aria-expanded", String(open));
+    orbitalDemoButton.textContent = open ? "HIDE DEMO" : "SHOW 3-STEP DEMO";
   }
 
   function renderOrbitalPuzzle() {
@@ -4454,7 +4515,7 @@
       gate.className = "orbital-gate-button";
       gate.style.left = `${((from.x + to.x) / 2) / 10}%`;
       gate.style.top = `${((from.y + to.y) / 2) / 6.2}%`;
-      gate.textContent = "SYNC";
+      gate.textContent = "LINK";
       gate.dataset.link = `${fromId}-${toId}`;
       gate.setAttribute("aria-label", `Transfer gate between ${from.label} and ${to.label}`);
       gate.addEventListener("click", () => triggerOrbitalGate(index));
@@ -4509,7 +4570,9 @@
     orbitalCommitButton.hidden = true;
     orbitalSlowButton.setAttribute("aria-pressed", "false");
     renderOrbitalObjectives();
-    setOrbitalStatus("AWAITING GRAVITY INPUT");
+    renderOrbitalGuide();
+    setOrbitalDemo(false);
+    setOrbitalStatus("AWAITING INPUT // CLICK A CORE TO CHANGE MASS");
     updateOrbitalFrame(performance.now(), true);
   }
 
@@ -4558,8 +4621,8 @@
       line?.classList.toggle("is-ready", Boolean(candidate));
       if (candidate) {
         orbitalRuntime.activeCandidates.set(index, candidate);
-        gate.textContent = `${candidate.from.id}→${candidate.to.id}`;
-      } else if (gate) gate.textContent = "SYNC";
+        gate.textContent = `PRESS ${candidate.from.id}→${candidate.to.id}`;
+      } else if (gate) gate.textContent = "LINK";
     });
   }
 
@@ -5254,6 +5317,8 @@
   returnCheckpointButton.addEventListener("click", returnToCheckpointFromLoss);
   restartMissionButton.addEventListener("click", restartFromLoss);
   quitTitleButton.addEventListener("click", quitFromLossToTitle);
+  orbitalDemoButton?.addEventListener("click", () => setOrbitalDemo(orbitalDemo.hidden));
+
   orbitalSlowButton.addEventListener("click", () => {
     if (!orbitalRuntime || orbitalRuntime.solved) return;
     orbitalRuntime.slow = !orbitalRuntime.slow;
