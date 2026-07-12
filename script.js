@@ -1,8 +1,10 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v060";
-  const LEGACY_KEYS = ["theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const SAVE_KEY = "theVoidSave_v070";
+  const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
+  const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
+  const LEGACY_KEYS = ["theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -89,6 +91,9 @@
     mimicFootageViewed: false,
     falseGroundContacted: false,
     actTwoComplete: false,
+    investigationUnlocked: false,
+    organismAnalysed: false,
+    lockdownActive: false,
     checkpoint: 0,
     stress: 8
   };
@@ -110,8 +115,11 @@
   let backgroundWarmupStarted = false;
   let transitionRunId = 0;
   let mapRevealTimer = 0;
+  let captainLogSaveTimer = 0;
+  let titleMusicFadeFrame = 0;
   const imageCache = new Map();
 
+  const titleMusic = document.getElementById("titleMusic");
   const titleScreen = document.getElementById("titleScreen");
   const titleArtwork = document.getElementById("titleArtwork");
   const titleMenu = document.getElementById("titleMenu");
@@ -173,10 +181,16 @@
   const toast = document.getElementById("toast");
   const pilotLogDialog = document.getElementById("pilotLogDialog");
   const logFooterStatus = document.getElementById("logFooterStatus");
+  const personalLogNotes = document.getElementById("personalLogNotes");
+  const logSaveStatus = document.getElementById("logSaveStatus");
+  const addLogTimestampButton = document.getElementById("addLogTimestampButton");
+  const clearLogButton = document.getElementById("clearLogButton");
+  const organismAnalysisLogEntry = document.getElementById("organismAnalysisLogEntry");
   const groundControlDialog = document.getElementById("groundControlDialog");
   const acknowledgeGroundButton = document.getElementById("acknowledgeGroundButton");
   const sequenceDialog = document.getElementById("sequenceDialog");
   const sequenceMedia = document.getElementById("sequenceMedia");
+  const sequenceCopy = sequenceDialog.querySelector(".sequence-copy");
   const sequenceImage = document.getElementById("sequenceImage");
   const sequenceCode = document.getElementById("sequenceCode");
   const sequenceCounter = document.getElementById("sequenceCounter");
@@ -216,12 +230,18 @@
   function normaliseState(candidate) {
     candidate.introIndex = Math.max(0, Math.min(Number(candidate.introIndex) || 0, introScenes.length - 1));
     candidate.stress = Math.max(0, Math.min(Number(candidate.stress) || 8, 99));
-    candidate.checkpoint = Math.max(0, Math.min(Number(candidate.checkpoint) || 0, 4));
+    candidate.checkpoint = Math.max(0, Math.min(Number(candidate.checkpoint) || 0, 5));
 
     if (candidate.damageLogged) candidate.checkpoint = Math.max(candidate.checkpoint, 1);
     if (candidate.hidingCompleted) candidate.checkpoint = Math.max(candidate.checkpoint, 2);
     if (candidate.finalReported) candidate.checkpoint = Math.max(candidate.checkpoint, 3);
-    if (candidate.actTwoComplete) candidate.checkpoint = 4;
+    if (candidate.actTwoComplete) candidate.checkpoint = Math.max(candidate.checkpoint, 4);
+    if (candidate.lockdownActive || candidate.organismAnalysed) {
+      candidate.organismAnalysed = true;
+      candidate.lockdownActive = true;
+      candidate.investigationUnlocked = true;
+      candidate.checkpoint = 5;
+    }
 
     // v0.5.2 removes the Auxiliary Power scavenger chain. Old saves are
     // folded into the single-relay Checkpoint 03 route.
@@ -229,7 +249,9 @@
     candidate.regulatorFound = false;
     if (candidate.currentRoom === "auxpower") candidate.currentRoom = "darkcorridor";
 
-    if (candidate.blackoutStarted && !candidate.actTwoComplete) candidate.mapMode = "blackout";
+    if (candidate.lockdownActive) candidate.mapMode = "lockdown";
+    else if (candidate.investigationUnlocked) candidate.mapMode = "investigation";
+    else if (candidate.blackoutStarted && !candidate.actTwoComplete) candidate.mapMode = "blackout";
     else if (candidate.actTwoComplete) candidate.mapMode = "act2_control";
     else if (candidate.finalReported) candidate.mapMode = "final_control";
     else if (candidate.branch === "signal" && candidate.engineRepaired) candidate.mapMode = "signal_return";
@@ -257,6 +279,99 @@
       // The game remains playable without persistent storage.
     }
     refreshTitleMenu();
+  }
+
+  function loadCaptainLogNotes() {
+    try {
+      return localStorage.getItem(CAPTAINS_LOG_KEY) || "";
+    } catch {
+      return "";
+    }
+  }
+
+  function setLogSaveStatus(message) {
+    if (!logSaveStatus) return;
+    logSaveStatus.textContent = message;
+  }
+
+  function saveCaptainLogNotes({ immediateStatus = false } = {}) {
+    if (!personalLogNotes) return;
+    try {
+      localStorage.setItem(CAPTAINS_LOG_KEY, personalLogNotes.value);
+      setLogSaveStatus(immediateStatus ? "LOG SAVED" : "AUTO-SAVED");
+    } catch {
+      setLogSaveStatus("LOCAL SAVE UNAVAILABLE");
+    }
+  }
+
+  function scheduleCaptainLogSave() {
+    window.clearTimeout(captainLogSaveTimer);
+    setLogSaveStatus("SAVING…");
+    captainLogSaveTimer = window.setTimeout(() => saveCaptainLogNotes(), 260);
+  }
+
+  function addCaptainLogTimestamp() {
+    if (!personalLogNotes) return;
+    const stamp = `[MISSION TIME ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}]`;
+    const before = personalLogNotes.value.trimEnd();
+    personalLogNotes.value = `${before}${before ? "\n" : ""}${stamp} `;
+    personalLogNotes.focus();
+    personalLogNotes.setSelectionRange(personalLogNotes.value.length, personalLogNotes.value.length);
+    saveCaptainLogNotes({ immediateStatus: true });
+  }
+
+  function clearCaptainLogNotes() {
+    if (!personalLogNotes?.value) return;
+    const confirmed = window.confirm("Clear all personal Captain's Log notes? This cannot be undone.");
+    if (!confirmed) return;
+    personalLogNotes.value = "";
+    saveCaptainLogNotes({ immediateStatus: true });
+    personalLogNotes.focus();
+  }
+
+  function syncCaptainLogUI() {
+    if (personalLogNotes && personalLogNotes.value !== loadCaptainLogNotes()) {
+      personalLogNotes.value = loadCaptainLogNotes();
+    }
+    if (organismAnalysisLogEntry) organismAnalysisLogEntry.hidden = !state.organismAnalysed;
+  }
+
+  async function playTitleMusic() {
+    if (!titleMusic) return false;
+    window.cancelAnimationFrame(titleMusicFadeFrame);
+    titleMusic.volume = TITLE_MUSIC_DEFAULT_VOLUME;
+    try {
+      await titleMusic.play();
+      titleMusic.dataset.autoplay = "playing";
+      return true;
+    } catch {
+      // Browsers may block audible autoplay. The first pointer or keyboard
+      // interaction on the title screen retries playback automatically.
+      titleMusic.dataset.autoplay = "blocked";
+      return false;
+    }
+  }
+
+  function fadeTitleMusicOut(duration = 1000) {
+    if (!titleMusic || titleMusic.paused) return Promise.resolve();
+    window.cancelAnimationFrame(titleMusicFadeFrame);
+    const startVolume = titleMusic.volume;
+    const startedAt = performance.now();
+    return new Promise((resolve) => {
+      const tick = (now) => {
+        const progress = Math.min(1, (now - startedAt) / Math.max(1, duration));
+        titleMusic.volume = Math.max(0, startVolume * (1 - progress));
+        if (progress < 1) {
+          titleMusicFadeFrame = window.requestAnimationFrame(tick);
+          return;
+        }
+        titleMusic.pause();
+        titleMusic.currentTime = 0;
+        titleMusic.volume = TITLE_MUSIC_DEFAULT_VOLUME;
+        resolve();
+      };
+      titleMusicFadeFrame = window.requestAnimationFrame(tick);
+    });
   }
 
   function wait(ms) {
@@ -335,7 +450,10 @@
       "assets/IMG29.png", "assets/IMG31.png", "assets/IMG32.png",
       "assets/IMG33.png", "assets/IMG34.png", "assets/IMG35.png",
       "assets/IMG36.png", "assets/IMG37.png", "assets/IMG38.png",
-      "assets/IMG39.png", "assets/IMG40.png"
+      "assets/IMG39.png", "assets/IMG40.png",
+      "assets/IMG41.png", "assets/IMG42.png", "assets/IMG43.png",
+      "assets/IMG44.png", "assets/IMG45.png", "assets/IMG46.png",
+      "assets/IMG47.png", "assets/IMG48.png", "assets/IMG49.png"
     ];
     const begin = () => preloadImages(sources, 1);
 
@@ -474,6 +592,7 @@
     requestAnimationFrame(() => {
       titleScreen.classList.add("is-visible");
       playButton.focus({ preventScroll: true });
+      playTitleMusic();
     });
   }
 
@@ -485,6 +604,7 @@
 
     cancelActiveSequence();
     closeAllDialogs();
+    fadeTitleMusicOut(1050);
     clearStoredMission();
     state = { ...defaultState };
     saveState();
@@ -508,6 +628,7 @@
   }
 
   async function continueMission() {
+    fadeTitleMusicOut(850);
     if (!hasStoredMission()) {
       await startNewMission({ force: true });
       return;
@@ -577,6 +698,9 @@
       mimicFootageViewed: false,
       falseGroundContacted: false,
       actTwoComplete: false,
+      investigationUnlocked: false,
+      organismAnalysed: false,
+      lockdownActive: false,
       stress: 94
     };
     saveState();
@@ -761,7 +885,10 @@
       power: "POWER JUNCTION",
       darkcorridor: "DARK CORRIDOR",
       auxpower: "AUXILIARY POWER",
-      storage2: "BLACKOUT STORAGE"
+      storage2: "BLACKOUT STORAGE",
+      security: "SECURITY CONTROL",
+      armoury: "SECURITY ARMOURY",
+      tactical: "TACTICAL EQUIPMENT BAY"
     };
     return names[room] || String(room).toUpperCase();
   }
@@ -822,6 +949,69 @@
   }
 
   function missionMapConfig() {
+    if (state.mapMode === "investigation") {
+      return {
+        title: "DECK 07 // RETURN ROUTE TO LABORATORY",
+        instruction: "TAKE THE RESIDUE SAMPLE TO LABORATORY 07",
+        expanded: true,
+        compact: false,
+        mission: true,
+        interior: true,
+        nodes: [
+          { id: "control", code: "CR-01", name: "CONTROL ROOM", status: "CHANNEL COMPROMISED", x: 16, y: 18 },
+          { id: "hallway", code: "H-07", name: "HALLWAY", status: "ROUTE OPEN", x: 40, y: 18 },
+          { id: "life", code: "LS-07", name: "LIFE SUPPORT", status: "SYSTEM STABLE", x: 64, y: 18 },
+          { id: "south", code: "SH-07", name: "SOUTH HALLWAY", status: "BIOLOGICAL TRACE", x: 64, y: 50 },
+          { id: "lab", code: "LAB-07", name: "LABORATORY", status: state.organismAnalysed ? "ANALYSIS COMPLETE" : "ANALYSIS REQUIRED", x: 84, y: 78, classes: ["is-objective"] }
+        ],
+        edges: [
+          ["control", "hallway"],
+          ["hallway", "life"],
+          ["life", "south"],
+          ["south", "lab"]
+        ],
+        routes: {
+          control: ["hallway"],
+          hallway: ["control", "life"],
+          life: ["hallway", "south"],
+          south: ["life", "lab"],
+          lab: ["south"]
+        }
+      };
+    }
+
+    if (state.mapMode === "lockdown") {
+      return {
+        title: "DECK 07 // EMERGENCY LOCKDOWN",
+        instruction: "BREAK LOCKDOWN // REACH THE SECURITY ARMOURY",
+        expanded: true,
+        compact: false,
+        mission: true,
+        interior: true,
+        lockdown: true,
+        nodes: [
+          { id: "lab", code: "LAB-07", name: "LABORATORY", status: "CHECKPOINT 05", x: 18, y: 50, classes: ["is-complete"] },
+          { id: "south", code: "SH-07", name: "SOUTH HALLWAY", status: "SEALED", x: 42, y: 50, classes: ["is-locked"] },
+          { id: "security", code: "SEC-02", name: "SECURITY CONTROL", status: "ACCESS DENIED", x: 64, y: 28, classes: ["is-locked"] },
+          { id: "tactical", code: "TEB-01", name: "TACTICAL EQUIPMENT", status: "SEALED", x: 64, y: 72, classes: ["is-locked"] },
+          { id: "armoury", code: "ARM-01", name: "SECURITY ARMOURY", status: "WEAPONS LOCKED", x: 86, y: 50, classes: ["is-objective", "is-locked"] }
+        ],
+        edges: [
+          ["lab", "south", "is-danger"],
+          ["south", "security", "is-danger"],
+          ["south", "tactical", "is-danger"],
+          ["security", "armoury", "is-danger"],
+          ["tactical", "armoury", "is-danger"]
+        ],
+        routes: {
+          lab: ["south"],
+          south: ["lab", "security", "tactical"],
+          security: ["south", "armoury"],
+          tactical: ["south", "armoury"],
+          armoury: ["security", "tactical"]
+        }
+      };
+    }
     if (state.mapMode === "signal_engine" || state.mapMode === "signal_return") {
       return {
         title: state.lightsOut ? "ENGINE CRISIS // EMERGENCY BLACKOUT ROUTE" : "ENGINE CRISIS // RESTRICTED MAINTENANCE ROUTE",
@@ -1001,6 +1191,10 @@
   }
 
   function getAccessReason(room) {
+    if (state.mapMode === "lockdown" && room !== "lab") {
+      return "EMERGENCY LOCKDOWN // AREA SEALED BY LUNA H. BIOMETRIC AUTHORISATION";
+    }
+
     if (state.mapMode === "original") {
       const chapterTwoRooms = new Set(["south", "lab", "store", "kitchen", "engineering"]);
       if (chapterTwoRooms.has(room) && !state.damageLogged) return "SOUTHERN DECK UNAVAILABLE // COMPLETE THE LIFE SUPPORT CHECK";
@@ -1042,6 +1236,7 @@
     if (config.interior) shipMap.classList.add("interior-map");
     if (config.exterior) shipMap.classList.add("exterior-map");
     if (config.final) shipMap.classList.add("final-map");
+    if (config.lockdown) shipMap.classList.add("lockdown-map");
     if (revealMap) shipMap.classList.add("is-cinematic-reveal");
 
     const byId = Object.fromEntries(config.nodes.map((node) => [node.id, node]));
@@ -1132,7 +1327,13 @@
   }
 
   function deriveObjective() {
-    if (state.actTwoComplete) return "Determine how the organism has accessed the ship's systems";
+    if (state.lockdownActive) return "Break the emergency lockdown and reach the Security Armoury";
+    if (state.investigationUnlocked && !state.organismAnalysed) {
+      return state.currentRoom === "lab"
+        ? "Load the residue sample into the molecular analysis chamber"
+        : "Take the residue sample to Laboratory 07";
+    }
+    if (state.actTwoComplete) return "Take the residue sample to Laboratory 07 for analysis";
     if (state.blackoutStarted) {
       if (!state.relayFound) return "Search Storage for the missing power relay";
       if (!state.alienRepelled) return "Choose: hide from the organism or face it with the plasma gun";
@@ -1174,6 +1375,18 @@
     const label = threatReadout.querySelector("span");
     const value = threatReadout.querySelector("strong");
 
+    if (state.lockdownActive) {
+      threatReadout.classList.add("is-alien");
+      label.textContent = "ALERT";
+      value.textContent = "LOCKDOWN";
+      return;
+    }
+    if (state.investigationUnlocked && !state.organismAnalysed) {
+      threatReadout.classList.add("is-warning");
+      label.textContent = "TRACE";
+      value.textContent = "MIMIC";
+      return;
+    }
     if (!state.fireExtinguished) {
       label.textContent = "ALERT";
       value.textContent = "FIRE";
@@ -1244,8 +1457,8 @@
   function updateInterface() {
     ensureCurrentRoom();
     objectiveText.textContent = deriveObjective();
-    oxygenReadout.textContent = state.currentRoom === "outside" || state.currentRoom === "satnav" ? "88%" : state.lightsOut ? "91%" : state.fireExtinguished ? "94%" : "96%";
-    powerReadout.textContent = state.lightsOut ? "43%" : state.satNavFailed ? "68%" : state.alienEncountered ? "76%" : state.damageLogged ? "79%" : "81%";
+    oxygenReadout.textContent = state.currentRoom === "outside" || state.currentRoom === "satnav" ? "88%" : state.lockdownActive ? "93%" : state.lightsOut ? "91%" : state.fireExtinguished ? "94%" : "96%";
+    powerReadout.textContent = state.lockdownActive ? "74%" : state.lightsOut ? "43%" : state.satNavFailed ? "68%" : state.alienEncountered ? "76%" : state.damageLogged ? "79%" : "81%";
     stressReadout.textContent = `${String(state.stress).padStart(2, "0")}%`;
     updateThreatReadout();
     updateInventory();
@@ -1263,6 +1476,88 @@
   }
 
   function getRoomDefinition(room) {
+    if (state.mapMode === "investigation") {
+      const investigationRooms = {
+        control: {
+          code: "CR-01",
+          title: "CONTROL ROOM",
+          status: "CHANNEL COMPROMISED",
+          statusClass: "is-alien",
+          image: "assets/IMG40.png",
+          fallbackImage: "assets/IMG04.png",
+          alt: "The Control Room after the organism has corrupted the Ground Control transmission.",
+          caption: "COMMUNICATIONS SOURCE // INTERNAL NETWORK",
+          mediaClass: "is-alien",
+          text: "The false Ground Control signal has collapsed into static. Luna seals the relay and checks the specimen jar at her belt. The black residue inside is still moving.\n\nThe Laboratory may be able to tell her what entered the ship, how it travelled here and whether it can be killed."
+        },
+        hallway: {
+          code: "H-07",
+          title: "HALLWAY",
+          status: "ROUTE OPEN",
+          statusClass: "is-warning",
+          image: "assets/IMG13.png",
+          fallbackImage: "assets/IMG02.png",
+          alt: "The dark central hallway leading toward the southern research deck.",
+          caption: "DECK 07 // RETURN ROUTE TO LABORATORY",
+          mediaClass: "is-alien",
+          text: "Luna moves with the plasma gun raised and the residue sample secured against her suit. The ship is quiet again, but security indicators pulse under her own credentials."
+        },
+        life: {
+          code: "LS-07",
+          title: "LIFE SUPPORT",
+          status: "SYSTEM STABLE",
+          statusClass: "is-warning",
+          image: "assets/IMG06.png",
+          fallbackImage: "assets/IMG04.png",
+          alt: "The repaired Life Support compartment and sabotaged oxygen controls.",
+          caption: "LIFE SUPPORT // MANUAL BYPASS HOLDING",
+          mediaClass: "",
+          text: "The oxygen bypass is holding. Luna crosses the compartment without slowing. The organism once opened this panel using her copied authorisation. The sample may explain how."
+        },
+        south: {
+          code: "SH-07",
+          title: "SOUTH HALLWAY",
+          status: "BIOLOGICAL TRACE",
+          statusClass: "is-alien",
+          image: "assets/IMG13.png",
+          fallbackImage: "assets/IMG04.png",
+          alt: "The southern hallway outside Laboratory 07.",
+          caption: "SOUTHERN RESEARCH DECK // LABORATORY AHEAD",
+          mediaClass: "is-alien",
+          text: "Black smears remain along the ceiling seams, but the movement has stopped. Laboratory 07 waits at the end of the corridor under cold blue light."
+        },
+        lab: {
+          code: "LAB-07",
+          title: "LABORATORY",
+          status: "ANALYSIS READY",
+          statusClass: "is-warning",
+          image: "assets/IMG41.png",
+          fallbackImage: "assets/IMG09.png",
+          alt: "Luna re-enters the cold Laboratory carrying the residue sample and plasma gun.",
+          caption: "LABORATORY 07 // MOLECULAR ANALYSIS AVAILABLE",
+          mediaClass: "",
+          text: "The Laboratory is exactly as Luna left it: sterile, silent and powered by cold blue emergency strips. She locks the door behind her and places the specimen beside the molecular analysis chamber.\n\nInside the jar, the residue stretches toward the scanner light."
+        }
+      };
+      if (investigationRooms[room]) return investigationRooms[room];
+    }
+
+    if (state.mapMode === "lockdown") {
+      if (room === "lab") {
+        return {
+          code: "LAB-07",
+          title: "LABORATORY",
+          status: "EMERGENCY LOCKDOWN",
+          statusClass: "is-danger",
+          image: "assets/IMG49.png",
+          fallbackImage: "assets/IMG41.png",
+          alt: "Luna stands armed inside the Laboratory as red lockdown lights seal the ship.",
+          caption: "CHECKPOINT 05 // THE IMITATION",
+          mediaClass: "is-alien",
+          text: "Reinforced doors have sealed throughout the ship under Luna's copied biometric authority. The Security Armoury, tactical equipment bay and emergency weapons lockers are inaccessible.\n\nThe organism knows Luna has discovered its weakness. Somewhere beyond the Laboratory door, something strikes the metal once, waits, then strikes again."
+        };
+      }
+    }
     if (state.blackoutStarted && (state.mapMode === "blackout" || state.mapMode === "act2_control")) {
       const definitions = {
         control: {
@@ -1758,7 +2053,7 @@
     if (room === "control") {
       const actions = [];
       if (state.damageLogged && !state.groundContacted) actions.push({ label: "CONTACT GROUND CONTROL", meta: "REQUIRED", special: true, onClick: () => openDialog(groundControlDialog) });
-      actions.push({ label: "OPEN PILOT'S LOG", meta: state.logOpened ? "READ" : "NEW", onClick: openPilotLog });
+      actions.push({ label: "OPEN CAPTAIN'S LOG", meta: state.logOpened ? "READ" : "NEW", onClick: openPilotLog });
       actions.push({ label: "RETURN TO HALLWAY", meta: "MOVE", onClick: () => moveToRoom("hallway") });
       return actions;
     }
@@ -1850,13 +2145,52 @@
   }
 
   function getMissionActions(room) {
-    if (state.blackoutStarted) {
-      if (state.actTwoComplete) {
-        return room === "control"
-          ? [{ label: "REVIEW CORRUPTED TRANSMISSION", meta: "CHECKPOINT 04", onClick: () => runFalseGroundSequence() }]
-          : [];
-      }
+    if (state.lockdownActive) {
+      if (room !== "lab") return [];
+      return [
+        { label: "OPEN CAPTAIN'S LOG", meta: "ORGANISM ANALYSIS", special: true, onClick: openPilotLog },
+        { label: "REVIEW LOCKDOWN SCHEMATIC", meta: "CHECKPOINT 05", onClick: () => showToast("SECURITY ARMOURY SEALED // FIND A MANUAL LOCKDOWN OVERRIDE") }
+      ];
+    }
 
+    if (state.investigationUnlocked) {
+      if (room === "control") {
+        return [
+          { label: "ENTER HALLWAY", meta: "LABORATORY ROUTE", special: true, onClick: () => moveToRoom("hallway") },
+          { label: "OPEN CAPTAIN'S LOG", meta: "PERSONAL NOTES", onClick: openPilotLog }
+        ];
+      }
+      if (room === "hallway") return [
+        { label: "PROCEED THROUGH LIFE SUPPORT", meta: "LAB ROUTE", special: true, onClick: () => moveToRoom("life") },
+        { label: "RETURN TO CONTROL", meta: "MOVE", onClick: () => moveToRoom("control") }
+      ];
+      if (room === "life") return [
+        { label: "ENTER SOUTH HALLWAY", meta: "LABORATORY", special: true, onClick: () => moveToRoom("south") },
+        { label: "RETURN TO HALLWAY", meta: "MOVE", onClick: () => moveToRoom("hallway") }
+      ];
+      if (room === "south") return [
+        { label: "ENTER LABORATORY", meta: "ANALYSE SAMPLE", special: true, onClick: () => moveToRoom("lab") },
+        { label: "RETURN THROUGH LIFE SUPPORT", meta: "MOVE", onClick: () => moveToRoom("life") }
+      ];
+      if (room === "lab") return [
+        { label: "LOAD RESIDUE SAMPLE", meta: "MOLECULAR ANALYSIS", special: true, onClick: runLaboratoryMontage },
+        { label: "OPEN CAPTAIN'S LOG", meta: "PERSONAL NOTES", onClick: openPilotLog },
+        { label: "RETURN TO SOUTH HALLWAY", meta: "MOVE", onClick: () => moveToRoom("south") }
+      ];
+      return [];
+    }
+
+    if (state.actTwoComplete) {
+      return room === "control"
+        ? [
+            { label: "TAKE RESIDUE SAMPLE TO LABORATORY", meta: "NEW OBJECTIVE", special: true, onClick: beginInvestigationRoute },
+            { label: "REVIEW CORRUPTED TRANSMISSION", meta: "CHECKPOINT 04", onClick: () => runFalseGroundSequence() },
+            { label: "OPEN CAPTAIN'S LOG", meta: "PERSONAL NOTES", onClick: openPilotLog }
+          ]
+        : [];
+    }
+
+    if (state.blackoutStarted) {
       if (room === "control") {
         if (!state.lightsRestored) {
           return [{ label: "ENTER POWER JUNCTION", meta: "BLACKOUT MISSION", special: true, onClick: () => moveToRoom("power") }];
@@ -1922,7 +2256,7 @@
         if (state.engineRepaired) return [{ label: "REPORT TO GROUND CONTROL", meta: "FINAL REPORT", special: true, onClick: finaliseBranch }];
         return [
           { label: "ENTER MAINTENANCE TUNNELS", meta: "ENGINE 02", danger: true, onClick: () => moveToRoom("tunnels") },
-          { label: "OPEN PILOT'S LOG", meta: "ARCHIVE", onClick: openPilotLog }
+          { label: "OPEN CAPTAIN'S LOG", meta: "ARCHIVE", onClick: openPilotLog }
         ];
       }
       if (room === "tunnels") {
@@ -2093,7 +2427,13 @@
     state.logOpened = true;
     saveState();
     renderRoomActions(state.currentRoom);
-    logFooterStatus.textContent = state.damageLogged ? "ARCHIVE READ // ACCESS EVENT MATCHES SABOTAGE WINDOW" : "ARCHIVE READ // ACCESS EVENT FLAGGED";
+    syncCaptainLogUI();
+    logFooterStatus.textContent = state.organismAnalysed
+      ? "ARCHIVE READ // ORGANISM ANALYSIS RECORDED // PERSONAL LOG AUTO-SAVED"
+      : state.damageLogged
+        ? "ARCHIVE READ // ACCESS EVENT MATCHES SABOTAGE WINDOW // PERSONAL LOG READY"
+        : "ARCHIVE READ // ACCESS EVENT FLAGGED // PERSONAL LOG READY";
+    setLogSaveStatus("AUTO-SAVE READY");
     openDialog(pilotLogDialog);
   }
 
@@ -2790,6 +3130,162 @@
     });
   }
 
+  async function beginInvestigationRoute() {
+    state.investigationUnlocked = true;
+    state.mapMode = "investigation";
+    state.currentRoom = "control";
+    state.stress = Math.max(state.stress, 96);
+    saveState();
+
+    await preloadImages(["assets/IMG41.png", "assets/IMG42.png", "assets/IMG43.png"], 2);
+    await runCinematicTransition({
+      duration: 1100,
+      fadeInDuration: 520,
+      fadeOutDuration: 760,
+      task: async () => {
+        armMapReveal();
+        updateInterface();
+        await showRoom("control", { immediate: true });
+      }
+    });
+    showToast("NEW OBJECTIVE // ANALYSE THE RESIDUE SAMPLE IN LABORATORY 07");
+  }
+
+  async function runLaboratoryMontage() {
+    await preloadImage("assets/IMG41.png");
+    preloadImages([
+      "assets/IMG41.png", "assets/IMG42.png", "assets/IMG43.png",
+      "assets/IMG44.png", "assets/IMG45.png", "assets/IMG46.png",
+      "assets/IMG47.png", "assets/IMG48.png", "assets/IMG49.png"
+    ], 3);
+
+    runSequence([
+      {
+        image: "assets/IMG41.png",
+        fallbackImage: "assets/IMG09.png",
+        alt: "Luna returns to Laboratory 07 carrying the residue sample and plasma gun.",
+        code: "LABORATORY 07 // CONTAINMENT AVAILABLE",
+        title: "RETURN TO THE LABORATORY",
+        text: "Luna locks the Laboratory door behind her and sets the sealed specimen beside the molecular chamber. The residue moves beneath the glass, recoiling from the light and then reaching toward it again.",
+        button: "LOAD THE SAMPLE",
+        presentation: "montage",
+        slide: "left"
+      },
+      {
+        image: "assets/IMG42.png",
+        fallbackImage: "assets/IMG09.png",
+        alt: "Luna inserts the residue specimen into the molecular analysis chamber.",
+        code: "SPECIMEN CHAMBER // SEALED",
+        title: "LOAD RESIDUE SAMPLE",
+        text: "The chamber locks around the tube. Black material spreads over the inner glass and presses toward Luna's gloved hand. She withdraws it and initiates the scan.",
+        button: "BEGIN MOLECULAR ANALYSIS",
+        presentation: "montage",
+        slide: "right"
+      },
+      {
+        image: "assets/IMG43.png",
+        fallbackImage: "assets/IMG08.png",
+        alt: "Black alien residue branches and reconstructs itself inside the illuminated analysis chamber.",
+        code: "MOLECULAR ANALYSIS // STRUCTURE UNSTABLE",
+        title: "UNKNOWN BIOLOGICAL MATERIAL",
+        text: "The sample contains no stable cellular structure. Its molecules dismantle and rebuild themselves in response to the scanner. It is not merely alive. It is searching for a biological pattern.\n\nLuna: ‘You're trying to become something.’",
+        button: "RUN GENETIC ANALYSIS",
+        presentation: "montage",
+        slide: "up"
+      },
+      {
+        image: "assets/IMG44.png",
+        fallbackImage: "assets/IMG43.png",
+        alt: "A holographic display shows alien filaments weaving around a human DNA helix.",
+        code: "GENETIC MODEL // REPLICATION ACCURACY 99.8%",
+        title: "ADAPTIVE DNA MIMICRY",
+        text: "The organism has no fixed genome. It absorbs biological information and reconstructs itself from acquired DNA. The simulated strands begin aligning with a human sequence.\n\nLuna: ‘It can copy living things.’",
+        button: "IDENTIFY THE TEMPLATE",
+        presentation: "montage",
+        slide: "left"
+      },
+      {
+        image: "assets/IMG45.png",
+        fallbackImage: "assets/IMG44.png",
+        alt: "Luna sees her own face reflected beside a genetic match identifying Luna H.",
+        code: "MATCH FOUND // LUNA H. // 99.8%",
+        title: "IT STUDIED HER",
+        text: "The residue has incorporated fragments of Luna's DNA. It has not merely touched her. It has studied her. The ship marks the potential completed template as HUMAN.\n\nLuna: ‘Even people.’",
+        button: "CROSS-REFERENCE SHIP RECORDS",
+        presentation: "montage",
+        slide: "right"
+      },
+      {
+        image: "assets/IMG46.png",
+        fallbackImage: "assets/IMG07.png",
+        alt: "A laboratory reconstruction reveals black biological threads concealed inside an Alpha 9 mineral core.",
+        code: "ARCHIVE MATCH // ALPHA 9 EXTRACTION",
+        title: "HOW IT CAME ABOARD",
+        text: "Trace minerals in the organism match the Alpha 9 extraction site. Dormant biological matter was concealed inside the recovered cores. It escaped during cryosleep, copied Luna's genetic signature and used her credentials to enter restricted systems.\n\nLuna: ‘That wasn't my access record. It was pretending to be me.’",
+        button: "SIMULATE COMPLETE TRANSFORMATION",
+        presentation: "montage",
+        slide: "down"
+      },
+      {
+        image: "assets/IMG47.png",
+        fallbackImage: "assets/IMG44.png",
+        alt: "A molecular simulation shows a fluid alien mass collapsing into a stable human body.",
+        code: "TRANSFORMATION MODEL // TEMPLATE INTEGRATION COMPLETE",
+        title: "THE FORM BECOMES PERMANENT",
+        text: "As the simulation completes, the organism's adaptive activity stops. Its cells lock into the copied biology. It cannot return to its fluid state. It does not wear the body. It becomes the body.\n\nTransformation is irreversible.",
+        button: "TEST HUMAN VULNERABILITIES",
+        presentation: "montage",
+        slide: "left"
+      },
+      {
+        image: "assets/IMG48.png",
+        fallbackImage: "assets/IMG47.png",
+        alt: "Luna studies a human biological model highlighting oxygen, circulation and vulnerable tissue.",
+        code: "HUMAN TEMPLATE // BIOLOGICAL LIMITS CONFIRMED",
+        title: "IT CAN DIE",
+        text: "A completed human form requires oxygen. It develops circulation, permanent tissue and a finite tolerance for trauma. It can suffocate. It can bleed. It can die.\n\nLuna: ‘Once it becomes human, it becomes mortal.’",
+        button: "RECORD THE FINDING",
+        presentation: "montage",
+        slide: "right"
+      },
+      {
+        image: "assets/IMG49.png",
+        fallbackImage: "assets/IMG41.png",
+        alt: "Red emergency lights flood Laboratory 07 as Luna raises her plasma gun during shipwide lockdown.",
+        code: "SHIPWIDE SECURITY // AUTHORISATION LUNA H.",
+        title: "EMERGENCY LOCKDOWN",
+        text: "The scanner freezes. Every Laboratory light dies, then returns in red. Reinforced doors seal throughout the ship. The Security Armoury, tactical equipment bay and emergency weapons lockers disappear behind biometric lockdowns authorised under Luna's identity.\n\nThe organism knows she has discovered its weakness.",
+        button: "VIEW LOCKDOWN SCHEMATIC",
+        presentation: "montage",
+        slide: "up"
+      }
+    ], completeLaboratoryAnalysis, { mode: "montage" });
+  }
+
+  async function completeLaboratoryAnalysis() {
+    state.organismAnalysed = true;
+    state.lockdownActive = true;
+    state.investigationUnlocked = true;
+    state.checkpoint = 5;
+    state.mapMode = "lockdown";
+    state.currentRoom = "lab";
+    state.stress = 99;
+    saveState();
+    syncCaptainLogUI();
+
+    await runCinematicTransition({
+      duration: 1250,
+      fadeInDuration: 560,
+      fadeOutDuration: 820,
+      task: async () => {
+        armMapReveal();
+        updateInterface();
+        await showRoom("lab", { immediate: true });
+      }
+    });
+    showToast("CHECKPOINT 05 SAVED // THE IMITATION // EMERGENCY LOCKDOWN ACTIVE");
+  }
+
   async function finaliseBranch() {
     if (state.finalReported) {
       openFinalGroundDialog();
@@ -2825,6 +3321,12 @@
     openDialog(finalGroundDialog);
   }
 
+  function clearMontageClasses() {
+    sequenceMedia.classList.remove("montage-slide-left", "montage-slide-right", "montage-slide-up", "montage-slide-down");
+    sequenceCopy.classList.remove("montage-copy-left", "montage-copy-right", "montage-copy-up", "montage-copy-down");
+    delete sequenceDialog.dataset.slideDirection;
+  }
+
   function cancelActiveSequence({ close = true } = {}) {
     sequenceRunId += 1;
     activeSequence = null;
@@ -2832,13 +3334,15 @@
     sequenceAdvanceLocked = false;
     sequenceButton.disabled = false;
     sequenceMedia.classList.remove("is-blackout", "is-swapping");
+    clearMontageClasses();
+    sequenceDialog.classList.remove("is-montage-sequence");
     if (close) closeDialog(sequenceDialog);
   }
 
-  function runSequence(steps, onComplete) {
+  function runSequence(steps, onComplete, options = {}) {
     cancelActiveSequence();
     const runId = ++sequenceRunId;
-    activeSequence = { steps, onComplete, runId };
+    activeSequence = { steps, onComplete, runId, mode: options.mode || "standard" };
     sequenceIndex = 0;
     openDialog(sequenceDialog);
     showSequenceStep(runId);
@@ -2858,9 +3362,11 @@
       "is-combat-sequence",
       "is-communication-sequence",
       "is-corruption-sequence",
-      "is-restored-sequence"
+      "is-restored-sequence",
+      "is-montage-sequence"
     );
     if (step.presentation) sequenceDialog.classList.add(`is-${step.presentation}-sequence`);
+    if (activeSequence.mode === "montage") sequenceDialog.classList.add("is-montage-sequence");
 
     if (step.blackoutBefore && !reducedMotion) {
       sequenceMedia.classList.add("is-blackout");
@@ -2888,6 +3394,17 @@
     sequenceText.textContent = step.text;
     sequenceButton.textContent = step.button || "CONTINUE";
     sequenceMedia.classList.remove("is-blackout", "is-swapping");
+
+    if (activeSequence.mode === "montage" && !reducedMotion) {
+      clearMontageClasses();
+      const direction = step.slide || (["left", "right", "up", "down"][sequenceIndex % 4]);
+      const opposite = direction === "left" ? "right" : direction === "right" ? "left" : direction === "up" ? "down" : "up";
+      sequenceDialog.dataset.slideDirection = direction;
+      void sequenceMedia.offsetWidth;
+      sequenceMedia.classList.add(`montage-slide-${direction}`);
+      sequenceCopy.classList.add(`montage-copy-${opposite}`);
+    }
+
     sequenceButton.disabled = false;
   }
 
@@ -2994,6 +3511,9 @@
   aloneChoiceButton.addEventListener("click", startAloneBranch);
   acknowledgeFinalButton.addEventListener("click", beginBlackoutAct);
   restartButton.addEventListener("click", restartGame);
+  personalLogNotes.addEventListener("input", scheduleCaptainLogSave);
+  addLogTimestampButton.addEventListener("click", addCaptainLogTimestamp);
+  clearLogButton.addEventListener("click", clearCaptainLogNotes);
 
   lunaToken.addEventListener("pointerdown", beginTokenDrag);
   lunaToken.addEventListener("pointermove", moveTokenDrag);
@@ -3008,7 +3528,12 @@
     titleArtwork.hidden = true;
   });
 
+  document.addEventListener("pointerdown", () => {
+    if (!titleScreen.hidden && titleMusic?.dataset.autoplay === "blocked") playTitleMusic();
+  }, { passive: true });
+
   document.addEventListener("keydown", (event) => {
+    if (!titleScreen.hidden && titleMusic?.dataset.autoplay === "blocked") playTitleMusic();
     if (event.key !== "Enter" && event.key !== " ") return;
     if (creditsDialog.open || !cinematicTransition.hidden) return;
 
@@ -3030,10 +3555,12 @@
   gameScreen.hidden = true;
   loseScreen.hidden = true;
   refreshTitleMenu();
+  syncCaptainLogUI();
   preloadImage("assets/IMG00.png");
   requestAnimationFrame(() => {
     titleScreen.hidden = false;
     titleScreen.classList.add("is-visible");
     playButton.focus({ preventScroll: true });
+    playTitleMusic();
   });
 })();

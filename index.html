@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#05070a">
-  <meta name="game-version" content="0.6.1">
+  <meta name="game-version" content="0.7.0">
   <meta name="description" content="The Void, a cinematic solo sci-fi survival adventure.">
   <title>The Void</title>
 
@@ -16,11 +16,22 @@
   <link rel="prefetch" as="image" href="assets/IMG22.png">
   <link rel="prefetch" as="image" href="assets/IMG27.png">
   <link rel="prefetch" as="image" href="assets/IMG30.png">
+  <link rel="prefetch" as="image" href="assets/IMG41.png">
+  <link rel="prefetch" as="image" href="assets/IMG42.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="starfield" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
+
+  <audio
+    id="titleMusic"
+    src="https://pub-00000000000000000000000000000000.r2.dev/the-void-title-theme.mp3"
+    preload="auto"
+    autoplay
+    loop
+    aria-hidden="true"
+  ></audio>
 
   <main id="app">
     <section class="title-screen is-visible" id="titleScreen" aria-label="The Void title screen">
@@ -57,7 +68,7 @@
         </div>
         <p class="title-enter-hint" id="titleEnterHint">PRESS ENTER OR SELECT PLAY</p>
       </div>
-      <div class="title-build">BUILD 0.6.1</div>
+      <div class="title-build">BUILD 0.7.0</div>
     </section>
 
     <section class="cinematic-shell" id="cinematicShell" hidden>
@@ -226,29 +237,63 @@
     <form method="dialog" class="system-window log-window">
       <header>
         <div>
-          <span>PILOT ARCHIVE // LUNA H.</span>
-          <h2>PILOT'S LOG</h2>
+          <span>CAPTAIN'S ARCHIVE // LUNA H.</span>
+          <h2>CAPTAIN'S LOG</h2>
         </div>
-        <button class="close-dialog" value="close" aria-label="Close pilot's log">×</button>
+        <button class="close-dialog" value="close" aria-label="Close Captain's Log">×</button>
       </header>
 
       <div class="dialog-body log-body">
-        <article>
-          <span>MISSION DAY 41 // 18:06 UTC</span>
-          <p>Alpha 9 extraction complete. The mineral cores are secure and holding within tolerance. No contamination detected. I am beginning the return journey alone.</p>
-        </article>
-        <article>
-          <span>MISSION DAY 47 // 02:02 UTC</span>
-          <p>Earth is seventy-two hours away. Guidance will carry the ship through The Void while I enter a short cryosleep cycle. All systems report nominal. External sensors report nothing at all.</p>
-        </article>
-        <article class="corrupt-entry">
-          <span>AUTOMATED SYSTEM APPENDIX // 02:17 UTC</span>
-          <p>Internal maintenance access recorded. User credential: LUNA H. Location: unresolved.</p>
-        </article>
+        <section class="log-section" aria-labelledby="missionArchiveHeading">
+          <div class="log-section-heading">
+            <span>FIXED SHIP RECORDS</span>
+            <h3 id="missionArchiveHeading">MISSION ARCHIVE</h3>
+          </div>
+
+          <article>
+            <span>MISSION DAY 41 // 18:06 UTC</span>
+            <p>Alpha 9 extraction complete. The mineral cores are secure and holding within tolerance. No contamination detected. I am beginning the return journey alone.</p>
+          </article>
+          <article>
+            <span>MISSION DAY 47 // 02:02 UTC</span>
+            <p>Earth is seventy-two hours away. Guidance will carry the ship through The Void while I enter a short cryosleep cycle. All systems report nominal. External sensors report nothing at all.</p>
+          </article>
+          <article class="corrupt-entry">
+            <span>AUTOMATED SYSTEM APPENDIX // 02:17 UTC</span>
+            <p>Internal maintenance access recorded. User credential: LUNA H. Location: unresolved.</p>
+          </article>
+          <article class="analysis-entry" id="organismAnalysisLogEntry" hidden>
+            <span>ORGANISM ANALYSIS // LABORATORY 07</span>
+            <p>Adaptive DNA mimic. Capable of assuming living biological forms. Transformation becomes irreversible after completion. A completed human form requires oxygen and remains vulnerable to injury, blood loss and biological death. Trace contamination originated inside the Alpha 9 mineral cores.</p>
+          </article>
+        </section>
+
+        <section class="log-section personal-log-section" aria-labelledby="personalNotesHeading">
+          <div class="log-section-heading personal-log-heading">
+            <div>
+              <span>PLAYER ENTRY // LOCAL DEVICE STORAGE</span>
+              <h3 id="personalNotesHeading">PERSONAL NOTES</h3>
+            </div>
+            <span class="log-save-status" id="logSaveStatus">AUTO-SAVE READY</span>
+          </div>
+          <label class="sr-only" for="personalLogNotes">Captain's Log personal notes</label>
+          <textarea
+            id="personalLogNotes"
+            class="personal-log-notes"
+            rows="10"
+            maxlength="12000"
+            spellcheck="true"
+            placeholder="Record codes, clues, suspicions or mission reminders…"
+          ></textarea>
+          <div class="personal-log-controls">
+            <button class="dialog-button" id="addLogTimestampButton" type="button">ADD TIMESTAMP</button>
+            <button class="dialog-button personal-log-clear" id="clearLogButton" type="button">CLEAR NOTES</button>
+          </div>
+        </section>
       </div>
 
       <footer>
-        <span id="logFooterStatus">ARCHIVE READ</span>
+        <span id="logFooterStatus">ARCHIVE READ // PERSONAL LOG READY</span>
         <button value="close" class="dialog-button">CLOSE LOG</button>
       </footer>
     </form>
@@ -445,7 +490,7 @@
         <dl>
           <div><dt>Created, designed and directed by</dt><dd>James Ritchie</dd></div>
           <div><dt>Lead character</dt><dd>Luna H.</dd></div>
-          <div><dt>Current build</dt><dd>0.6.0</dd></div>
+          <div><dt>Current build</dt><dd>0.7.0</dd></div>
         </dl>
       </div>
       <footer>
