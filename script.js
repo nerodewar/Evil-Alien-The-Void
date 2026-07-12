@@ -416,19 +416,25 @@
     title = "RECONSTRUCTING SHIP SCHEMATIC",
     text = "Buffering mission state…",
     duration = 900,
-    task = null
+    task = null,
+    showInfo = false,
+    fadeInDuration = 350,
+    fadeOutDuration = 560
   } = {}) {
     const runId = ++transitionRunId;
     transitionKicker.textContent = kicker;
     transitionTitle.textContent = title;
     transitionText.textContent = text;
     transitionProgress.style.animationDuration = `${Math.max(700, duration)}ms`;
+    cinematicTransition.style.setProperty("--transition-fade-in", `${Math.max(0, fadeInDuration)}ms`);
+    cinematicTransition.style.setProperty("--transition-fade-out", `${Math.max(0, fadeOutDuration)}ms`);
+    cinematicTransition.classList.toggle("has-info", showInfo);
     cinematicTransition.hidden = false;
     cinematicTransition.classList.remove("is-active", "is-leaving");
     await wait(reducedMotion ? 1 : 20);
     if (runId !== transitionRunId) return undefined;
     cinematicTransition.classList.add("is-active");
-    await wait(reducedMotion ? 5 : 220);
+    await wait(reducedMotion ? 5 : fadeInDuration);
 
     let result;
     let thrown;
@@ -443,10 +449,12 @@
     await Promise.all([operation, wait(reducedMotion ? 20 : duration)]);
     if (runId !== transitionRunId) return result;
     cinematicTransition.classList.add("is-leaving");
-    await wait(reducedMotion ? 5 : 320);
+    await wait(reducedMotion ? 5 : fadeOutDuration);
     if (runId === transitionRunId) {
       cinematicTransition.hidden = true;
-      cinematicTransition.classList.remove("is-active", "is-leaving");
+      cinematicTransition.classList.remove("is-active", "is-leaving", "has-info");
+      cinematicTransition.style.removeProperty("--transition-fade-in");
+      cinematicTransition.style.removeProperty("--transition-fade-out");
     }
     if (thrown) throw thrown;
     return result;
@@ -486,7 +494,10 @@
       kicker: "ELITE FORCES // MISSION ARCHIVE",
       title: "MISSION ARCHIVE INITIALISING",
       text: "Pilot: Luna H. // Destination: Earth // Deep-space route loading",
-      duration: 1050,
+      duration: 3700,
+      showInfo: true,
+      fadeInDuration: 450,
+      fadeOutDuration: 1100,
       task: async () => {
         hidePrimaryScreens();
         cinematicShell.hidden = false;

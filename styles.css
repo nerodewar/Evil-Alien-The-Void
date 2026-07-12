@@ -2331,7 +2331,7 @@ dialog::backdrop {
   .sequence-copy p { line-height: 1.58; }
 }
 
-/* v0.6.0 title screen, cinematic transitions, loss state and map reveals */
+/* v0.6.1 title screen, minimal black transitions, loss state and map reveals */
 .sr-only {
   position: absolute !important;
   width: 1px !important;
@@ -2591,13 +2591,23 @@ dialog::backdrop {
   padding: 28px;
   overflow: hidden;
   color: #f1f7fc;
-  background: #010205;
+  background: #000;
   opacity: 0;
-  transition: opacity .35s ease;
+  transition: opacity var(--transition-fade-in, 350ms) ease;
 }
 
 .cinematic-transition.is-active { opacity: 1; }
-.cinematic-transition.is-leaving { opacity: 0; }
+.cinematic-transition.is-leaving {
+  opacity: 0;
+  transition-duration: var(--transition-fade-out, 560ms);
+}
+
+/* In-game transitions are intentionally pure black. The information panel
+   is enabled only for the opening mission-loading sequence. */
+.cinematic-transition:not(.has-info) .transition-noise,
+.cinematic-transition:not(.has-info) .transition-core {
+  display: none;
+}
 
 .transition-noise {
   position: absolute;
