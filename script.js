@@ -1,11 +1,11 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v092";
+  const SAVE_KEY = "theVoidSave_v093";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
   const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
-  const LEGACY_KEYS = ["theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const LEGACY_KEYS = ["theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -826,7 +826,7 @@
 
   async function runCinematicTransition({
     kicker = "MISSION SYSTEM",
-    title = "RECONSTRUCTING SHIP SCHEMATIC",
+    title = "RENDERING DECK CUTAWAY",
     text = "Buffering mission state…",
     duration = 900,
     task = null,
@@ -1164,7 +1164,7 @@
 
     await runCinematicTransition({
       kicker: "VESSEL SYSTEM // DECK 07",
-      title: "SHIP SCHEMATIC ONLINE",
+      title: "DECK CUTAWAY ONLINE",
       text: "Locating Luna H. and reconstructing the accessible route",
       duration: 950,
       task: async () => {
@@ -1671,36 +1671,46 @@
     const space = createMapSvgElement("linearGradient", { id: `${uid}-space`, x1: "0", y1: "0", x2: "1", y2: "1" });
     space.append(
       createMapSvgElement("stop", { offset: "0%", "stop-color": "#01040b" }),
-      createMapSvgElement("stop", { offset: "52%", "stop-color": "#071426" }),
-      createMapSvgElement("stop", { offset: "100%", "stop-color": "#02050a" })
+      createMapSvgElement("stop", { offset: "48%", "stop-color": "#061426" }),
+      createMapSvgElement("stop", { offset: "100%", "stop-color": "#010308" })
     );
 
-    const nebula = createMapSvgElement("radialGradient", { id: `${uid}-nebula`, cx: `${geometry.glowX}%`, cy: `${geometry.glowY}%`, r: "58%" });
+    const nebula = createMapSvgElement("radialGradient", { id: `${uid}-nebula`, cx: `${geometry.glowX}%`, cy: `${geometry.glowY}%`, r: "64%" });
     nebula.append(
-      createMapSvgElement("stop", { offset: "0%", "stop-color": state.lockdownActive ? "#6b1020" : "#1e5275", "stop-opacity": state.lockdownActive ? ".34" : ".32" }),
-      createMapSvgElement("stop", { offset: "45%", "stop-color": state.lockdownActive ? "#310712" : "#102a47", "stop-opacity": ".14" }),
+      createMapSvgElement("stop", { offset: "0%", "stop-color": state.lockdownActive ? "#7a1023" : "#175b8b", "stop-opacity": state.lockdownActive ? ".34" : ".28" }),
+      createMapSvgElement("stop", { offset: "44%", "stop-color": state.lockdownActive ? "#320713" : "#0b2948", "stop-opacity": ".13" }),
       createMapSvgElement("stop", { offset: "100%", "stop-color": "#000000", "stop-opacity": "0" })
     );
 
     const hull = createMapSvgElement("linearGradient", { id: `${uid}-hull`, x1: "0", y1: "0", x2: "1", y2: "1" });
     hull.append(
-      createMapSvgElement("stop", { offset: "0%", "stop-color": "#f8fbff", "stop-opacity": ".92" }),
-      createMapSvgElement("stop", { offset: "28%", "stop-color": "#b6c6d3", "stop-opacity": ".7" }),
-      createMapSvgElement("stop", { offset: "65%", "stop-color": "#506274", "stop-opacity": ".55" }),
-      createMapSvgElement("stop", { offset: "100%", "stop-color": "#dceaf2", "stop-opacity": ".72" })
+      createMapSvgElement("stop", { offset: "0%", "stop-color": "#f8fbff", "stop-opacity": ".58" }),
+      createMapSvgElement("stop", { offset: "34%", "stop-color": "#9eb2c2", "stop-opacity": ".34" }),
+      createMapSvgElement("stop", { offset: "72%", "stop-color": "#344756", "stop-opacity": ".26" }),
+      createMapSvgElement("stop", { offset: "100%", "stop-color": "#dceaf2", "stop-opacity": ".42" })
     );
 
-    const deck = createMapSvgElement("radialGradient", { id: `${uid}-deck`, cx: "48%", cy: "40%", r: "70%" });
-    deck.append(
-      createMapSvgElement("stop", { offset: "0%", "stop-color": state.lockdownActive ? "#16070a" : "#0c1b26" }),
-      createMapSvgElement("stop", { offset: "63%", "stop-color": "#060b11" }),
-      createMapSvgElement("stop", { offset: "100%", "stop-color": "#020408" })
+    const moduleHull = createMapSvgElement("linearGradient", { id: `${uid}-module-hull`, x1: "0", y1: "0", x2: "1", y2: "1" });
+    moduleHull.append(
+      createMapSvgElement("stop", { offset: "0%", "stop-color": "#f3f6f8" }),
+      createMapSvgElement("stop", { offset: "26%", "stop-color": "#aebbc4" }),
+      createMapSvgElement("stop", { offset: "55%", "stop-color": "#5e6d78" }),
+      createMapSvgElement("stop", { offset: "78%", "stop-color": "#d7dfe4" }),
+      createMapSvgElement("stop", { offset: "100%", "stop-color": "#778690" })
     );
 
-    const compartment = createMapSvgElement("linearGradient", { id: `${uid}-compartment`, x1: "0", y1: "0", x2: "0", y2: "1" });
+    const moduleInset = createMapSvgElement("linearGradient", { id: `${uid}-module-inset`, x1: "0", y1: "0", x2: "0", y2: "1" });
+    moduleInset.append(
+      createMapSvgElement("stop", { offset: "0%", "stop-color": state.lockdownActive ? "#24090e" : "#102638" }),
+      createMapSvgElement("stop", { offset: "52%", "stop-color": "#071019" }),
+      createMapSvgElement("stop", { offset: "100%", "stop-color": "#020508" })
+    );
+
+    const compartment = createMapSvgElement("radialGradient", { id: `${uid}-compartment`, cx: "50%", cy: "42%", r: "72%" });
     compartment.append(
-      createMapSvgElement("stop", { offset: "0%", "stop-color": "#163044", "stop-opacity": ".86" }),
-      createMapSvgElement("stop", { offset: "100%", "stop-color": "#050b11", "stop-opacity": ".94" })
+      createMapSvgElement("stop", { offset: "0%", "stop-color": state.lockdownActive ? "#21080d" : "#123047", "stop-opacity": ".98" }),
+      createMapSvgElement("stop", { offset: "58%", "stop-color": "#07111a", "stop-opacity": ".98" }),
+      createMapSvgElement("stop", { offset: "100%", "stop-color": "#020508", "stop-opacity": "1" })
     );
 
     const glow = createMapSvgElement("filter", { id: `${uid}-glow`, x: "-60%", y: "-60%", width: "220%", height: "220%" });
@@ -1709,16 +1719,22 @@
     merge.append(createMapSvgElement("feMergeNode", { in: "blur" }), createMapSvgElement("feMergeNode", { in: "SourceGraphic" }));
     glow.append(merge);
 
-    const shadow = createMapSvgElement("filter", { id: `${uid}-shadow`, x: "-30%", y: "-30%", width: "160%", height: "170%" });
-    shadow.append(createMapSvgElement("feDropShadow", { dx: "0", dy: "2.2", stdDeviation: "2.5", "flood-color": "#000712", "flood-opacity": ".92" }));
+    const shadow = createMapSvgElement("filter", { id: `${uid}-shadow`, x: "-30%", y: "-30%", width: "160%", height: "180%" });
+    shadow.append(createMapSvgElement("feDropShadow", { dx: "0", dy: "2.4", stdDeviation: "2.8", "flood-color": "#00030a", "flood-opacity": ".94" }));
+
+    const roomShadow = createMapSvgElement("filter", { id: `${uid}-room-shadow`, x: "-45%", y: "-45%", width: "190%", height: "210%" });
+    roomShadow.append(createMapSvgElement("feDropShadow", { dx: "0", dy: "1.3", stdDeviation: "1.15", "flood-color": "#000000", "flood-opacity": ".9" }));
 
     const grid = createMapSvgElement("pattern", { id: `${uid}-grid`, width: "3.2", height: "3.2", patternUnits: "userSpaceOnUse" });
-    grid.append(createMapSvgElement("path", { d: "M 3.2 0 L 0 0 0 3.2", fill: "none", stroke: "#9ed8ff", "stroke-opacity": ".045", "stroke-width": ".12" }));
+    grid.append(createMapSvgElement("path", { d: "M 3.2 0 L 0 0 0 3.2", fill: "none", stroke: "#9ed8ff", "stroke-opacity": ".04", "stroke-width": ".12" }));
+
+    const roomGrid = createMapSvgElement("pattern", { id: `${uid}-room-grid`, width: "1.8", height: "1.8", patternUnits: "userSpaceOnUse" });
+    roomGrid.append(createMapSvgElement("path", { d: "M 1.8 0 L 0 0 0 1.8", fill: "none", stroke: "#c8e9ff", "stroke-opacity": ".055", "stroke-width": ".1" }));
 
     const clip = createMapSvgElement("clipPath", { id: `${uid}-clip` });
     clip.append(createMapSvgElement("path", { d: geometry.outer, transform: "translate(50 50) scale(.925) translate(-50 -50)" }));
 
-    defs.append(space, nebula, hull, deck, compartment, glow, shadow, grid, clip);
+    defs.append(space, nebula, hull, moduleHull, moduleInset, compartment, glow, shadow, roomShadow, grid, roomGrid, clip);
     svg.append(defs);
   }
 
@@ -1744,6 +1760,267 @@
       (index % 2 === 0 ? starLayerA : starLayerB).append(star);
     }
     svg.append(starLayerA, starLayerB);
+  }
+
+  function appendSvgChildren(parent, children) {
+    parent.append(...children.filter(Boolean));
+  }
+
+  function roomInteriorBounds(frame) {
+    const insetX = Math.min(2.2, frame.width * .12);
+    const insetY = Math.min(2.3, frame.height * .13);
+    return {
+      x: frame.x + insetX,
+      y: frame.y + insetY,
+      width: Math.max(2, frame.width - insetX * 2),
+      height: Math.max(2, frame.height - insetY * 2),
+      cx: frame.cx,
+      cy: frame.cy
+    };
+  }
+
+  function appendGenericDeckPanels(group, bounds) {
+    const { x, y, width, height } = bounds;
+    const vertical = width < height;
+    const count = vertical ? 4 : 5;
+    for (let index = 1; index < count; index += 1) {
+      const ratio = index / count;
+      group.append(createMapSvgElement("path", {
+        d: vertical
+          ? `M ${x + 1} ${y + height * ratio} H ${x + width - 1}`
+          : `M ${x + width * ratio} ${y + 1} V ${y + height - 1}`,
+        class: "cutaway-floor-panel-line"
+      }));
+    }
+  }
+
+  function appendRoomGlyph(group, node, frame) {
+    const accessReason = getAccessReason(node.id);
+    const status = String(node.status || "").toUpperCase();
+    const cx = frame.cx;
+    const cy = frame.cy + frame.height * .13;
+    if (accessReason || (node.classes || []).includes("is-locked")) {
+      const size = Math.min(frame.width, frame.height) * .16;
+      group.append(
+        createMapSvgElement("rect", { x: cx - size * .58, y: cy - size * .05, width: size * 1.16, height: size * .88, rx: size * .12, class: "cutaway-lock-body" }),
+        createMapSvgElement("path", { d: `M ${cx - size * .34} ${cy - size * .04} V ${cy - size * .34} Q ${cx - size * .34} ${cy - size * .68} ${cx} ${cy - size * .68} Q ${cx + size * .34} ${cy - size * .68} ${cx + size * .34} ${cy - size * .34} V ${cy - size * .04}`, class: "cutaway-lock-shackle" })
+      );
+      return;
+    }
+    if (/UNSCANNED|UNSEARCHED|ANALYSIS REQUIRED|DIAGNOSE/.test(status)) {
+      const question = createMapSvgElement("text", { x: cx, y: cy + 1.8, class: "cutaway-state-glyph" });
+      question.textContent = "?";
+      group.append(question);
+      return;
+    }
+    if (node.alert || (node.classes || []).includes("is-danger") || (node.classes || []).includes("is-biohazard")) {
+      const warning = createMapSvgElement("text", { x: cx, y: cy + 1.8, class: "cutaway-state-glyph is-warning" });
+      warning.textContent = "!";
+      group.append(warning);
+    }
+  }
+
+  function appendCorridorInterior(group, bounds, node) {
+    const { x, y, width, height, cx, cy } = bounds;
+    const vertical = height > width;
+    group.append(createMapSvgElement("rect", {
+      x: vertical ? cx - width * .22 : x + .6,
+      y: vertical ? y + .6 : cy - height * .22,
+      width: vertical ? width * .44 : width - 1.2,
+      height: vertical ? height - 1.2 : height * .44,
+      rx: ".7",
+      class: "cutaway-corridor-channel"
+    }));
+    const chevrons = 3;
+    for (let index = 0; index < chevrons; index += 1) {
+      const ratio = (index + 1) / (chevrons + 1);
+      if (vertical) {
+        const yy = y + height * ratio;
+        group.append(createMapSvgElement("path", { d: `M ${cx - 1.25} ${yy - .8} L ${cx} ${yy + .35} L ${cx + 1.25} ${yy - .8}`, class: "cutaway-floor-chevron" }));
+      } else {
+        const xx = x + width * ratio;
+        group.append(createMapSvgElement("path", { d: `M ${xx - .8} ${cy - 1.25} L ${xx + .35} ${cy} L ${xx - .8} ${cy + 1.25}`, class: "cutaway-floor-chevron" }));
+      }
+    }
+    if (node.id === "darkcorridor") group.classList.add("is-dark-interior");
+  }
+
+  function appendControlInterior(group, bounds) {
+    const { x, y, width, height, cx, cy } = bounds;
+    const radius = Math.min(width, height) * .19;
+    group.append(
+      createMapSvgElement("circle", { cx, cy: cy + height * .08, r: radius * 1.45, class: "cutaway-console-ring" }),
+      createMapSvgElement("circle", { cx, cy: cy + height * .08, r: radius * .54, class: "cutaway-command-chair" }),
+      createMapSvgElement("rect", { x: x + width * .12, y: y + height * .12, width: width * .24, height: height * .13, rx: ".4", class: "cutaway-console-bank" }),
+      createMapSvgElement("rect", { x: x + width * .64, y: y + height * .12, width: width * .24, height: height * .13, rx: ".4", class: "cutaway-console-bank" }),
+      createMapSvgElement("rect", { x: x + width * .35, y: y + height * .72, width: width * .3, height: height * .12, rx: ".4", class: "cutaway-console-bank" })
+    );
+  }
+
+  function appendCrewInterior(group, bounds) {
+    const { x, y, width, height } = bounds;
+    for (let row = 0; row < 3; row += 1) {
+      const yy = y + height * (.14 + row * .28);
+      group.append(
+        createMapSvgElement("rect", { x: x + width * .07, y: yy, width: width * .28, height: height * .12, rx: ".35", class: "cutaway-bunk" }),
+        createMapSvgElement("rect", { x: x + width * .65, y: yy, width: width * .28, height: height * .12, rx: ".35", class: "cutaway-bunk" })
+      );
+    }
+    group.append(createMapSvgElement("path", { d: `M ${x + width * .48} ${y + 1} V ${y + height - 1}`, class: "cutaway-room-axis" }));
+  }
+
+  function appendLifeSupportInterior(group, bounds) {
+    const { x, y, width, height, cx, cy } = bounds;
+    const radius = Math.min(width, height) * .27;
+    group.append(
+      createMapSvgElement("circle", { cx, cy: cy + height * .08, r: radius * 1.25, class: "cutaway-system-ring" }),
+      createMapSvgElement("circle", { cx, cy: cy + height * .08, r: radius * .34, class: "cutaway-system-core" })
+    );
+    for (let angle = 0; angle < 360; angle += 90) {
+      const rad = angle * Math.PI / 180;
+      const x1 = cx + Math.cos(rad) * radius * .45;
+      const y1 = cy + height * .08 + Math.sin(rad) * radius * .45;
+      const x2 = cx + Math.cos(rad) * radius * 1.05;
+      const y2 = cy + height * .08 + Math.sin(rad) * radius * 1.05;
+      group.append(createMapSvgElement("path", { d: `M ${x1} ${y1} L ${x2} ${y2}`, class: "cutaway-fan-blade" }));
+    }
+    group.append(
+      createMapSvgElement("rect", { x: x + 1, y: y + 1, width: width * .18, height: height * .2, rx: ".3", class: "cutaway-console-bank" }),
+      createMapSvgElement("rect", { x: x + width * .82 - 1, y: y + 1, width: width * .18, height: height * .2, rx: ".3", class: "cutaway-console-bank" })
+    );
+  }
+
+  function appendLabInterior(group, bounds) {
+    const { x, y, width, height, cx, cy } = bounds;
+    group.append(
+      createMapSvgElement("rect", { x: x + width * .08, y: y + height * .15, width: width * .3, height: height * .17, rx: ".35", class: "cutaway-lab-bench" }),
+      createMapSvgElement("rect", { x: x + width * .62, y: y + height * .15, width: width * .3, height: height * .17, rx: ".35", class: "cutaway-lab-bench" }),
+      createMapSvgElement("rect", { x: x + width * .08, y: y + height * .62, width: width * .3, height: height * .17, rx: ".35", class: "cutaway-lab-bench" }),
+      createMapSvgElement("rect", { x: x + width * .62, y: y + height * .62, width: width * .3, height: height * .17, rx: ".35", class: "cutaway-lab-bench" }),
+      createMapSvgElement("path", { d: `M ${cx} ${cy - 1.8} L ${cx + 1.8} ${cy} L ${cx} ${cy + 1.8} L ${cx - 1.8} ${cy} Z`, class: "cutaway-sample-diamond" })
+    );
+  }
+
+  function appendStorageInterior(group, bounds) {
+    const { x, y, width, height } = bounds;
+    for (let row = 0; row < 2; row += 1) {
+      for (let column = 0; column < 3; column += 1) {
+        group.append(createMapSvgElement("rect", {
+          x: x + width * (.08 + column * .3),
+          y: y + height * (.2 + row * .38),
+          width: width * .22,
+          height: height * .2,
+          rx: ".3",
+          class: "cutaway-crate"
+        }));
+      }
+    }
+  }
+
+  function appendKitchenInterior(group, bounds) {
+    const { x, y, width, height, cx, cy } = bounds;
+    group.append(
+      createMapSvgElement("rect", { x: x + width * .13, y: y + height * .08, width: width * .74, height: height * .12, rx: ".35", class: "cutaway-counter" }),
+      createMapSvgElement("rect", { x: cx - width * .2, y: cy - height * .05, width: width * .4, height: height * .26, rx: ".6", class: "cutaway-mess-table" }),
+      createMapSvgElement("path", { d: `M ${x + width * .16} ${y + height * .72} H ${x + width * .84}`, class: "cutaway-room-axis" })
+    );
+  }
+
+  function appendReactorInterior(group, bounds) {
+    const { x, y, width, height, cx, cy } = bounds;
+    const radius = Math.min(width, height) * .22;
+    group.append(
+      createMapSvgElement("circle", { cx, cy, r: radius * 1.55, class: "cutaway-reactor-ring is-outer" }),
+      createMapSvgElement("circle", { cx, cy, r: radius, class: "cutaway-reactor-ring" }),
+      createMapSvgElement("circle", { cx, cy, r: radius * .38, class: "cutaway-reactor-core" }),
+      createMapSvgElement("path", { d: `M ${x + 1} ${cy} H ${cx - radius * 1.6} M ${cx + radius * 1.6} ${cy} H ${x + width - 1}`, class: "cutaway-pipe-line" }),
+      createMapSvgElement("path", { d: `M ${cx} ${y + 1} V ${cy - radius * 1.6} M ${cx} ${cy + radius * 1.6} V ${y + height - 1}`, class: "cutaway-pipe-line" })
+    );
+  }
+
+  function appendSecurityInterior(group, bounds, tactical = false) {
+    const { x, y, width, height, cx, cy } = bounds;
+    if (tactical) {
+      for (let row = 0; row < 3; row += 1) {
+        group.append(
+          createMapSvgElement("rect", { x: x + width * .08, y: y + height * (.12 + row * .27), width: width * .25, height: height * .12, rx: ".3", class: "cutaway-weapon-rack" }),
+          createMapSvgElement("rect", { x: x + width * .67, y: y + height * (.12 + row * .27), width: width * .25, height: height * .12, rx: ".3", class: "cutaway-weapon-rack" })
+        );
+      }
+      group.append(createMapSvgElement("rect", { x: cx - width * .12, y: cy - height * .1, width: width * .24, height: height * .2, rx: ".5", class: "cutaway-loadout-pod" }));
+      return;
+    }
+    group.append(
+      createMapSvgElement("rect", { x: x + width * .08, y: y + height * .08, width: width * .84, height: height * .16, rx: ".35", class: "cutaway-monitor-wall" }),
+      createMapSvgElement("rect", { x: cx - width * .16, y: cy - height * .02, width: width * .32, height: height * .22, rx: ".45", class: "cutaway-console-bank" }),
+      createMapSvgElement("circle", { cx, cy: cy + height * .28, r: Math.min(width, height) * .08, class: "cutaway-command-chair" })
+    );
+  }
+
+  function appendAirlockInterior(group, bounds) {
+    const { x, y, width, height } = bounds;
+    group.append(
+      createMapSvgElement("rect", { x: x + width * .22, y: y + height * .08, width: width * .56, height: height * .84, rx: ".7", class: "cutaway-airlock-core" }),
+      createMapSvgElement("path", { d: `M ${x + width * .38} ${y + height * .12} V ${y + height * .88} M ${x + width * .62} ${y + height * .12} V ${y + height * .88}`, class: "cutaway-airlock-bars" })
+    );
+  }
+
+  function appendSatNavInterior(group, bounds) {
+    const { x, y, width, height, cx, cy } = bounds;
+    const radius = Math.min(width, height) * .2;
+    group.append(
+      createMapSvgElement("path", { d: `M ${cx - radius * 1.3} ${cy + radius * .5} Q ${cx} ${cy - radius * 1.45} ${cx + radius * 1.3} ${cy + radius * .5}`, class: "cutaway-satnav-dish" }),
+      createMapSvgElement("path", { d: `M ${cx} ${cy + radius * .35} V ${cy + radius * 1.55}`, class: "cutaway-satnav-mast" }),
+      createMapSvgElement("circle", { cx, cy: cy - radius * .3, r: radius * .18, class: "cutaway-system-core" })
+    );
+  }
+
+  function appendRoomInterior(group, node, frame, uid) {
+    const bounds = roomInteriorBounds(frame);
+    const floorGrid = createMapSvgElement("rect", {
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height,
+      rx: ".75",
+      fill: `url(#${uid}-room-grid)`,
+      class: "cutaway-room-grid"
+    });
+    const details = createMapSvgElement("g", { class: `cutaway-room-interior cutaway-room-interior-${node.id}` });
+    details.append(floorGrid);
+
+    if (["hallway", "south", "darkcorridor", "tunnels", "outside"].includes(node.id)) appendCorridorInterior(details, bounds, node);
+    else if (node.id === "control") appendControlInterior(details, bounds);
+    else if (node.id === "crew") appendCrewInterior(details, bounds);
+    else if (node.id === "life") appendLifeSupportInterior(details, bounds);
+    else if (node.id === "lab") appendLabInterior(details, bounds);
+    else if (["store", "storage2"].includes(node.id)) appendStorageInterior(details, bounds);
+    else if (node.id === "kitchen") appendKitchenInterior(details, bounds);
+    else if (["engineering", "engine", "power", "auxpower"].includes(node.id)) appendReactorInterior(details, bounds);
+    else if (node.id === "security") appendSecurityInterior(details, bounds, false);
+    else if (["tactical", "armoury"].includes(node.id)) appendSecurityInterior(details, bounds, true);
+    else if (node.id === "airlock") appendAirlockInterior(details, bounds);
+    else if (node.id === "satnav") appendSatNavInterior(details, bounds);
+    else appendGenericDeckPanels(details, bounds);
+
+    appendRoomGlyph(details, node, frame);
+    group.append(details);
+  }
+
+  function appendModuleCorners(group, frame) {
+    const { x, y, width, height } = frame;
+    const inset = 1.2;
+    const length = Math.min(2.6, Math.min(width, height) * .17);
+    const left = x + inset;
+    const right = x + width - inset;
+    const top = y + inset;
+    const bottom = y + height - inset;
+    group.append(
+      createMapSvgElement("path", { d: `M ${left + length} ${top} H ${left} V ${top + length}`, class: "cutaway-module-corner" }),
+      createMapSvgElement("path", { d: `M ${right - length} ${top} H ${right} V ${top + length}`, class: "cutaway-module-corner" }),
+      createMapSvgElement("path", { d: `M ${left} ${bottom - length} V ${bottom} H ${left + length}`, class: "cutaway-module-corner" }),
+      createMapSvgElement("path", { d: `M ${right} ${bottom - length} V ${bottom} H ${right - length}`, class: "cutaway-module-corner" })
+    );
   }
 
   function nodeCompartmentSize(node, config) {
@@ -1816,19 +2093,37 @@
     };
   }
 
-  function mapCorridorPath(fromFrame, toFrame) {
+  function corridorGeometry(fromFrame, toFrame) {
     const dx = Math.abs(toFrame.cx - fromFrame.cx);
     const dy = Math.abs(toFrame.cy - fromFrame.cy);
     const horizontal = dx >= dy;
     const start = connectorPoint(fromFrame, { x: toFrame.cx, y: toFrame.cy }, horizontal ? "horizontal" : "vertical");
     const end = connectorPoint(toFrame, { x: fromFrame.cx, y: fromFrame.cy }, horizontal ? "horizontal" : "vertical");
-    if (dx < 3 || dy < 3) return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
-    if (horizontal) {
+    let d;
+    if (dx < 3 || dy < 3) d = `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+    else if (horizontal) {
       const middleX = (start.x + end.x) / 2;
-      return `M ${start.x} ${start.y} H ${middleX} V ${end.y} H ${end.x}`;
+      d = `M ${start.x} ${start.y} H ${middleX} V ${end.y} H ${end.x}`;
+    } else {
+      const middleY = (start.y + end.y) / 2;
+      d = `M ${start.x} ${start.y} V ${middleY} H ${end.x} V ${end.y}`;
     }
-    const middleY = (start.y + end.y) / 2;
-    return `M ${start.x} ${start.y} V ${middleY} H ${end.x} V ${end.y}`;
+    return { d, start, end, horizontal };
+  }
+
+  function mapCorridorPath(fromFrame, toFrame) {
+    return corridorGeometry(fromFrame, toFrame).d;
+  }
+
+  function appendDoorFrame(layer, point, horizontalRoute, classes = "") {
+    const span = 2.05;
+    const d = horizontalRoute
+      ? `M ${point.x} ${point.y - span} V ${point.y + span}`
+      : `M ${point.x - span} ${point.y} H ${point.x + span}`;
+    layer.append(
+      createMapSvgElement("path", { d, class: `cutaway-door-frame ${classes}`.trim() }),
+      createMapSvgElement("circle", { cx: point.x, cy: point.y, r: ".38", class: `cutaway-door-light ${classes}`.trim() })
+    );
   }
 
   function appendHull(svg, uid, geometry, config) {
@@ -1876,27 +2171,29 @@
       const from = frames[fromId];
       const to = frames[toId];
       if (!from || !to) continue;
-      const d = mapCorridorPath(from, to);
+      const { d, start, end, horizontal } = corridorGeometry(from, to);
       const activeRoute = (fromId === state.currentRoom && !getAccessReason(toId)) || (toId === state.currentRoom && !getAccessReason(fromId));
       const classes = `${edgeClass} ${activeRoute ? "is-active-route" : ""}`.trim();
       const casing = createMapSvgElement("path", { d, class: `cutaway-corridor-casing ${classes}`.trim() });
       casing.style.setProperty("--reveal-index", String(edgeIndex));
+      const outerRim = createMapSvgElement("path", { d, class: `cutaway-corridor-outer-rim ${classes}`.trim() });
+      outerRim.style.setProperty("--reveal-index", String(edgeIndex));
       const shell = createMapSvgElement("path", { d, class: `cutaway-corridor-shell ${classes}`.trim() });
       shell.style.setProperty("--reveal-index", String(edgeIndex));
       const floor = createMapSvgElement("path", { d, class: `connection-line cutaway-corridor ${classes}`.trim() });
       floor.style.setProperty("--reveal-index", String(edgeIndex));
+      const ribs = createMapSvgElement("path", { d, class: `cutaway-corridor-ribs ${classes}`.trim() });
+      ribs.style.setProperty("--reveal-index", String(edgeIndex));
       const highlight = createMapSvgElement("path", { d, class: `cutaway-corridor-highlight ${classes}`.trim() });
       highlight.style.setProperty("--reveal-index", String(edgeIndex));
-      layer.append(casing, shell, floor, highlight);
+      layer.append(casing, outerRim, shell, floor, ribs, highlight);
       if (activeRoute) {
         const pulse = createMapSvgElement("path", { d, class: "cutaway-corridor-pulse" });
         pulse.style.setProperty("--flow-delay", `${edgeIndex * .23}s`);
         layer.append(pulse);
       }
-      layer.append(
-        createMapSvgElement("circle", { cx: from.x, cy: from.y, r: ".75", class: "cutaway-bulkhead" }),
-        createMapSvgElement("circle", { cx: to.x, cy: to.y, r: ".75", class: "cutaway-bulkhead" })
-      );
+      appendDoorFrame(layer, start, horizontal, classes);
+      appendDoorFrame(layer, end, horizontal, classes);
     }
     svg.append(layer);
   }
@@ -1915,49 +2212,64 @@
         accessReason ? "is-locked" : "",
         node.alert ? "alert-room" : ""
       ].filter(Boolean).join(" ");
-      const group = createMapSvgElement("g", { class: `cutaway-compartment ${stateClasses}`.trim() });
+      const group = createMapSvgElement("g", { class: `cutaway-compartment ${stateClasses}`.trim(), "data-room-shape": node.id });
       group.style.setProperty("--reveal-index", String(nodeIndex));
+
       const shadow = createMapSvgElement("rect", {
-        x: x + .55,
-        y: y + .85,
-        width,
-        height,
-        rx: "1.4",
-        class: "cutaway-compartment-shadow"
+        x: x - .3,
+        y: y + 1.2,
+        width: width + .6,
+        height: height + .6,
+        rx: "2.35",
+        class: "cutaway-compartment-shadow",
+        filter: `url(#${uid}-room-shadow)`
+      });
+      const hull = createMapSvgElement("rect", {
+        x: x - 1.15,
+        y: y - 1.15,
+        width: width + 2.3,
+        height: height + 2.3,
+        rx: "2.8",
+        class: "cutaway-compartment-hull",
+        fill: `url(#${uid}-module-hull)`
+      });
+      const hullInset = createMapSvgElement("rect", {
+        x: x + .25,
+        y: y + .25,
+        width: Math.max(1, width - .5),
+        height: Math.max(1, height - .5),
+        rx: "1.75",
+        class: "cutaway-compartment-hull-inset",
+        fill: `url(#${uid}-module-inset)`
       });
       const room = createMapSvgElement("rect", {
-        x,
-        y,
-        width,
-        height,
-        rx: "1.4",
+        x: x + 1.15,
+        y: y + 1.2,
+        width: Math.max(1, width - 2.3),
+        height: Math.max(1, height - 2.4),
+        rx: "1.05",
         class: "cutaway-compartment-room",
         fill: `url(#${uid}-compartment)`
       });
       const rim = createMapSvgElement("rect", {
-        x: x + .7,
-        y: y + .7,
-        width: Math.max(1, width - 1.4),
-        height: Math.max(1, height - 1.4),
-        rx: ".9",
+        x: x + 1.55,
+        y: y + 1.6,
+        width: Math.max(1, width - 3.1),
+        height: Math.max(1, height - 3.2),
+        rx: ".76",
         class: "cutaway-compartment-rim"
       });
       const topLine = createMapSvgElement("path", {
-        d: `M ${x + 2} ${y + 1.35} H ${x + width - 2}`,
+        d: `M ${x + 2.3} ${y + 1.75} H ${x + width - 2.3}`,
         class: "cutaway-compartment-light"
       });
-      group.append(shadow, room, rim, topLine);
-
-      if (["engine", "engineering", "power"].includes(node.id)) {
-        group.append(
-          createMapSvgElement("circle", { cx: frame.cx, cy: frame.cy, r: Math.min(width, height) * .18, class: "cutaway-reactor-ring" }),
-          createMapSvgElement("circle", { cx: frame.cx, cy: frame.cy, r: Math.min(width, height) * .07, class: "cutaway-reactor-core" })
-        );
-      } else if (node.id === "airlock") {
-        group.append(createMapSvgElement("path", { d: `M ${x + width * .36} ${y + 2} V ${y + height - 2} M ${x + width * .64} ${y + 2} V ${y + height - 2}`, class: "cutaway-airlock-bars" }));
-      } else {
-        group.append(createMapSvgElement("path", { d: `M ${x + 1.7} ${y + height - 1.8} H ${x + width * .4} M ${x + width * .6} ${y + height - 1.8} H ${x + width - 1.7}`, class: "cutaway-room-detail" }));
-      }
+      const lowerLine = createMapSvgElement("path", {
+        d: `M ${x + 2.7} ${y + height - 1.72} H ${x + width - 2.7}`,
+        class: "cutaway-compartment-lower-light"
+      });
+      group.append(shadow, hull, hullInset, room, rim, topLine, lowerLine);
+      appendModuleCorners(group, frame);
+      appendRoomInterior(group, node, frame, uid);
       layer.append(group);
     }
     svg.append(layer);
@@ -2008,9 +2320,12 @@
       button.className = "room-node cutaway-room-label";
       for (const className of node.classes || []) button.classList.add(className);
       button.dataset.room = node.id;
-      button.style.setProperty("--x", `${frame.cx}%`);
-      button.style.setProperty("--y", `${frame.cy}%`);
+      button.style.setProperty("--x", `${frame.x}%`);
+      button.style.setProperty("--y", `${frame.y}%`);
+      button.style.setProperty("--room-w", String(frame.width));
+      button.style.setProperty("--room-h", String(frame.height));
       button.style.setProperty("--reveal-index", String(nodeIndex));
+      button.dataset.visual = node.id;
 
       if (node.alert) {
         const ring = document.createElement("span");
@@ -2050,7 +2365,23 @@
       return button;
     });
 
-    shipMap.replaceChildren(svg, ...nodeElements, lunaToken);
+    const mapChrome = document.createElement("div");
+    mapChrome.className = "cutaway-map-chrome";
+    mapChrome.setAttribute("aria-hidden", "true");
+    mapChrome.innerHTML = `<span>DECK ${state.mapMode === "original" ? "07" : "MISSION"}</span><span>${profile.replaceAll("-", " ").toUpperCase()}</span>`;
+
+    const mapLegend = document.createElement("div");
+    mapLegend.className = "cutaway-map-legend";
+    mapLegend.setAttribute("aria-hidden", "true");
+    mapLegend.innerHTML = `
+      <strong>THE VOID</strong>
+      <small>RENDERED DECK SECTION</small>
+      <span><i class="legend-dot is-accessible"></i>ACCESSIBLE</span>
+      <span><i class="legend-dot is-objective"></i>OBJECTIVE</span>
+      <span><i class="legend-dot is-locked"></i>LOCKED / SEALED</span>
+      <span><i class="legend-route"></i>ACCESS ROUTE</span>`;
+
+    shipMap.replaceChildren(svg, ...nodeElements, lunaToken, mapChrome, mapLegend);
     roomNodes = nodeElements;
 
     locationReadout.textContent = `LOCATION: ${getRoomName(state.currentRoom)}`;
@@ -2072,8 +2403,13 @@
     if (!node) return;
     const mapRect = shipMap.getBoundingClientRect();
     const nodeRect = node.getBoundingClientRect();
-    lunaToken.style.left = `${nodeRect.left + nodeRect.width / 2 - mapRect.left}px`;
-    lunaToken.style.top = `${nodeRect.top + nodeRect.height / 2 - mapRect.top}px`;
+    const roomId = node.dataset.room || state.currentRoom;
+    const corridorRoom = ["hallway", "south", "darkcorridor", "tunnels", "outside"].includes(roomId);
+    const horizontalRoom = nodeRect.width > nodeRect.height * 1.35;
+    const xRatio = corridorRoom && horizontalRoom ? .66 : .5;
+    const yRatio = corridorRoom && !horizontalRoom ? .68 : .62;
+    lunaToken.style.left = `${nodeRect.left + nodeRect.width * xRatio - mapRect.left}px`;
+    lunaToken.style.top = `${nodeRect.top + nodeRect.height * yRatio - mapRect.top}px`;
   }
 
   function deriveObjective() {

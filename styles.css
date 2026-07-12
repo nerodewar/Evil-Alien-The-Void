@@ -4834,3 +4834,876 @@ body.credits-open {
   0%, 100% { transform: translate(-50%, -50%) scale(.78); opacity: .52; }
   50% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
 }
+
+/* v0.9.3 rendered deck-section art direction
+   The map is now architecture first and interface second: silver hull modules,
+   inset rooms, real corridor bodies, door frames and room-specific interiors. */
+
+.game-layout {
+  grid-template-columns: minmax(660px, 1.46fr) minmax(370px, .54fr);
+}
+
+.map-panel {
+  background:
+    linear-gradient(180deg, rgba(16,29,42,.82), rgba(3,7,11,.96) 14%, rgba(2,5,9,.98)),
+    rgba(3,6,10,.96);
+  border-color: rgba(177,214,239,.17);
+  box-shadow:
+    0 28px 80px rgba(0,0,0,.42),
+    inset 0 0 0 1px rgba(226,243,255,.025);
+}
+
+.map-panel .panel-heading {
+  position: relative;
+  z-index: 10;
+  min-height: 78px;
+  align-items: center;
+  border-bottom-color: rgba(164,211,240,.12);
+  background:
+    linear-gradient(90deg, rgba(95,170,215,.07), transparent 45%),
+    rgba(3,8,13,.94);
+}
+
+.map-panel .panel-heading::after {
+  content: "LIVE CUTAWAY";
+  position: absolute;
+  right: 22px;
+  bottom: 9px;
+  color: rgba(135,205,246,.38);
+  font: 700 .45rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .17em;
+}
+
+.ship-map.cutaway-map {
+  min-height: 590px;
+  height: clamp(590px, 68vh, 840px);
+  max-height: 840px;
+  overflow: hidden;
+  background: #01030a;
+  box-shadow:
+    inset 0 0 0 1px rgba(205,232,255,.055),
+    inset 0 -130px 180px rgba(0,0,0,.5),
+    inset 0 0 120px rgba(39,91,128,.05);
+}
+
+.ship-map.cutaway-map.map-expanded,
+.ship-map.cutaway-map.mission-map {
+  height: clamp(650px, 78vh, 940px);
+  max-height: 940px;
+}
+
+.ship-map.cutaway-map.final-map {
+  min-height: 430px;
+  height: clamp(430px, 52vh, 620px);
+  max-height: 620px;
+}
+
+.ship-map.cutaway-map::before {
+  z-index: 5;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 3px, rgba(140,199,236,.018) 3px 4px),
+    linear-gradient(180deg, rgba(255,255,255,.025), transparent 15%, transparent 82%, rgba(0,0,0,.38)),
+    radial-gradient(ellipse at 50% 45%, transparent 42%, rgba(0,0,0,.48) 100%);
+  mix-blend-mode: screen, normal, normal;
+}
+
+.ship-map.cutaway-map::after {
+  display: none;
+}
+
+.ship-cutaway-svg {
+  filter: saturate(1.04) contrast(1.085) brightness(.98);
+}
+
+.cutaway-nebula {
+  opacity: .72;
+}
+
+.cutaway-star {
+  opacity: .52;
+}
+
+.cutaway-hull-shadow {
+  fill: rgba(0,0,0,.9);
+  opacity: .82;
+}
+
+.cutaway-hull-shell {
+  opacity: .33;
+  stroke: rgba(225,242,252,.25);
+  stroke-width: .17;
+  filter: drop-shadow(0 0 16px rgba(139,207,247,.08));
+}
+
+.cutaway-deck {
+  opacity: .68;
+  stroke: rgba(118,171,205,.2);
+  stroke-width: .28;
+}
+
+.cutaway-deck-grid {
+  opacity: .45;
+}
+
+.cutaway-hull-rim {
+  opacity: .42;
+  stroke: rgba(227,244,253,.32);
+  stroke-width: .5;
+  filter: drop-shadow(0 0 8px rgba(154,216,250,.12));
+}
+
+.cutaway-hull-panels {
+  opacity: .25;
+  stroke: rgba(210,234,248,.22);
+  stroke-width: .42;
+}
+
+/* Corridors are physical passageways, not diagram lines. */
+.cutaway-corridor-casing {
+  stroke: rgba(221,229,234,.96);
+  stroke-width: 20.2;
+  filter:
+    drop-shadow(0 4px 4px rgba(0,0,0,.62))
+    drop-shadow(0 0 8px rgba(188,222,242,.12));
+}
+
+.cutaway-corridor-outer-rim {
+  fill: none;
+  stroke: rgba(91,107,119,.98);
+  stroke-width: 17.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-corridor-shell {
+  stroke: rgba(4,8,12,.99);
+  stroke-width: 13.7;
+  filter: drop-shadow(0 0 3px rgba(0,0,0,.8));
+}
+
+.connection-line.cutaway-corridor {
+  stroke: rgba(35,91,126,.86);
+  stroke-width: 9.25;
+  filter:
+    drop-shadow(0 0 3px rgba(76,170,224,.2))
+    drop-shadow(0 0 12px rgba(42,121,169,.12));
+}
+
+.cutaway-corridor-ribs {
+  fill: none;
+  stroke: rgba(194,227,246,.2);
+  stroke-width: 8.2;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  stroke-dasharray: .55 3.1;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-corridor-highlight {
+  stroke: rgba(195,235,255,.78);
+  stroke-width: 1.05;
+  filter: drop-shadow(0 0 4px rgba(113,207,255,.38));
+}
+
+.cutaway-corridor-pulse {
+  stroke: rgba(182,236,255,.98);
+  stroke-width: 1.5;
+  stroke-dasharray: 1.2 8.5;
+  filter: drop-shadow(0 0 6px rgba(94,205,255,.9));
+}
+
+.cutaway-door-frame {
+  fill: none;
+  stroke: rgba(229,238,244,.95);
+  stroke-width: 1.08;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 3px rgba(146,215,251,.22));
+}
+
+.cutaway-door-frame.is-danger,
+.lockdown-map .cutaway-door-frame {
+  stroke: rgba(255,91,105,.86);
+}
+
+.cutaway-door-light {
+  fill: #9fe3ff;
+  stroke: rgba(236,250,255,.9);
+  stroke-width: .16;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 3px rgba(103,207,255,.9));
+}
+
+.cutaway-door-light.is-danger,
+.lockdown-map .cutaway-door-light {
+  fill: #ff5269;
+  filter: drop-shadow(0 0 4px rgba(255,49,75,.9));
+}
+
+.connection-line.cutaway-corridor.is-danger,
+.lockdown-map .connection-line.cutaway-corridor {
+  stroke: rgba(115,20,31,.92);
+  filter:
+    drop-shadow(0 0 5px rgba(255,54,78,.3))
+    drop-shadow(0 0 14px rgba(194,31,50,.16));
+}
+
+.connection-line.cutaway-corridor.is-exterior {
+  stroke: rgba(75,150,198,.72);
+  stroke-width: 7.2;
+  stroke-dasharray: none;
+}
+
+/* Compartment hull modules */
+.cutaway-compartment-shadow {
+  fill: rgba(0,0,0,.72);
+}
+
+.cutaway-compartment-hull {
+  stroke: rgba(249,252,255,.92);
+  stroke-width: .68;
+  vector-effect: non-scaling-stroke;
+  filter:
+    drop-shadow(0 1.2px 1px rgba(0,0,0,.95))
+    drop-shadow(0 0 6px rgba(208,235,250,.13));
+}
+
+.cutaway-compartment-hull-inset {
+  stroke: rgba(33,44,52,.98);
+  stroke-width: 1.35;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-compartment-room {
+  stroke: rgba(117,154,178,.64);
+  stroke-width: .48;
+  vector-effect: non-scaling-stroke;
+  filter: none;
+}
+
+.cutaway-compartment-rim {
+  stroke: rgba(173,221,247,.24);
+  stroke-width: .4;
+}
+
+.cutaway-compartment-light,
+.cutaway-compartment-lower-light {
+  fill: none;
+  stroke: rgba(138,214,255,.82);
+  stroke-width: .72;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 4px rgba(101,201,255,.42));
+}
+
+.cutaway-compartment-lower-light {
+  opacity: .28;
+  stroke-width: .42;
+}
+
+.cutaway-module-corner {
+  fill: none;
+  stroke: rgba(243,249,252,.74);
+  stroke-width: .75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-compartment.current-room .cutaway-compartment-hull {
+  stroke: rgba(238,252,255,1);
+  filter:
+    drop-shadow(0 0 4px rgba(104,207,255,.64))
+    drop-shadow(0 0 15px rgba(63,161,219,.25));
+}
+
+.cutaway-compartment.current-room .cutaway-compartment-room {
+  stroke: rgba(127,218,255,.82);
+  filter: drop-shadow(0 0 7px rgba(64,176,231,.22));
+}
+
+.cutaway-compartment.reachable .cutaway-compartment-hull {
+  stroke: rgba(215,245,255,.9);
+}
+
+.cutaway-compartment.reachable .cutaway-compartment-rim {
+  stroke: rgba(126,217,255,.5);
+}
+
+.cutaway-compartment.is-objective .cutaway-compartment-hull {
+  stroke: rgba(255,188,102,.98);
+  filter: drop-shadow(0 0 11px rgba(255,139,46,.34));
+}
+
+.cutaway-compartment.is-complete .cutaway-compartment-hull {
+  stroke: rgba(132,232,174,.88);
+  filter: drop-shadow(0 0 8px rgba(70,191,122,.22));
+}
+
+.cutaway-compartment.is-locked .cutaway-compartment-hull,
+.cutaway-compartment.is-locked .cutaway-compartment-hull-inset {
+  opacity: .55;
+}
+
+.cutaway-compartment.is-locked .cutaway-compartment-room {
+  opacity: .48;
+}
+
+.cutaway-compartment.is-biohazard .cutaway-compartment-hull,
+.cutaway-compartment.alert-room .cutaway-compartment-hull,
+.cutaway-compartment.is-danger .cutaway-compartment-hull {
+  stroke: rgba(255,91,108,.94);
+  filter: drop-shadow(0 0 12px rgba(238,44,69,.33));
+}
+
+.lockdown-map .cutaway-compartment-hull {
+  filter: drop-shadow(0 0 7px rgba(197,39,58,.16));
+}
+
+/* Room interiors */
+.cutaway-room-grid {
+  opacity: .86;
+}
+
+.cutaway-floor-panel-line,
+.cutaway-room-axis,
+.cutaway-pipe-line,
+.cutaway-satnav-mast {
+  fill: none;
+  stroke: rgba(126,174,203,.22);
+  stroke-width: .42;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-corridor-channel,
+.cutaway-airlock-core {
+  fill: rgba(40,98,134,.26);
+  stroke: rgba(135,207,245,.23);
+  stroke-width: .35;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-room-interior.is-dark-interior .cutaway-corridor-channel {
+  fill: rgba(15,20,25,.78);
+  stroke: rgba(226,69,82,.24);
+}
+
+.cutaway-floor-chevron {
+  fill: none;
+  stroke: rgba(130,220,255,.82);
+  stroke-width: .66;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 3px rgba(86,202,255,.38));
+}
+
+.cutaway-console-ring,
+.cutaway-system-ring,
+.cutaway-reactor-ring,
+.cutaway-satnav-dish {
+  fill: rgba(3,9,14,.7);
+  stroke: rgba(127,205,245,.6);
+  stroke-width: .62;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-reactor-ring.is-outer {
+  stroke: rgba(172,223,250,.23);
+  stroke-dasharray: 1 1.4;
+}
+
+.cutaway-command-chair,
+.cutaway-system-core,
+.cutaway-reactor-core,
+.cutaway-loadout-pod {
+  fill: rgba(124,210,252,.72);
+  stroke: rgba(229,248,255,.72);
+  stroke-width: .22;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 4px rgba(84,197,252,.58));
+}
+
+.cutaway-console-bank,
+.cutaway-monitor-wall,
+.cutaway-lab-bench,
+.cutaway-counter,
+.cutaway-mess-table,
+.cutaway-bunk,
+.cutaway-crate,
+.cutaway-weapon-rack {
+  fill: rgba(25,62,86,.62);
+  stroke: rgba(139,194,226,.34);
+  stroke-width: .3;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-console-bank,
+.cutaway-monitor-wall {
+  filter: drop-shadow(0 0 2px rgba(83,181,232,.18));
+}
+
+.cutaway-bunk {
+  fill: rgba(49,73,88,.66);
+}
+
+.cutaway-crate {
+  fill: rgba(54,58,59,.74);
+  stroke: rgba(173,185,190,.25);
+}
+
+.cutaway-weapon-rack {
+  fill: rgba(61,48,50,.72);
+  stroke: rgba(226,126,137,.3);
+}
+
+.cutaway-sample-diamond {
+  fill: rgba(105,190,232,.22);
+  stroke: rgba(165,226,255,.68);
+  stroke-width: .42;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 4px rgba(95,205,255,.38));
+}
+
+.cutaway-fan-blade {
+  fill: none;
+  stroke: rgba(151,216,248,.46);
+  stroke-width: .9;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-airlock-bars {
+  stroke: rgba(185,224,245,.48);
+  stroke-width: .62;
+}
+
+.cutaway-lock-body {
+  fill: rgba(86,25,31,.82);
+  stroke: rgba(255,112,126,.72);
+  stroke-width: .42;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-lock-shackle {
+  fill: none;
+  stroke: rgba(255,139,150,.78);
+  stroke-width: .56;
+  vector-effect: non-scaling-stroke;
+}
+
+.cutaway-state-glyph {
+  fill: rgba(203,228,242,.74);
+  font: 700 4px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-anchor: middle;
+  filter: drop-shadow(0 0 3px rgba(113,207,255,.26));
+}
+
+.cutaway-state-glyph.is-warning {
+  fill: rgba(255,111,126,.88);
+  filter: drop-shadow(0 0 4px rgba(255,55,77,.42));
+}
+
+/* Clickable room overlays now cover the physical compartment. Labels sit
+   inside the architecture instead of becoming floating cards. */
+.room-node.cutaway-room-label {
+  left: var(--x);
+  top: var(--y);
+  width: calc(var(--room-w) * 1%);
+  height: calc(var(--room-h) * 1%);
+  min-height: 0;
+  display: block;
+  transform: none;
+  overflow: visible;
+}
+
+.room-node.cutaway-room-label:hover {
+  transform: none;
+}
+
+.room-node.cutaway-room-label::before {
+  content: "";
+  position: absolute;
+  inset: 5%;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  pointer-events: none;
+  transition: border-color .24s ease, box-shadow .24s ease, background .24s ease;
+}
+
+.room-node.cutaway-room-label:hover::before,
+.room-node.cutaway-room-label:focus-visible::before {
+  border-color: rgba(163,222,253,.48);
+  background: rgba(83,173,219,.035);
+  box-shadow: inset 0 0 20px rgba(73,166,214,.08);
+}
+
+.cutaway-label-plate {
+  position: absolute;
+  left: 8%;
+  top: 8%;
+  width: min(84%, 132px);
+  min-height: 0;
+  padding: 6px 8px 6px 15px;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(168,207,231,.2);
+  border-radius: 4px;
+  clip-path: none;
+  color: #edf6fb;
+  background:
+    linear-gradient(90deg, rgba(92,178,221,.1), transparent 72%),
+    rgba(2,7,11,.74);
+  box-shadow:
+    0 5px 14px rgba(0,0,0,.45),
+    inset 0 0 12px rgba(69,149,190,.04);
+  backdrop-filter: blur(3px);
+}
+
+.cutaway-label-plate::before {
+  width: 3px;
+  height: 100%;
+  background: rgba(116,214,255,.8);
+  box-shadow: 0 0 8px rgba(84,198,247,.46);
+}
+
+.cutaway-signal {
+  position: absolute;
+  left: 6px;
+  top: 7px;
+  width: 5px;
+  height: 5px;
+  margin: 0;
+  box-shadow: 0 0 9px rgba(109,210,255,.64);
+}
+
+.room-node.cutaway-room-label .node-code {
+  display: none;
+}
+
+.room-node.cutaway-room-label strong {
+  margin: 0;
+  padding-left: 0;
+  overflow: hidden;
+  font-size: clamp(.48rem, .58vw, .67rem);
+  font-weight: 690;
+  line-height: 1.1;
+  letter-spacing: .09em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.room-node.cutaway-room-label small {
+  margin-top: 4px;
+  color: rgba(171,191,204,.68);
+  font-size: clamp(.34rem, .39vw, .45rem);
+  line-height: 1.1;
+  letter-spacing: .11em;
+}
+
+.cutaway-signal-beacon {
+  left: auto;
+  right: 8%;
+  top: 8%;
+  inset: 8% 8% auto auto;
+  width: 10px;
+  height: 10px;
+  transform: none;
+  opacity: .76;
+  pointer-events: none;
+  animation: cutaway-corner-beacon 2.7s ease-in-out infinite;
+}
+
+.room-node.cutaway-room-label.current-room .cutaway-signal-beacon {
+  width: 15px;
+  height: 15px;
+  transform: none;
+  animation: cutaway-corner-beacon 1.8s ease-in-out infinite;
+}
+
+.room-node.cutaway-room-label.current-room .cutaway-label-plate {
+  border-color: rgba(134,220,255,.58);
+  background:
+    linear-gradient(90deg, rgba(62,166,215,.2), transparent 78%),
+    rgba(2,9,14,.88);
+  box-shadow: 0 0 18px rgba(65,175,227,.18), 0 5px 14px rgba(0,0,0,.5);
+}
+
+.room-node.cutaway-room-label.reachable .cutaway-label-plate {
+  border-color: rgba(136,213,250,.36);
+}
+
+.room-node.cutaway-room-label.is-objective .cutaway-label-plate {
+  border-color: rgba(255,176,84,.62);
+  box-shadow: 0 0 18px rgba(255,124,36,.18), 0 5px 14px rgba(0,0,0,.5);
+}
+
+.room-node.cutaway-room-label.is-complete .cutaway-label-plate {
+  border-color: rgba(112,221,159,.4);
+}
+
+.room-node.cutaway-room-label.is-locked .cutaway-label-plate {
+  opacity: .48;
+}
+
+.room-node.cutaway-room-label.reachable::after {
+  inset: 3%;
+  border-radius: 8px;
+  clip-path: none;
+}
+
+.room-node.cutaway-room-label .alert-ring {
+  inset: 2%;
+  border-radius: 9px;
+  clip-path: none;
+}
+
+.room-node.cutaway-room-label .alert-badge {
+  right: 7%;
+  top: calc(8% + 15px);
+}
+
+.room-node.cutaway-room-label.invalid-target {
+  animation: cutaway-invalid-shake .38s ease;
+}
+
+/* Map telemetry, deliberately secondary to the deck itself. */
+.cutaway-map-chrome {
+  position: absolute;
+  z-index: 8;
+  top: 13px;
+  right: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  color: rgba(178,217,240,.42);
+  font: 650 .46rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.cutaway-map-chrome span:first-child {
+  color: rgba(217,238,250,.66);
+}
+
+.cutaway-map-legend {
+  position: absolute;
+  z-index: 8;
+  left: 15px;
+  bottom: 15px;
+  width: 170px;
+  display: grid;
+  gap: 8px;
+  padding: 13px 14px;
+  border: 1px solid rgba(164,210,237,.18);
+  color: rgba(173,198,215,.66);
+  background: rgba(1,6,10,.62);
+  box-shadow: 0 10px 30px rgba(0,0,0,.34), inset 0 0 20px rgba(62,133,172,.035);
+  backdrop-filter: blur(4px);
+  font: 650 .43rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.cutaway-map-legend strong {
+  color: rgba(205,233,249,.74);
+  font-size: .62rem;
+  font-weight: 520;
+  letter-spacing: .28em;
+}
+
+.cutaway-map-legend small {
+  margin: -3px 0 3px;
+  color: rgba(112,149,174,.5);
+  font-size: .39rem;
+  letter-spacing: .15em;
+}
+
+.cutaway-map-legend span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+}
+
+.legend-dot.is-accessible {
+  color: #a4e2ff;
+  background: rgba(116,211,255,.4);
+  box-shadow: 0 0 8px rgba(95,203,255,.5);
+}
+
+.legend-dot.is-objective {
+  color: #ffb669;
+  background: rgba(255,157,61,.34);
+  box-shadow: 0 0 7px rgba(255,135,40,.38);
+}
+
+.legend-dot.is-locked {
+  color: #ff6f7e;
+  border-radius: 2px;
+  background: rgba(164,36,51,.32);
+}
+
+.legend-route {
+  width: 13px;
+  height: 2px;
+  flex: 0 0 auto;
+  background: #80d7ff;
+  box-shadow: 0 0 6px rgba(91,202,255,.58);
+}
+
+.luna-token {
+  width: clamp(46px, 4.3vw, 62px);
+  height: clamp(46px, 4.3vw, 62px);
+  border-color: rgba(221,243,255,.98);
+  box-shadow:
+    0 0 0 4px rgba(111,210,255,.1),
+    0 0 20px rgba(87,190,238,.5),
+    0 12px 22px rgba(0,0,0,.58);
+}
+
+.token-label {
+  bottom: -16px;
+  padding: 2px 5px;
+  font-size: .4rem;
+}
+
+.map-footer {
+  position: relative;
+  z-index: 10;
+  background: rgba(3,8,12,.96);
+  border-top-color: rgba(156,207,238,.12);
+}
+
+@keyframes cutaway-corner-beacon {
+  0%, 100% { transform: scale(.74); opacity: .46; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+@keyframes cutaway-invalid-shake {
+  0%, 100% { translate: 0 0; }
+  25% { translate: -5px 0; }
+  75% { translate: 5px 0; }
+}
+
+@media (max-width: 1180px) {
+  .game-layout {
+    grid-template-columns: minmax(540px, 1.24fr) minmax(350px, .76fr);
+  }
+
+  .ship-map.cutaway-map,
+  .ship-map.cutaway-map.map-expanded,
+  .ship-map.cutaway-map.mission-map {
+    min-height: 620px;
+    height: 760px;
+  }
+}
+
+@media (max-width: 920px) {
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ship-map.cutaway-map,
+  .ship-map.cutaway-map.map-expanded,
+  .ship-map.cutaway-map.mission-map {
+    min-height: 720px;
+    height: 790px;
+    max-height: none;
+  }
+
+  .room-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 650px) {
+  .map-panel .panel-heading::after,
+  .cutaway-map-chrome,
+  .cutaway-map-legend {
+    display: none;
+  }
+
+  .ship-map.cutaway-map,
+  .ship-map.cutaway-map.map-expanded,
+  .ship-map.cutaway-map.mission-map {
+    min-height: 680px;
+    height: 720px;
+  }
+
+  .cutaway-label-plate {
+    left: 5%;
+    top: 5%;
+    width: 90%;
+    padding: 5px 6px 5px 12px;
+  }
+
+  .room-node.cutaway-room-label strong {
+    font-size: .48rem;
+  }
+
+  .room-node.cutaway-room-label small {
+    display: none;
+  }
+
+  .cutaway-signal-beacon {
+    right: 5%;
+    top: 5%;
+    inset: 5% 5% auto auto;
+  }
+
+  .cutaway-corridor-casing { stroke-width: 15.6; }
+  .cutaway-corridor-outer-rim { stroke-width: 13.3; }
+  .cutaway-corridor-shell { stroke-width: 10.6; }
+  .connection-line.cutaway-corridor { stroke-width: 7; }
+  .cutaway-corridor-ribs { stroke-width: 6.2; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cutaway-signal-beacon {
+    animation: none !important;
+    opacity: .82 !important;
+  }
+}
+
+/* v0.9.3 state and small-screen refinements */
+.cutaway-compartment.alert-room.is-contained .cutaway-compartment-hull {
+  stroke: rgba(132,232,174,.86);
+  filter: drop-shadow(0 0 8px rgba(70,191,122,.2));
+}
+
+.cutaway-compartment.alert-room.is-contained .cutaway-compartment-room {
+  stroke: rgba(99,194,143,.48);
+}
+
+.room-node.cutaway-room-label.alert-room.is-contained .cutaway-label-plate {
+  border-color: rgba(112,221,159,.42);
+  box-shadow: 0 0 15px rgba(70,191,122,.1), 0 5px 14px rgba(0,0,0,.46);
+}
+
+@media (max-width: 650px) {
+  .room-node.cutaway-room-label strong {
+    display: block;
+    overflow: visible;
+    font-size: .43rem;
+    line-height: 1.05;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .cutaway-label-plate {
+    min-height: 27px;
+  }
+}
