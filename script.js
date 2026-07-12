@@ -1,11 +1,20 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v093";
+  const story = (key, context = {}) => {
+    if (!window.VoidNarrative || typeof window.VoidNarrative.get !== "function") {
+      console.warn(`[The Void] Missing narrative configuration for ${key}`);
+      return "";
+    }
+    return window.VoidNarrative.get(key, context);
+  };
+
+
+  const SAVE_KEY = "theVoidSave_v094";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
   const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
-  const LEGACY_KEYS = ["theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const LEGACY_KEYS = ["theVoidSave_v093", "theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -17,12 +26,7 @@
       counter: "01 / 02",
       logLabel: "MISSION LOG // LUNA H.",
       alarm: false,
-      text:
-        "Elite Forces Agent Luna H. is transporting a cache of irreplaceable resources from Alpha 9, a distant world beyond the mapped colonies.\n\n" +
-        "It is her first solo mission through deep space.\n\n" +
-        "With Earth still seventy-two hours away, Luna has crossed the last navigational threshold before home.\n\n" +
-        "A silent, uncharted expanse known as The Void."
-    },
+      text: story("intro.opening")},
     {
       image: "assets/IMG02.png",
       alt: "Luna wakes in shock inside the cryosleep chamber as red fire-alarm light floods the pod.",
@@ -31,11 +35,7 @@
       counter: "02 / 02",
       logLabel: "EMERGENCY WAKE PROCEDURE",
       alarm: true,
-      text:
-        "The fire alarm tears Luna out of cryosleep.\n\n" +
-        "Emergency red floods the chamber. Somewhere beyond the sealed glass, a system is burning, though the ship reports no impact and no mechanical fault.\n\n" +
-        "Still disoriented, Luna releases the pod seals and goes to investigate."
-    }
+      text: story("intro.emergencyWake")}
   ];
 
   const originalRoutes = {
@@ -917,7 +917,7 @@
     await runCinematicTransition({
       kicker: "ELITE FORCES // MISSION ARCHIVE",
       title: "MISSION ARCHIVE INITIALISING",
-      text: "Pilot: Luna H. // Destination: Earth // Deep-space route loading",
+      text: story("startnewmission.missionArchiveInitialising", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
       duration: 3700,
       showInfo: true,
       fadeInDuration: 450,
@@ -946,7 +946,7 @@
     await runCinematicTransition({
       kicker: "MISSION ARCHIVE // SAVE DETECTED",
       title: "MISSION STATE RECOVERED",
-      text: checkpointText,
+      text: story("continuemission.missionStateRecovered", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
       duration: 950,
       task: async () => {
         hidePrimaryScreens();
@@ -976,7 +976,7 @@
     await runCinematicTransition({
       kicker: "MISSION ARCHIVE",
       title: "RETURNING TO TITLE",
-      text: "Preserving the latest mission state",
+      text: story("quittotitle.returningToTitle", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
       duration: 700,
       task: showTitleScreen
     });
@@ -1029,7 +1029,7 @@
     await runCinematicTransition({
       kicker: "SUIT TELEMETRY // CONNECTION TERMINATED",
       title: "BIOLOGICAL SIGNAL LOST",
-      text: "No further transmission received from Luna H.",
+      text: story("showlosescreen.biologicalSignalLost", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
       duration: 900,
       task: () => {
         hidePrimaryScreens();
@@ -1165,7 +1165,7 @@
     await runCinematicTransition({
       kicker: "VESSEL SYSTEM // DECK 07",
       title: "DECK CUTAWAY ONLINE",
-      text: "Locating Luna H. and reconstructing the accessible route",
+      text: story("entergame.deckCutawayOnline", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
       duration: 950,
       task: async () => {
         cinematicShell.hidden = true;
@@ -2595,8 +2595,7 @@
           alt: "The Control Room after the organism has corrupted the Ground Control transmission.",
           caption: "COMMUNICATIONS SOURCE // INTERNAL NETWORK",
           mediaClass: "is-alien",
-          text: "The false Ground Control signal has collapsed into static. Luna seals the relay and checks the specimen jar at her belt. The black residue inside is still moving.\n\nThe Laboratory may be able to tell her what entered the ship, how it travelled here and whether it can be killed."
-        },
+          text: story("getroomdefinition.controlRoom", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })},
         hallway: {
           code: "H-07",
           title: "HALLWAY",
@@ -2607,8 +2606,7 @@
           alt: "The dark central hallway leading toward the southern research deck.",
           caption: "DECK 07 // RETURN ROUTE TO LABORATORY",
           mediaClass: "is-alien",
-          text: "Luna moves with the plasma gun raised and the residue sample secured against her suit. The ship is quiet again, but security indicators pulse under her own credentials."
-        },
+          text: story("getroomdefinition.hallway", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })},
         life: {
           code: "LS-07",
           title: "LIFE SUPPORT",
@@ -2619,8 +2617,7 @@
           alt: "The repaired Life Support compartment and sabotaged oxygen controls.",
           caption: "LIFE SUPPORT // MANUAL BYPASS HOLDING",
           mediaClass: "",
-          text: "The oxygen bypass is holding. Luna crosses the compartment without slowing. The organism once opened this panel using her copied authorisation. The sample may explain how."
-        },
+          text: story("getroomdefinition.lifeSupport", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })},
         south: {
           code: "SH-07",
           title: "SOUTH HALLWAY",
@@ -2631,8 +2628,7 @@
           alt: "The southern hallway outside Laboratory 07.",
           caption: "SOUTHERN RESEARCH DECK // LABORATORY AHEAD",
           mediaClass: "is-alien",
-          text: "Black smears remain along the ceiling seams, but the movement has stopped. Laboratory 07 waits at the end of the corridor under cold blue light."
-        },
+          text: story("getroomdefinition.southHallway", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })},
         lab: {
           code: "LAB-07",
           title: "LABORATORY",
@@ -2643,8 +2639,7 @@
           alt: "Luna re-enters the cold Laboratory carrying the residue sample and plasma gun.",
           caption: "LABORATORY 07 // MOLECULAR ANALYSIS AVAILABLE",
           mediaClass: "",
-          text: "The Laboratory is exactly as Luna left it: sterile, silent and powered by cold blue emergency strips. She locks the door behind her and places the specimen beside the molecular analysis chamber.\n\nInside the jar, the residue stretches toward the scanner light."
-        }
+          text: story("getroomdefinition.laboratory", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })}
       };
       if (investigationRooms[room]) return investigationRooms[room];
     }
@@ -2662,10 +2657,7 @@
           alt: "Luna stands armed inside the Laboratory as red lockdown lights seal the ship.",
           caption: "CHECKPOINT 05 // THE IMITATION",
           mediaClass: "is-alien",
-          text: `Reinforced doors have sealed throughout the ship under Luna's copied biometric authority. ${clocks}
-
-The ship cannot keep Luna alive until Earth arrival. She must breach the South Hall, seize Security Control and reach the tactical oxygen supply before the reserve fails.`
-        },
+          text: story("getroomdefinition.laboratory2", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })},
         south: {
           code: "SH-07",
           title: "SOUTH HALL BLAST DOOR",
@@ -2676,12 +2668,7 @@ The ship cannot keep Luna alive until Earth arrival. She must breach the South H
           alt: "Luna operates the emergency interface beside the sealed South Hall blast door.",
           caption: state.southHallUnlocked ? "SOUTH HALL // SECURITY ROUTE OPEN" : "ORBITAL CIPHER // LOCAL DOOR PROCESSOR",
           mediaClass: "",
-          text: state.southHallUnlocked
-            ? `The orbital key has stabilised and the blast door is open. Security Control lies beyond. ${clocks}`
-            : `The South Hall door has rejected Luna's copied credentials. Its isolated maintenance processor will accept only a gravitational security key.
-
-${clocks} Luna must reconstruct the orbital cipher and force the door before the oxygen deficit becomes irreversible.`
-        },
+          text: story("getroomdefinition.southHallBlastDoor", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })},
         security: {
           code: "SEC-02",
           title: "SECURITY CONTROL",
@@ -2692,18 +2679,7 @@ ${clocks} Luna must reconstruct the orbital cipher and force the door before the
           alt: "A compact security control room aboard Luna's small spacecraft.",
           caption: state.securityOverrideComplete ? "SECURITY OPERATIONS // TACTICAL SUPPLY MONITORED" : "SECURITY MAINFRAME // ORBITAL AUTHENTICATION REQUIRED",
           mediaClass: state.securityOverrideComplete && !state.cloneIncapacitated ? "is-alien" : "",
-          text: !state.securityOverrideComplete
-            ? `The compact security room is intact, but every lockdown control is sealed behind a second orbital lattice. Breaking it will release the weapons lockers and restore environmental command.
-
-${clocks}`
-            : !state.cloneIncapacitated
-              ? `Security operations are online. The tactical camera identifies a human figure inside Supply as LUNA H. It is standing between Luna and the oxygen tank, helmet, flamethrower and plasma cells.
-
-The imitation has completed a human form. It needs air.`
-              : `Tactical Supply holds at 3.2% oxygen under stable pressure. The copied human body has collapsed. Security Control has released a ninety-second emergency rebreather for the retrieval.
-
-Luna has one brief crossing to secure the real oxygen equipment.`
-        },
+          text: story("getroomdefinition.securityControl", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })},
         tactical: {
           code: "TS-01",
           title: "TACTICAL SUPPLY",
@@ -2714,12 +2690,7 @@ Luna has one brief crossing to secure the real oxygen equipment.`
           alt: state.tacticalGearCollected ? "Luna wears a sealed helmet and oxygen tank with her weapons ready." : "Security footage shows the human-form imitation collapsed inside Tactical Supply.",
           caption: state.tacticalGearCollected ? "TACTICAL LOADOUT // OXYGEN ONLINE" : "TACTICAL SUPPLY // OXYGEN 3.2% // REBREATHER ACTIVE",
           mediaClass: state.tacticalGearCollected ? "" : "is-alien",
-          text: state.tacticalGearCollected
-            ? "The helmet seals and the oxygen line turns green. Luna seats fresh plasma cells, shoulders the flamethrower and checks the pressure gauge. She can breathe. The ship still cannot."
-            : `The temporary hood fogs with every breath. The imitation lies motionless beside the tactical lockers, its copied lungs defeated by the purge.
-
-REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the locker and connect the proper oxygen system now.`
-        }
+          text: story("getroomdefinition.tacticalSupply", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })}
       };
       if (lockdownRooms[room]) return lockdownRooms[room];
     }
@@ -2735,12 +2706,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The ship control room during the blackout and subsequent surveillance investigation.",
           caption: state.actTwoComplete ? "COMMUNICATIONS CORRUPTED // SOURCE INTERNAL" : state.lightsRestored ? "SURVEILLANCE HUB // ARCHIVE ONLINE" : "CONTROL ROOM // EMERGENCY POWER ONLY",
           mediaClass: state.actTwoComplete ? "is-alien" : "",
-          text: state.actTwoComplete
-            ? "The terminal has gone silent. Ground Control is not on the channel. The organism has learned the ship's communications architecture and used it to imitate a rescue directive."
-            : state.lightsRestored
-              ? "The Control Room is bright again. Camera feeds populate the surveillance terminal, including archived recordings from the hours while Luna remained in cryosleep."
-              : "Every primary light aboard the ship is dead. The Control Room survives on red indicators and Luna's flashlight. Diagnostics identify one missing power relay in the lighting grid."
-        },
+          text: story("getroomdefinition.line2738", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })},
         power: {
           code: "PJ-07",
           title: "POWER JUNCTION",
@@ -2751,12 +2717,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The compact Power Junction aboard Luna's ship.",
           caption: state.lightsRestored ? "LIGHTING GRID // ONLINE" : "POWER JUNCTION // MANUAL REPAIR REQUIRED",
           mediaClass: "",
-          text: state.lightsRestored
-            ? "White light rolls through the corridor one fixture at a time. The grid stabilises. Whatever Luna struck with the plasma gun has retreated into the walls."
-            : state.relayFound
-              ? "The recovered relay is ready for installation, but wet movement is closing through the corridor. Luna must deal with the organism first."
-              : "The junction reports one absent module: the main power relay. It was not blown. It was physically removed and carried into Storage."
-        },
+          text: story("getroomdefinition.powerJunction", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })},
         darkcorridor: {
           code: "B-12",
           title: "DARK CORRIDOR",
@@ -2767,10 +2728,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "A narrow corridor in darkness where the alien is hunting Luna.",
           caption: "CORRIDOR B-12 // BIOLOGICAL SIGNAL UNRESOLVED",
           mediaClass: "is-alien",
-          text: state.relayFound
-            ? "The organism blocks the route back. It feels along the walls toward Luna, recoiling whenever the flashlight crosses its face. Hiding will give it time to find her. The plasma gun is already in her hand."
-            : "Luna advances through the dark corridor. Black residue has spread along the wall seams, joining conduits as though it understands where the power runs."
-        },
+          text: story("getroomdefinition.darkCorridor", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })},
         storage2: {
           code: "S-4",
           title: "STORAGE",
@@ -2781,10 +2739,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "A dark storage room and the recovered power relay.",
           caption: state.relayFound ? "ITEM ACQUIRED // POWER RELAY" : "STORAGE S-4 // FLASHLIGHT SEARCH",
           mediaClass: "",
-          text: state.relayFound
-            ? "The power relay is intact. Something had placed it carefully beneath a sealed equipment crate rather than discarding it."
-            : "Shelving divides the storage room into blind corners. Luna can search the tool cabinet, floor crates and the sealed maintenance locker."
-        }
+          text: story("getroomdefinition.storage", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })}
       };
       if (definitions[room]) return definitions[room];
     }
@@ -2799,14 +2754,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: state.lightsOut ? "Luna searches a dark engineering passage using her flashlight." : "The unlocked engineering maintenance access aboard Luna's ship.",
         caption: state.lightsOut ? "FLASHLIGHT FEED // INTERNAL POWER OFFLINE" : "MAINTENANCE ACCESS // ENGINE DECK",
         mediaClass: state.lightsOut ? "is-alien" : "",
-        text: state.lightsOut
-          ? "The tunnel lighting is dead. Luna's flashlight cuts a narrow path across pipes, cable trunks and open grating. Something shifts beyond the beam, then keeps pace inside the wall beside her."
-          : state.branch === "signal"
-            ? "The crisis transmission ends behind Luna as she enters the maintenance route. Engine 02 is losing thrust. The only path to the Main Engine Room is a narrow service passage threaded through the ship's machinery."
-            : state.satNavFailed
-              ? "The maintenance route leads back toward Control. Navigation warnings pulse through Luna's suit as the ship drifts away from its Earth approach vector."
-              : "Luna leaves the transmitter silent and moves into the maintenance access alone. The tunnels magnify every breath and every soft movement travelling through the hull."
-      };
+        text: story("getroomdefinition.maintenanceTunnels", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
     }
 
     if (room === "engine") {
@@ -2820,8 +2768,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The small ship's engine room in total darkness, lit only by Luna's flashlight.",
           caption: "ENGINE 02 STABLE // SHIPWIDE LIGHTING OFFLINE",
           mediaClass: "is-alien",
-          text: "Engine 02 catches and settles into a steady burn. One second later, every overhead light dies. Luna raises the flashlight. The engine room has become a cavern of black machinery and isolated red indicators."
-        };
+          text: story("getroomdefinition.mainEngineRoom", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
       }
 
       return {
@@ -2833,12 +2780,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "The compact main engine room of Luna's small deep-space vessel.",
         caption: "MAIN ENGINE ASSEMBLY // ENGINE 02",
         mediaClass: "",
-        text: state.branch === "signal"
-          ? "Engine 02 shudders inside its mounting frame. Coolant pressure is falling and the magnetic feed regulator has fused half-open. Luna can replace the damaged regulator manually, but the engine must remain live while she works."
-          : state.satNavFailed
-            ? "The engines remain stable, but the navigation alarm now dominates the room. The satellite array has stopped returning position data. The ship is flying blind."
-            : "The engine assembly is intact. Luna reaches the diagnostic console and begins checking the systems before the organism can sabotage them. A warning blooms across the display: SATELLITE NAVIGATION SIGNAL LOST."
-      };
+        text: story("getroomdefinition.mainEngineRoom2", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
     }
 
     if (room === "airlock") {
@@ -2851,10 +2793,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "A compact industrial airlock with an EVA suit and exterior hatch.",
         caption: "AIRLOCK 02 // EXTERIOR MAINTENANCE",
         mediaClass: "",
-        text: state.satNavModule
-          ? "Luna's suit is sealed and the replacement navigation module is clipped to her harness. Beyond the outer hatch, the ship's hull falls away into the black of The Void."
-          : "The airlock service locker contains one sealed sat-nav component and an EVA tether. Luna will have to carry both outside and cross the hull to the damaged array."
-      };
+        text: story("getroomdefinition.airlock", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
     }
 
     if (room === "outside") {
@@ -2867,10 +2806,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "The exterior hull and damaged satellite navigation array of Luna's ship in deep space.",
         caption: "EXTERIOR CAMERA // SAT-NAV ARRAY AHEAD",
         mediaClass: "",
-        text: state.satNavRepaired
-          ? "The array is transmitting again. Luna follows the tether back toward the airlock while Earth hangs far beyond the ship, small and impossibly vulnerable."
-          : "Magnetic boots lock Luna to the hull. The satellite array rises ahead, damaged panels spread against the stars. Her radio fills with interference that almost resembles breathing."
-      };
+        text: story("getroomdefinition.outerHull", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
     }
 
     if (room === "satnav") {
@@ -2883,10 +2819,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "From Luna's perspective, her gloved hand works on the satellite navigation components outside the ship.",
         caption: "SAT-NAV MODULE // MANUAL REPLACEMENT",
         mediaClass: "",
-        text: state.satNavRepaired
-          ? "The replacement locks into place. Position data floods back into the ship and the Earth-return vector stabilises. Luna is still outside, and something has disturbed the hull plating beside the array."
-          : "Luna opens the navigation housing. Several contacts have been torn from their sockets rather than burned out. She braces one hand against the hull and aligns the replacement module with the exposed assembly."
-      };
+        text: story("getroomdefinition.satNavArray", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
     }
 
     if (room === "crew") {
@@ -2899,8 +2832,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Luna awake inside the cryosleep chamber under red emergency light.",
         caption: "CRYOSLEEP UNIT 03",
         mediaClass: "",
-        text: "Luna stands beside the open cryosleep pod, fighting through the last fog of suspended sleep. The alarm repeats beyond the bulkhead. Every third pulse is followed by a faint vibration through the deck.\n\nThe ship map identifies an active fire in Life Support."
-      };
+        text: story("getroomdefinition.crewQuarters", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
     }
 
     if (room === "hallway") {
@@ -2913,10 +2845,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "A dim emergency corridor aboard the spacecraft.",
         caption: state.alienEncountered ? "DECK 07 // INTERNAL MOTION UNRESOLVED" : "HALLWAY H-07",
         mediaClass: state.alienEncountered ? "is-alien" : "",
-        text: state.alienEncountered
-          ? "The emergency lights no longer pulse in sequence. Somewhere inside the walls, a slick weight moves against the ship's direction of travel."
-          : "The main hallway flashes between darkness and amber emergency light. Smoke has begun to drift from the Life Support access door.\n\nThe Control Room branches away to the north. Life Support lies at the far end of the corridor."
-      };
+        text: story("getroomdefinition.hallway2", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
     }
 
     if (room === "control") {
@@ -2930,8 +2859,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The ship's control room under warning lights.",
           caption: "LANDING CORRIDOR // ACCESS DENIED",
           mediaClass: "is-alien",
-          text: "The rest of the ship has vanished from the schematic. Only Control remains. Ground Control has frozen Luna's Earth approach and marked the vessel as a biological containment risk.\n\nThe relay stays open, but nobody speaks."
-        };
+          text: story("getroomdefinition.controlRoom2", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
       }
 
       if (state.branch === "signal") {
@@ -2944,10 +2872,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The spacecraft control room lit by cold displays and emergency warnings.",
           caption: state.engineRepaired ? "DEEP SPACE RELAY // REPORT ENGINE STATUS" : "CRISIS TRANSMISSION // ENGINE 02 FAILURE",
           mediaClass: "",
-          text: state.engineRepaired
-            ? "Luna reaches Control in darkness. The crisis carrier is still open. Ground Control has received the engine telemetry and is waiting for her report."
-            : "The crisis signal has left the ship. Before Ground Control can finish responding, Engine 02 falls out of synchronisation. The map has collapsed to one maintenance route leading to the Main Engine Room."
-        };
+          text: story("getroomdefinition.controlRoom3", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
       }
 
       if (state.branch === "alone") {
@@ -2960,12 +2885,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The spacecraft control room with satellite navigation alarms active.",
           caption: "PRIMARY FLIGHT CONTROL // SAT-NAV OFFLINE",
           mediaClass: "",
-          text: state.satNavRepaired
-            ? "The return vector is stable again. Ground Control has acquired the vessel's telemetry and is waiting on the relay."
-            : state.satNavDiagnosed
-              ? "The failed component is external. Control has loaded the repair route from the Airlock to the satellite array and released a replacement module from the EVA service locker."
-              : "Navigation has stopped receiving position data. Luna must diagnose the external array before she can leave the ship."
-        };
+          text: story("getroomdefinition.controlRoom4", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
       }
 
       let text = "The Control Room is dim but operational. Navigation still holds the return course to Earth. Across the central console, a fire warning competes with a quieter notification: the Pilot Archive recorded an internal access event while Luna was asleep.";
@@ -2995,8 +2915,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "Luna faces a fierce fire consuming machinery inside Life Support.",
           caption: "OXYGEN SUPPLY CONTROL UNIT // SUPPRESSION OFFLINE",
           mediaClass: "",
-          text: "Heat breaks across Luna's suit as the access door opens. Fire has taken hold around the oxygen supply assembly, feeding on scorched insulation and leaking coolant vapour.\n\nThe automatic suppression system is offline. Luna can trigger the portable suppressant from her suit, but she will have to remain close to the flames."
-        };
+          text: story("getroomdefinition.lifeSupport2", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
       }
       let text = "The suppressant smothers the last flames. When the smoke thins, Luna sees the oxygen control housing hanging open. Its shield plate was removed before the fire began. Several cables have been pulled loose, stripped and reconnected by hand.\n\nThe heat did not cause this damage. Someone tampered with Life Support.";
       if (state.damageLogged) text += "\n\nThe ship has attached an authorised credential to the access event: LUNA H. Luna was in cryosleep when the panel was opened.";
@@ -3023,10 +2942,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "A dark southern hallway ending at the locked Engineering Room.",
         caption: "SOUTH HALLWAY // LAB, STORE, MESS & ENGINEERING",
         mediaClass: state.alienEncountered ? "is-alien" : "",
-        text: state.alienEncountered
-          ? "The corridor has gone unnaturally still. Black smears glisten along the ceiling seams, leading toward Engineering. Behind Luna, something clicks against the Kitchen door."
-          : "The southern wing was kept offline during cryosleep. Its lights return reluctantly, one strip at a time. The Laboratory branches to the right. Farther down are the Store Room, Kitchen and the locked Engineering Room."
-      };
+        text: story("getroomdefinition.southHallway2", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
     }
 
     if (room === "lab") {
@@ -3040,8 +2956,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "Luna holds a specimen jar containing black organic residue.",
           caption: "SPECIMEN JAR // UNKNOWN ORGANIC COMPOUND",
           mediaClass: "",
-          text: "The sample clings to the inside of the jar instead of settling at the bottom. When Luna turns her wrist, the residue stretches toward the warmth of her hand.\n\nThe ship's laboratory cannot identify its composition."
-        };
+          text: story("getroomdefinition.laboratory3", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
       }
       if (state.residueFound) {
         return {
@@ -3053,8 +2968,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "A sticky black organic residue spread across a laboratory workstation.",
           caption: "WORKSTATION 02 // COMPOSITION UNKNOWN",
           mediaClass: "is-alien",
-          text: "A glossy black residue has spread across the workstation in branching, thread-like patterns. It is too thick to be coolant and too warm to be machine oil.\n\n\"What the fuck...?\" Luna whispers. The nearest strand contracts at the sound of her voice."
-        };
+          text: story("getroomdefinition.laboratory4", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
       }
       return {
         code: "LAB-07",
@@ -3065,8 +2979,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "A large, cold spacecraft laboratory filled with workstations and sample equipment.",
         caption: "LABORATORY 07 // RESEARCH FACILITY",
         mediaClass: "",
-        text: "The Laboratory should have been sterile when Luna entered cryosleep. One workstation is powered, its task light shining across a surface that looks wet."
-      };
+        text: story("getroomdefinition.laboratory5", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
     }
 
     if (room === "kitchen") {
@@ -3079,10 +2992,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: state.alienEncountered ? "A black alien organism hangs inside the spacecraft mess hall." : "Luna enters the dim ship's kitchen and mess hall.",
         caption: state.alienEncountered ? "MESS HALL // UNKNOWN LIFE FORM" : "MESS HALL 07 // AUDIO EVENT DETECTED",
         mediaClass: state.alienEncountered ? "is-alien" : "",
-        text: state.alienEncountered
-          ? "The thing has withdrawn from the ceiling, leaving black strings across the metal. The door to the corridor has released. Luna can hear it moving toward Engineering."
-          : "The Kitchen is empty, but it does not feel abandoned. A cup sits in the centre of a table. One chair faces the wrong direction.\n\nThe door clicks shut behind Luna. On the counter, beneath a cold utility light, lies another trace of black residue."
-      };
+        text: story("getroomdefinition.kitchenMess", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
     }
 
     if (room === "store") {
@@ -3095,10 +3005,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "A compact spacecraft store room containing a plasma gun, flashlight and access key.",
         caption: "STORE ROOM // EMERGENCY FIELD EQUIPMENT",
         mediaClass: "",
-        text: state.equipmentTaken
-          ? "The open cases are empty. Luna has the plasma gun, flashlight and Engineering key. The creature is somewhere beyond the wall."
-          : "The emergency store contains exactly what Luna needs: a plasma gun in a sealed case, a heavy flashlight and the manual access key for Engineering. She takes all three."
-      };
+        text: story("getroomdefinition.storeRoom", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
     }
 
     if (room === "engineering") {
@@ -3112,8 +3019,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The Engineering Room door locked under red access warnings.",
           caption: "ENGINEERING ACCESS // CLEARANCE DENIED",
           mediaClass: "",
-          text: "The Engineering door refuses Luna's biometric clearance. A physical key is required. Behind the metal, something strikes a pipe and then becomes still."
-        };
+          text: story("getroomdefinition.engineering", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
       }
       let text = "The Engineering door unlocks. Inside, machinery divides the room into pockets of deep shadow. Luna hears the creature entering the corridor behind her. She has seconds to choose a hiding place.";
       if (state.hidingInProgress) text = `${getHideDescription()}\n\nA voice speaks from the doorway in Luna's exact tone: \"Luna... Ground Control requires confirmation.\"`;
@@ -3140,8 +3046,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
       alt: "A dark spacecraft interior.",
       caption: "SHIP SYSTEM // NO DATA",
       mediaClass: "",
-      text: "The ship cannot resolve this location."
-    };
+      text: story("getroomdefinition.unknownLocation", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
   }
 
   function fadeRoomText(text, immediate = false) {
@@ -3602,7 +3507,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         title: state.currentRoom === "outside" || state.currentRoom === "satnav"
           ? "EXTERIOR SCHEMATIC LOADING"
           : "INTERIOR SCHEMATIC RESTORING",
-        text: "Reconstructing Luna's accessible route",
+        text: story("movetoroom.line3605", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         duration: 720,
         task: async () => {
           armMapReveal();
@@ -3654,7 +3559,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
     await runCinematicTransition({
       kicker: "MISSION DIRECTIVE // GROUND CONTROL",
       title: "SOUTHERN DECK UNLOCKED",
-      text: "Expanding the ship schematic to Laboratory, Stores, Mess and Engineering",
+      text: story("acknowledgegroundcontrol.southernDeckUnlocked", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
       duration: 850,
       task: async () => {
         armMapReveal();
@@ -3681,7 +3586,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
     await runCinematicTransition({
       kicker: "MISSION CHECKPOINT // DECK 07",
       title: "CHECKPOINT 01",
-      text: "Sabotage confirmed // Mission state preserved",
+      text: story("logdamage.checkpoint01", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
       duration: 900,
       task: async () => {
         armMapReveal();
@@ -3724,7 +3629,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "A clean spacecraft kitchen counter marked by a fresh splash of black residue.",
           code: "MESS HALL // WORKTOP 02",
           title: "THE COUNTER",
-          text: "The worktop is almost spotless. In the centre lies another splash of black residue, still wet, its edges slowly drawing themselves into thin branching lines.\n\nBehind Luna, the room's ventilation system stops.",
+          text: story("inspectkitchencounter.theCounter", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           button: "CONTINUE"
         },
         {
@@ -3732,7 +3637,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "A black alien organism hangs from the ceiling of the ship's mess hall.",
           code: "BIOLOGICAL SIGNATURE // UNKNOWN",
           title: "IT IS ABOVE HER",
-          text: "A drop lands beside Luna's hand.\n\nShe looks up.\n\nA vast black shape has unfolded from the ceiling, suspended on strands of its own body. Its mouth opens without breathing. For one impossible second, it studies her face.",
+          text: story("inspectkitchencounter.itIsAboveHer", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           button: "RUN",
           blackoutBefore: true
         }
@@ -3796,7 +3701,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The unlocked Engineering Room after the alien organism withdraws.",
           code: "ENGINEERING // INTERNAL AUDIO",
           title: "THE VOICE WITHDRAWS",
-          text: "Luna remains silent.\n\nThe copied voice asks once more, softer this time. Then the organism drags itself away through the machinery. The ship hum gradually returns.\n\nA diagnostic display wakes beside her: CREW DETECTED — 02.",
+          text: story("completehiding.theVoiceWithdraws", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           button: "SAVE CHECKPOINT"
         }
       ],
@@ -3804,7 +3709,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         await runCinematicTransition({
           kicker: "MISSION CHECKPOINT // ENGINEERING",
           title: "CHECKPOINT 02",
-          text: "Two biological signatures detected // Mission state preserved",
+          text: story("completehiding.checkpoint02", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           duration: 950,
           task: async () => {
             armMapReveal();
@@ -3834,7 +3739,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "Luna sends an emergency crisis signal from the Control Room.",
           code: "DEEP SPACE RELAY // PRIORITY CRISIS",
           title: "THE SIGNAL LEAVES THE SHIP",
-          text: "Luna returns to Control and opens the priority relay. She reports the sabotage, the residue and the organism wearing her voice.\n\nGround Control receives the signal. Then every engine warning on the console turns red.",
+          text: story("startsignalbranch.theSignalLeavesTheShip", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           button: "CONTINUE"
         },
         {
@@ -3842,7 +3747,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The compact engine room of Luna's ship as Engine 02 begins to fail.",
           code: "ENGINE 02 // THRUST COLLAPSE",
           title: "A SECOND CRISIS",
-          text: "Engine 02 falls out of synchronisation. Ground Control tells Luna the regulator must be replaced manually. The ship schematic contracts to a single route: Control, Maintenance Tunnels, Main Engine Room.",
+          text: story("startsignalbranch.aSecondCrisis", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           button: "OPEN MISSION MAP"
         }
       ],
@@ -3850,7 +3755,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         await runCinematicTransition({
           kicker: "MISSION ROUTE // CRITICAL FAILURE",
           title: "ENGINE 02 ROUTE ISOLATED",
-          text: "Contracting the schematic to Control, Maintenance Tunnels and Main Engine Room",
+          text: story("startsignalbranch.engine02RouteIsolated", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           duration: 900,
           task: async () => {
             armMapReveal();
@@ -3879,7 +3784,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "Luna moves alone into the engineering maintenance route.",
           code: "ENGINEERING ACCESS // TRANSMITTER SILENT",
           title: "NO SIGNAL",
-          text: "Luna leaves the crisis transmitter untouched. If the organism is moving through the ship, she cannot afford to announce where she is.\n\nShe opens the maintenance access and enters the tunnels alone.",
+          text: story("startalonebranch.noSignal", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           button: "ENTER MAINTENANCE ROUTE"
         }
       ],
@@ -3887,7 +3792,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         await runCinematicTransition({
           kicker: "MISSION ROUTE // TRANSMITTER SILENT",
           title: "MAINTENANCE ROUTE ISOLATED",
-          text: "Reconstructing the immediate route through Engineering",
+          text: story("startalonebranch.maintenanceRouteIsolated", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           duration: 850,
           task: async () => {
             armMapReveal();
@@ -3914,7 +3819,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The repaired compact engine assembly begins operating again.",
           code: "ENGINE 02 // MANUAL REGULATOR REPLACEMENT",
           title: "THRUST RESTORED",
-          text: "The new regulator seats. Engine 02 catches with a violent metallic shudder, then steadies. Thrust returns across the vessel.",
+          text: story("repairengine.thrustRestored", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           button: "CONTINUE"
         },
         {
@@ -3922,7 +3827,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The engine room goes completely dark as Luna raises her flashlight.",
           code: "SHIPWIDE SYSTEM // LIGHTING FAILURE",
           title: "THE LIGHTS GO OUT",
-          text: "Every overhead light extinguishes at once. Luna's flashlight snaps on, carving a thin white tunnel through the dark.\n\nSomething moves outside the Engine Room.",
+          text: story("repairengine.theLightsGoOut", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           button: "RETURN TO CONTROL",
           blackoutBefore: true
         }
@@ -3931,7 +3836,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         await runCinematicTransition({
           kicker: "SHIPWIDE SYSTEM // LIGHTING FAILURE",
           title: "RETURN ROUTE RECALCULATED",
-          text: "Emergency navigation active // Flashlight required",
+          text: story("repairengine.returnRouteRecalculated", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           duration: 800,
           task: async () => {
             armMapReveal();
@@ -3957,7 +3862,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The compact engine room as a navigation failure appears on the diagnostics.",
           code: "ENGINE DIAGNOSTICS // PRIMARY THRUST STABLE",
           title: "THE ENGINES ARE NOT THE PROBLEM",
-          text: "The engines are stable. Before Luna can leave the console, the ship loses its position fix. Satellite navigation has failed and the Earth-return vector begins to drift.",
+          text: story("triggersatnavfailure.theEnginesAreNotTheProblem", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           button: "CONTINUE"
         },
         {
@@ -3965,7 +3870,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The Control Room map warns that satellite navigation is offline.",
           code: "NAVIGATION SYSTEM // POSITION DATA LOST",
           title: "THE SHIP IS FLYING BLIND",
-          text: "The schematic expands into a dangerous repair route: Engine Room, Maintenance Tunnels, Control, Airlock, Outer Hull, Satellite Array.\n\nLuna must return to Control before attempting the spacewalk.",
+          text: story("triggersatnavfailure.theShipIsFlyingBlind", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           button: "OPEN MISSION MAP"
         }
       ],
@@ -3973,7 +3878,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         await runCinematicTransition({
           kicker: "NAVIGATION SYSTEM // POSITION DATA LOST",
           title: "EVA ROUTE CONSTRUCTED",
-          text: "Mapping Control, Airlock, Outer Hull and Satellite Navigation Array",
+          text: story("triggersatnavfailure.evaRouteConstructed", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           duration: 900,
           task: async () => {
             armMapReveal();
@@ -3998,7 +3903,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "The Control Room displays the exterior satellite navigation repair route.",
           code: "SAT-NAV DIAGNOSTICS // EXTERNAL MODULE FAILURE",
           title: "THE REPAIR IS OUTSIDE",
-          text: "Control isolates the fault to an external navigation module. A replacement is stored inside Airlock 02.\n\nLuna will have to suit up, cross the outer hull and install it by hand.",
+          text: story("diagnosesatnav.theRepairIsOutside", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           button: "LOAD EVA ROUTE"
         }
       ],
@@ -4006,7 +3911,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         await runCinematicTransition({
           kicker: "SAT-NAV DIAGNOSTICS // EXTERNAL FAILURE",
           title: "AIRLOCK 02 UNLOCKED",
-          text: "Preparing the exterior repair schematic",
+          text: story("diagnosesatnav.airlock02Unlocked", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           duration: 700,
           task: async () => {
             armMapReveal();
@@ -4042,7 +3947,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
           alt: "Luna's gloved hand replaces the satellite navigation component from her perspective.",
           code: "SAT-NAV ARRAY // MANUAL COMPONENT REPLACEMENT",
           title: "POSITION FIX RESTORED",
-          text: "Luna drives the replacement module into the exposed assembly and locks it in place. The array wakes beneath her hand. Earth-return coordinates stream back into the ship.\n\nThe navigation failure is resolved. Now she has to get back inside.",
+          text: story("repairsatnav.positionFixRestored", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           button: "RETURN TO AIRLOCK"
         }
       ],
@@ -4050,7 +3955,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         await runCinematicTransition({
           kicker: "NAVIGATION SYSTEM // POSITION FIX RESTORED",
           title: "RETURN ROUTE LOADING",
-          text: "Reconstructing the path to Airlock 02 and Control",
+          text: story("repairsatnav.returnRouteLoading", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
           duration: 760,
           task: async () => {
             armMapReveal();
@@ -4078,7 +3983,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
     await runCinematicTransition({
       kicker: "MISSION CHECKPOINT // CONTROL ROOM",
       title: "CHECKPOINT 03",
-      text: "Shipwide lighting failure // Reconstructing emergency search grid",
+      text: story("beginblackoutact.checkpoint03", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
       duration: 1150,
       task: async () => {
         const controlImageReady = await preloadImage("assets/IMG22.png");
@@ -4125,7 +4030,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
       alt: "A recovered power relay component.",
       code: "ITEM ACQUIRED // PWR-REL-01",
       title: "POWER RELAY RECOVERED",
-      text: "Luna finds the relay secured beneath a storage crate. It has not failed. Someone removed it from the lighting grid and hid it here.\n\nA heavy impact sounds once in the corridor outside.",
+      text: story("findrelay.powerRelayRecovered", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
       button: "RETURN TO CORRIDOR",
       presentation: "item"
     }], async () => {
@@ -4145,7 +4050,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Luna hides in darkness while the alien searches the maintenance recess.",
         code: "BIOLOGICAL SIGNAL // ZERO METRES",
         title: "IT HEARD HER",
-        text: "Luna kills the flashlight and folds into the maintenance recess. The corridor becomes completely black.\n\nThe organism stops outside. A hand, almost shaped like hers, closes around the edge of the hiding place.",
+        text: story("hideandfailblackout.itHeardHer", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "DO NOT BREATHE",
         presentation: "failure"
       },
@@ -4155,7 +4060,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "The alien overwhelms Luna at point-blank range.",
         code: "BIOLOGICAL STATUS // SIGNAL LOST",
         title: "TOTAL FAILURE",
-        text: "It finds her.\n\nThe last image recorded by Luna's suit is a black face opening directly in front of her.",
+        text: story("hideandfailblackout.totalFailure", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "CONTINUE",
         presentation: "failure"
       }
@@ -4170,7 +4075,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Luna fires the plasma gun and drives the alien back.",
         code: "BIOLOGICAL CONTACT // PLASMA DISCHARGE",
         title: "FACE IT",
-        text: "Luna plants her boots, raises the plasma gun and fires. The blast tears through the organism's outer shape and throws it backward into the conduits. Its scream travels through every speaker on the deck.",
+        text: story("facealienblackout.faceIt", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "REACH THE POWER JUNCTION",
         presentation: "combat"
       },
@@ -4180,7 +4085,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Luna installs the recovered relay at the Power Junction.",
         code: "POWER JUNCTION // RELAY INSTALLATION",
         title: "RESTORE THE GRID",
-        text: "With the corridor clear, Luna locks the recovered relay into the empty housing and routes power through the emergency bus.",
+        text: story("facealienblackout.restoreTheGrid", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "RESTART LIGHTING GRID",
         presentation: "repair"
       },
@@ -4190,7 +4095,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "The corridor lighting returns beside the restored Power Junction.",
         code: "LIGHTING GRID // ONLINE",
         title: "THE LIGHTS RETURN",
-        text: "Fixtures ignite in sequence across the ship. White light floods the corridor. The damaged organism retreats deeper into the walls.\n\nLuna returns to the communications station in Control.",
+        text: story("facealienblackout.theLightsReturn", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "RETURN TO COMMUNICATIONS",
         presentation: "restored"
       }
@@ -4204,7 +4109,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
       await runCinematicTransition({
         kicker: "LIGHTING GRID // ONLINE",
         title: "CONTROL ROOM RESTORED",
-        text: "Returning Luna to the communications station",
+        text: story("facealienblackout.controlRoomRestored", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         duration: 720,
         task: async () => {
           updateInterface();
@@ -4221,7 +4126,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
     await runCinematicTransition({
       kicker: "MISSION CHECKPOINT // RESTORE",
       title: "CHECKPOINT 03",
-      text: "Restoring the lighting-failure mission state",
+      text: story("restartblackoutcheckpoint.checkpoint03", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
       duration: 1050,
       task: async () => {
         hidePrimaryScreens();
@@ -4255,7 +4160,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "The active Control Room surveillance terminal.",
         code: "SURVEILLANCE ARCHIVE // INDEX RECOVERED",
         title: "TWENTY-FOUR CAMERAS ONLINE",
-        text: "The restored terminal rebuilds the missing archive. Several recordings were classified as ordinary crew movement, even though Luna is the only registered crew member aboard.",
+        text: story("opensurveillance.twentyFourCamerasOnline", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "REVIEW FLAGGED FOOTAGE",
         presentation: "surveillance"
       },
@@ -4264,7 +4169,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Security footage shows a partly human, partly black figure moving through a corridor.",
         code: "CAMERA B-12 // 01:42:17",
         title: "UNREGISTERED MOVEMENT",
-        text: "A dark figure crosses Corridor B-12. One side carries Luna's posture and gait. The other drags behind it as liquid shadow.",
+        text: story("opensurveillance.unregisteredMovement", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "VIEW EARLIER RECORDING",
         presentation: "surveillance"
       },
@@ -4273,7 +4178,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Surveillance footage shows a copy of Luna walking while the real Luna slept.",
         code: "CAMERA 07A // CRYOSLEEP PERIOD",
         title: "CREW IDENTITIES DETECTED: 2",
-        text: "The earlier recording is unmistakable. A figure wearing Luna's body walks through Engineering while her cryosleep biometrics remain active in the same timestamp.\n\nThe organism is passing the ship's identity checks.",
+        text: story("opensurveillance.crewIdentitiesDetected2", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "RETURN TO COMMUNICATIONS",
         presentation: "surveillance"
       }
@@ -4303,7 +4208,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "The communications terminal receives a transmission bearing the Elite Forces Ground Control emblem.",
         code: "INCOMING TRANSMISSION // AUTHENTICATION PENDING",
         title: "GROUND CONTROL?",
-        text: "The channel opens without the expected transmission delay.\n\n'Agent Luna H. Resume Earth approach immediately. Do not alter the landing corridor. Bring the vessel home.'",
+        text: story("runfalsegroundsequence.groundControl", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "CHALLENGE AUTHENTICATION",
         presentation: "communication"
       },
@@ -4312,7 +4217,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "The Ground Control transmission corrupts into alien signal noise.",
         code: "SIGNAL SOURCE // INTERNAL NETWORK",
         title: "WELCOME HOME, LUNA",
-        text: "The voice repeats fragments of old messages, then fractures into wet groans, clicks and impossible harmonics.\n\n'THE SHIP MUST ARRIVE. WE MUST ARRIVE. BRING THE SHIP TO EARTH.'\n\nGround Control is gone. The organism is speaking through the ship.",
+        text: story("runfalsegroundsequence.welcomeHomeLuna", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "END TRANSMISSION",
         presentation: "corruption"
       }
@@ -4327,7 +4232,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
       await runCinematicTransition({
         kicker: "MISSION CHECKPOINT // SIGNAL CORRUPTION",
         title: "CHECKPOINT 04",
-        text: "Internal communications compromised // Mission state preserved",
+        text: story("runfalsegroundsequence.checkpoint04", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         duration: 1050,
         task: async () => {
           armMapReveal();
@@ -4826,7 +4731,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "A security camera shows a motionless figure resembling Luna inside Tactical Supply.",
         code: "CAM 07 // TACTICAL SUPPLY // BIOMETRIC MATCH LUNA H.",
         title: "SOMEONE IS ALREADY INSIDE",
-        text: "The tactical locks release, but the camera feed stops Luna cold. A woman stands inside Supply wearing her proportions, her posture and her face. The system identifies both figures as Luna H.\n\nThe imitation is blocking the oxygen equipment and weapons. Its completed human body is breathing ship air.",
+        text: story("completesecurityoverride.someoneIsAlreadyInside", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "OPEN ENVIRONMENTAL CONTROL",
         presentation: "surveillance"
       }
@@ -4853,7 +4758,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "The false Luna stands inside Tactical Supply under surveillance.",
         code: "CAM 07 // TACTICAL SUPPLY",
         title: "BIOMETRIC DUPLICATE",
-        text: "The figure remains almost perfectly still. The chest rises and falls. The completed human form requires oxygen, exactly as the Laboratory predicted.",
+        text: story("showclonesurveillance.biometricDuplicate", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "RETURN TO SECURITY",
         presentation: "surveillance"
       }
@@ -4875,7 +4780,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "The human-form imitation lies collapsed inside Tactical Supply after the oxygen purge.",
         code: "TACTICAL SUPPLY // O₂ 3.2% // PRESSURE STABLE",
         title: "THE HUMAN FORM COLLAPSES",
-        text: "Oxygen drains from the compartment while inert gas holds the pressure. The copied body staggers, reaches for the locked tactical case and falls. Its lungs have failed.\n\nSecurity releases one emergency rebreather: ninety seconds of air for Luna to cross the purged room and reach the proper helmet and tank.",
+        text: story("completeatmosphericoverride.theHumanFormCollapses", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "PREPARE THE RETRIEVAL",
         presentation: "combat"
       }
@@ -4923,7 +4828,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Luna wears a full sealed helmet and oxygen tank with tactical weapons ready.",
         code: "TACTICAL LOADOUT // OXYGEN LINE ONLINE",
         title: "LUNA CAN BREATHE",
-        text: "The helmet locks against Luna's suit and the tank valve opens. Clean oxygen floods the mask. She loads fresh plasma cells and takes the flamethrower from its rack.\n\nThe ship has less than twenty-three hours of breathable reserve left, but Luna is no longer helpless inside it.",
+        text: story("collecttacticalloadout.lunaCanBreathe", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "SECURE CHECKPOINT 06",
         presentation: "restored"
       }
@@ -4950,7 +4855,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Luna stands equipped with a sealed helmet, oxygen tank and weapons.",
         code: "CHECKPOINT 06 // TACTICAL ADVANTAGE",
         title: "LOADOUT SECURED",
-        text: "Tactical helmet sealed. Oxygen tank online. Flamethrower acquired. Plasma ammunition replenished. Luna is ready to take the hunt back into the ship.",
+        text: story("showtacticalloadout.loadoutSecured", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "RETURN TO MAP",
         presentation: "restored"
       }
@@ -4993,7 +4898,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Luna returns to Laboratory 07 carrying the residue sample and plasma gun.",
         code: "LABORATORY 07 // CONTAINMENT AVAILABLE",
         title: "RETURN TO THE LABORATORY",
-        text: "Luna locks the Laboratory door behind her and sets the sealed specimen beside the molecular chamber. The residue moves beneath the glass, recoiling from the light and then reaching toward it again.",
+        text: story("runlaboratorymontage.returnToTheLaboratory", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "LOAD THE SAMPLE",
         presentation: "montage",
         slide: "left"
@@ -5004,7 +4909,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Luna inserts the residue specimen into the molecular analysis chamber.",
         code: "SPECIMEN CHAMBER // SEALED",
         title: "LOAD RESIDUE SAMPLE",
-        text: "The chamber locks around the tube. Black material spreads over the inner glass and presses toward Luna's gloved hand. She withdraws it and initiates the scan.",
+        text: story("runlaboratorymontage.loadResidueSample", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "BEGIN MOLECULAR ANALYSIS",
         presentation: "montage",
         slide: "right"
@@ -5015,7 +4920,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Black alien residue branches and reconstructs itself inside the illuminated analysis chamber.",
         code: "MOLECULAR ANALYSIS // STRUCTURE UNSTABLE",
         title: "UNKNOWN BIOLOGICAL MATERIAL",
-        text: "The sample contains no stable cellular structure. Its molecules dismantle and rebuild themselves in response to the scanner. It is not merely alive. It is searching for a biological pattern.\n\nLuna: ‘You're trying to become something.’",
+        text: story("runlaboratorymontage.unknownBiologicalMaterial", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "RUN GENETIC ANALYSIS",
         presentation: "montage",
         slide: "up"
@@ -5026,7 +4931,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "A holographic display shows alien filaments weaving around a human DNA helix.",
         code: "GENETIC MODEL // REPLICATION ACCURACY 99.8%",
         title: "ADAPTIVE DNA MIMICRY",
-        text: "The organism has no fixed genome. It absorbs biological information and reconstructs itself from acquired DNA. The simulated strands begin aligning with a human sequence.\n\nLuna: ‘It can copy living things.’",
+        text: story("runlaboratorymontage.adaptiveDnaMimicry", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "IDENTIFY THE TEMPLATE",
         presentation: "montage",
         slide: "left"
@@ -5037,7 +4942,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Luna sees her own face reflected beside a genetic match identifying Luna H.",
         code: "MATCH FOUND // LUNA H. // 99.8%",
         title: "IT STUDIED HER",
-        text: "The residue has incorporated fragments of Luna's DNA. It has not merely touched her. It has studied her. The ship marks the potential completed template as HUMAN.\n\nLuna: ‘Even people.’",
+        text: story("runlaboratorymontage.itStudiedHer", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "CROSS-REFERENCE SHIP RECORDS",
         presentation: "montage",
         slide: "right"
@@ -5048,7 +4953,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "A laboratory reconstruction reveals black biological threads concealed inside an Alpha 9 mineral core.",
         code: "ARCHIVE MATCH // ALPHA 9 EXTRACTION",
         title: "HOW IT CAME ABOARD",
-        text: "Trace minerals in the organism match the Alpha 9 extraction site. Dormant biological matter was concealed inside the recovered cores. It escaped during cryosleep, copied Luna's genetic signature and used her credentials to enter restricted systems.\n\nLuna: ‘That wasn't my access record. It was pretending to be me.’",
+        text: story("runlaboratorymontage.howItCameAboard", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "SIMULATE COMPLETE TRANSFORMATION",
         presentation: "montage",
         slide: "down"
@@ -5059,7 +4964,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "A molecular simulation shows a fluid alien mass collapsing into a stable human body.",
         code: "TRANSFORMATION MODEL // TEMPLATE INTEGRATION COMPLETE",
         title: "THE FORM BECOMES PERMANENT",
-        text: "As the simulation completes, the organism's adaptive activity stops. Its cells lock into the copied biology. It cannot return to its fluid state. It does not wear the body. It becomes the body.\n\nTransformation is irreversible.",
+        text: story("runlaboratorymontage.theFormBecomesPermanent", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "TEST HUMAN VULNERABILITIES",
         presentation: "montage",
         slide: "left"
@@ -5070,7 +4975,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Luna studies a human biological model highlighting oxygen, circulation and vulnerable tissue.",
         code: "HUMAN TEMPLATE // BIOLOGICAL LIMITS CONFIRMED",
         title: "IT CAN DIE",
-        text: "A completed human form requires oxygen. It develops circulation, permanent tissue and a finite tolerance for trauma. It can suffocate. It can bleed. It can die.\n\nLuna: ‘Once it becomes human, it becomes mortal.’",
+        text: story("runlaboratorymontage.itCanDie", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "RECORD THE FINDING",
         presentation: "montage",
         slide: "right"
@@ -5081,7 +4986,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
         alt: "Red emergency lights flood Laboratory 07 as Luna raises her plasma gun during shipwide lockdown.",
         code: "SHIPWIDE SECURITY // AUTHORISATION LUNA H.",
         title: "EMERGENCY LOCKDOWN",
-        text: "The scanner freezes. Every Laboratory light dies, then returns in red. Reinforced doors seal throughout the ship. The Security Armoury, tactical equipment bay and emergency weapons lockers disappear behind biometric lockdowns authorised under Luna's identity.\n\nThe organism knows she has discovered its weakness.",
+        text: story("runlaboratorymontage.emergencyLockdown", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
         button: "VIEW LOCKDOWN SCHEMATIC",
         presentation: "montage",
         slide: "up"
@@ -5131,7 +5036,7 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
     await runCinematicTransition({
       kicker: "CONTROL ROOM // FINAL REPORT",
       title: "COMMAND NODE ISOLATED",
-      text: "Closing secondary routes and acquiring the Earth relay",
+      text: story("finalisebranch.commandNodeIsolated", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
       duration: 800,
       task: async () => {
         armMapReveal();
