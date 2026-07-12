@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v04";
-  const LEGACY_KEYS = ["theVoidSave_v03", "theVoidSave_v02"];
+  const SAVE_KEY = "theVoidSave_v041";
+  const LEGACY_KEYS = ["theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -187,8 +187,16 @@
     if (candidate.finalReported) candidate.mapMode = "final_control";
     else if (candidate.branch === "signal" && candidate.engineRepaired) candidate.mapMode = "signal_return";
     else if (candidate.branch === "signal") candidate.mapMode = "signal_engine";
-    else if (candidate.branch === "alone" && candidate.satNavRepaired) candidate.mapMode = "satnav_return";
-    else if (candidate.branch === "alone" && candidate.satNavFailed) candidate.mapMode = "satnav_route";
+    else if (candidate.branch === "alone" && candidate.satNavRepaired) {
+      candidate.mapMode = ["outside", "satnav"].includes(candidate.currentRoom)
+        ? "satnav_exterior_return"
+        : "satnav_interior_return";
+    }
+    else if (candidate.branch === "alone" && candidate.satNavFailed) {
+      candidate.mapMode = ["outside", "satnav"].includes(candidate.currentRoom)
+        ? "satnav_exterior"
+        : "satnav_interior";
+    }
     else if (candidate.branch === "alone") candidate.mapMode = "alone_engine";
     else candidate.mapMode = "original";
 
@@ -381,41 +389,53 @@
   }
 
   function originalMapConfig() {
-    const nodes = [
-      { id: "crew", code: "CQ-03", name: "CREW QUARTERS", status: "STARTING LOCATION", x: 17, y: 19 },
-      { id: "hallway", code: "H-07", name: "HALLWAY", status: "MAIN ACCESS", x: 40, y: 19 },
-      { id: "control", code: "CR-01", name: "CONTROL ROOM", status: state.groundContacted ? "CHANNEL OPEN" : state.damageLogged ? "GROUND CONTROL" : "PILOT SYSTEMS", x: 40, y: 6.5 },
-      { id: "life", code: "LS-07", name: "LIFE SUPPORT", status: state.fireExtinguished ? "FIRE CONTAINED" : "EMERGENCY", x: 67, y: 19, classes: state.fireExtinguished ? ["alert-room", "is-contained"] : ["alert-room"], alert: !state.fireExtinguished }
-    ];
+    const expanded = state.damageLogged;
+    const nodes = expanded
+      ? [
+          { id: "crew", code: "CQ-03", name: "CREW QUARTERS", status: "STARTING LOCATION", x: 15, y: 16 },
+          { id: "hallway", code: "H-07", name: "HALLWAY", status: "MAIN ACCESS", x: 39, y: 16 },
+          { id: "control", code: "CR-01", name: "CONTROL ROOM", status: state.groundContacted ? "CHANNEL OPEN" : "GROUND CONTROL", x: 39, y: 5.5 },
+          { id: "life", code: "LS-07", name: "LIFE SUPPORT", status: state.fireExtinguished ? "FIRE CONTAINED" : "EMERGENCY", x: 66, y: 16, classes: state.fireExtinguished ? ["alert-room", "is-contained"] : ["alert-room"], alert: !state.fireExtinguished },
+          { id: "south", code: "SH-07", name: "SOUTH HALLWAY", status: state.groundContacted ? "ACCESSIBLE" : "AWAIT GROUND", x: 66, y: 38 },
+          { id: "lab", code: "LAB-07", name: "LABORATORY", status: state.sampleCollected ? "SAMPLE SECURED" : state.residueFound ? "CLUE FOUND" : state.groundContacted ? "UNSCANNED" : "SEALED", x: 87, y: 47 },
+          { id: "store", code: "ST-07", name: "STORE ROOM", status: state.equipmentTaken ? "EQUIPPED" : state.alienEncountered ? "ACCESSIBLE" : "SAFETY LOCK", x: 43, y: 61 },
+          { id: "kitchen", code: "K-07", name: "KITCHEN / MESS", status: state.alienEncountered ? "CONTACT" : state.sampleCollected ? "UNSCANNED" : "SEALED", x: 66, y: 65 },
+          { id: "engineering", code: "EN-07", name: "ENGINEERING", status: state.hidingInProgress ? "HIDING" : state.engineeringUnlocked ? "UNLOCKED" : state.engineeringKey ? "KEY ACQUIRED" : "LOCKED", x: 66, y: 87 }
+        ]
+      : [
+          { id: "crew", code: "CQ-03", name: "CREW QUARTERS", status: "STARTING LOCATION", x: 17, y: 59 },
+          { id: "hallway", code: "H-07", name: "HALLWAY", status: "MAIN ACCESS", x: 45, y: 59 },
+          { id: "control", code: "CR-01", name: "CONTROL ROOM", status: "PILOT SYSTEMS", x: 45, y: 24 },
+          { id: "life", code: "LS-07", name: "LIFE SUPPORT", status: state.fireExtinguished ? "FIRE CONTAINED" : "EMERGENCY", x: 78, y: 59, classes: state.fireExtinguished ? ["alert-room", "is-contained"] : ["alert-room"], alert: !state.fireExtinguished }
+        ];
 
-    const edges = [
-      ["crew", "hallway"],
-      ["hallway", "control"],
-      ["hallway", "life"]
-    ];
-
-    if (state.damageLogged) {
-      nodes.push(
-        { id: "south", code: "SH-07", name: "SOUTH HALLWAY", status: state.groundContacted ? "ACCESSIBLE" : "AWAIT GROUND", x: 67, y: 39 },
-        { id: "lab", code: "LAB-07", name: "LABORATORY", status: state.sampleCollected ? "SAMPLE SECURED" : state.residueFound ? "CLUE FOUND" : state.groundContacted ? "UNSCANNED" : "SEALED", x: 87.5, y: 48.5 },
-        { id: "store", code: "ST-07", name: "STORE ROOM", status: state.equipmentTaken ? "EQUIPPED" : state.alienEncountered ? "ACCESSIBLE" : "SAFETY LOCK", x: 43.5, y: 61 },
-        { id: "kitchen", code: "K-07", name: "KITCHEN / MESS", status: state.alienEncountered ? "CONTACT" : state.sampleCollected ? "UNSCANNED" : "SEALED", x: 67, y: 65 },
-        { id: "engineering", code: "EN-07", name: "ENGINEERING", status: state.hidingInProgress ? "HIDING" : state.engineeringUnlocked ? "UNLOCKED" : state.engineeringKey ? "KEY ACQUIRED" : "LOCKED", x: 67, y: 86.5 }
-      );
-      edges.push(
-        ["life", "south"],
-        ["south", "lab"],
-        ["south", "store"],
-        ["south", "kitchen"],
-        ["store", "engineering"],
-        ["kitchen", "engineering"]
-      );
-    }
+    const edges = expanded
+      ? [
+          ["crew", "hallway"],
+          ["hallway", "control"],
+          ["hallway", "life"],
+          ["life", "south"],
+          ["south", "lab"],
+          ["south", "store"],
+          ["south", "kitchen"],
+          ["store", "engineering"],
+          ["kitchen", "engineering"]
+        ]
+      : [
+          ["crew", "hallway"],
+          ["hallway", "control"],
+          ["hallway", "life"]
+        ];
 
     return {
-      title: "DECK 07 // HABITATION, RESEARCH & ENGINEERING",
-      instruction: "DRAG LUNA OR SELECT AN ADJACENT ROOM",
-      expanded: state.damageLogged,
+      title: expanded
+        ? "DECK 07 // HABITATION, RESEARCH & ENGINEERING"
+        : "DECK 07 // CRYOSLEEP & LIFE SUPPORT",
+      instruction: expanded
+        ? "NEW FACILITIES MAPPED // SELECT AN ADJACENT ROOM"
+        : "LOCAL SCHEMATIC // DRAG LUNA OR SELECT AN ADJACENT ROOM",
+      expanded,
+      compact: !expanded,
       mission: false,
       nodes,
       edges,
@@ -429,9 +449,11 @@
         title: state.lightsOut ? "ENGINE CRISIS // EMERGENCY BLACKOUT ROUTE" : "ENGINE CRISIS // RESTRICTED MAINTENANCE ROUTE",
         instruction: state.lightsOut ? "RETURN TO CONTROL WITH FLASHLIGHT" : "REACH ENGINE 02 AND REPAIR THE FAILURE",
         expanded: false,
+        compact: false,
         mission: true,
+        interior: true,
         nodes: [
-          { id: "control", code: "CR-01", name: "CONTROL ROOM", status: state.engineRepaired ? "REPORT" : "CRISIS SIGNAL", x: 50, y: 13, classes: state.engineRepaired ? ["is-objective"] : [] },
+          { id: "control", code: "CR-01", name: "CONTROL ROOM", status: state.engineRepaired ? "REPORT" : "CRISIS SIGNAL", x: 50, y: 14, classes: state.engineRepaired ? ["is-objective"] : [] },
           { id: "tunnels", code: "MT-07", name: "MAINTENANCE TUNNELS", status: state.lightsOut ? "LIGHTS OUT" : "ACCESS ROUTE", x: 50, y: 50 },
           { id: "engine", code: "ENG-02", name: "MAIN ENGINE ROOM", status: state.engineRepaired ? "REPAIRED" : "ENGINE FAILURE", x: 50, y: 86, classes: state.engineRepaired ? ["is-complete"] : ["is-objective"] }
         ],
@@ -452,42 +474,71 @@
         title: "ENGINEERING ACCESS // NO EXTERNAL CONTACT",
         instruction: "MOVE THROUGH THE MAINTENANCE TUNNELS",
         expanded: false,
+        compact: true,
         mission: true,
+        interior: true,
         nodes: [
-          { id: "tunnels", code: "MT-07", name: "MAINTENANCE TUNNELS", status: "ACCESS ROUTE", x: 50, y: 24 },
-          { id: "engine", code: "ENG-02", name: "MAIN ENGINE ROOM", status: "DIAGNOSTICS", x: 50, y: 76, classes: ["is-objective"] }
+          { id: "tunnels", code: "MT-07", name: "MAINTENANCE TUNNELS", status: "ACCESS ROUTE", x: 50, y: 27 },
+          { id: "engine", code: "ENG-02", name: "MAIN ENGINE ROOM", status: "DIAGNOSTICS", x: 50, y: 73, classes: ["is-objective"] }
         ],
         edges: [["tunnels", "engine"]],
         routes: { tunnels: ["engine"], engine: ["tunnels"] }
       };
     }
 
-    if (state.mapMode === "satnav_route" || state.mapMode === "satnav_return") {
+    if (state.mapMode === "satnav_interior" || state.mapMode === "satnav_interior_return") {
+      const returning = state.mapMode === "satnav_interior_return";
       return {
-        title: state.satNavRepaired ? "SAT-NAV RESTORED // RETURN ROUTE" : "NAVIGATION FAILURE // EXTERIOR REPAIR ROUTE",
-        instruction: state.satNavRepaired ? "RETURN TO CONTROL AND REPORT" : state.satNavDiagnosed ? "REACH THE EXTERNAL SAT-NAV ARRAY" : "RETURN TO CONTROL FOR DIAGNOSTICS",
-        expanded: true,
+        title: returning ? "NAVIGATION RESTORED // INTERIOR RETURN ROUTE" : "NAVIGATION FAILURE // INTERIOR SHIP SCHEMATIC",
+        instruction: returning
+          ? "RETURN TO CONTROL AND REPORT"
+          : state.satNavDiagnosed
+            ? "AIRLOCK 02 UNLOCKED // PREPARE FOR EVA"
+            : "MOVE VERTICALLY TO CONTROL FOR DIAGNOSTICS",
+        expanded: false,
+        compact: false,
         mission: true,
+        interior: true,
         nodes: [
-          { id: "engine", code: "ENG-02", name: "MAIN ENGINE ROOM", status: "ENGINE STABLE", x: 18, y: 12, classes: ["is-complete"] },
-          { id: "tunnels", code: "MT-07", name: "MAINTENANCE TUNNELS", status: "RETURN ROUTE", x: 36, y: 28 },
-          { id: "control", code: "CR-01", name: "CONTROL ROOM", status: state.satNavRepaired ? "REPORT" : state.satNavDiagnosed ? "ROUTE LOADED" : "DIAGNOSE", x: 54, y: 44, classes: !state.satNavDiagnosed || state.satNavRepaired ? ["is-objective"] : [] },
-          { id: "airlock", code: "AL-02", name: "AIRLOCK", status: state.satNavDiagnosed ? state.satNavModule ? "EVA READY" : "MODULE LOCKER" : "LOCKED", x: 68, y: 60 },
-          { id: "outside", code: "EXT-02", name: "OUTER HULL", status: state.satNavRepaired ? "RETURN" : "VACUUM", x: 81, y: 76 },
-          { id: "satnav", code: "NAV-02", name: "SAT-NAV ARRAY", status: state.satNavRepaired ? "REPAIRED" : "COMPONENT FAILURE", x: 91, y: 91, classes: state.satNavRepaired ? ["is-complete"] : ["is-objective"] }
+          { id: "control", code: "CR-01", name: "CONTROL ROOM", status: returning ? "REPORT" : state.satNavDiagnosed ? "EVA ROUTE LOADED" : "DIAGNOSE", x: 42, y: 17, classes: !state.satNavDiagnosed || returning ? ["is-objective"] : [] },
+          { id: "airlock", code: "AL-02", name: "AIRLOCK", status: state.satNavDiagnosed ? state.satNavModule ? "EVA READY" : "MODULE LOCKER" : "LOCKED", x: 76, y: 17, classes: state.satNavDiagnosed && !returning ? ["is-objective"] : [] },
+          { id: "tunnels", code: "MT-07", name: "MAINTENANCE TUNNELS", status: "RETURN ROUTE", x: 42, y: 50 },
+          { id: "engine", code: "ENG-02", name: "MAIN ENGINE ROOM", status: "ENGINE STABLE", x: 42, y: 83, classes: ["is-complete"] }
         ],
         edges: [
           ["engine", "tunnels"],
           ["tunnels", "control"],
-          ["control", "airlock"],
-          ["airlock", "outside", "is-exterior"],
-          ["outside", "satnav", "is-exterior"]
+          ["control", "airlock", state.satNavDiagnosed ? "" : "is-locked-route"]
         ],
         routes: {
           engine: ["tunnels"],
           tunnels: ["engine", "control"],
           control: ["tunnels", "airlock"],
-          airlock: ["control", "outside"],
+          airlock: ["control", "outside"]
+        }
+      };
+    }
+
+    if (state.mapMode === "satnav_exterior" || state.mapMode === "satnav_exterior_return") {
+      const returning = state.mapMode === "satnav_exterior_return";
+      return {
+        title: returning ? "EXTERIOR EVA // RETURN TO AIRLOCK" : "EXTERIOR EVA // SAT-NAV REPAIR SCHEMATIC",
+        instruction: returning ? "FOLLOW THE TETHER BACK INSIDE" : "CROSS THE OUTER HULL TO THE SAT-NAV ARRAY",
+        expanded: false,
+        compact: true,
+        mission: true,
+        exterior: true,
+        nodes: [
+          { id: "airlock", code: "AL-02", name: "AIRLOCK", status: returning ? "RETURN POINT" : "EVA ORIGIN", x: 15, y: 50, classes: returning ? ["is-objective"] : [] },
+          { id: "outside", code: "EXT-02", name: "OUTER HULL", status: returning ? "TETHER ROUTE" : "VACUUM", x: 50, y: 50 },
+          { id: "satnav", code: "NAV-02", name: "SAT-NAV ARRAY", status: state.satNavRepaired ? "REPAIRED" : "COMPONENT FAILURE", x: 85, y: 50, classes: state.satNavRepaired ? ["is-complete"] : ["is-objective"] }
+        ],
+        edges: [
+          ["airlock", "outside", "is-exterior"],
+          ["outside", "satnav", "is-exterior"]
+        ],
+        routes: {
+          airlock: ["outside"],
           outside: ["airlock", "satnav"],
           satnav: ["outside"]
         }
@@ -498,6 +549,7 @@
       title: "CONTROL ROOM // ISOLATED COMMAND NODE",
       instruction: "NO OTHER FACILITIES AVAILABLE",
       expanded: false,
+      compact: true,
       mission: true,
       final: true,
       nodes: [{ id: "control", code: "CR-01", name: "CONTROL ROOM", status: "GROUND CONTROL", x: 50, y: 50, classes: ["is-objective"] }],
@@ -533,10 +585,13 @@
       return "";
     }
 
-    if (state.mapMode === "satnav_route" || state.mapMode === "satnav_return") {
-      if (["airlock", "outside", "satnav"].includes(room) && !state.satNavDiagnosed) {
-        return "EXTERIOR ROUTE LOCKED // DIAGNOSE SAT-NAV FAILURE AT CONTROL";
+    if (state.mapMode === "satnav_interior" || state.mapMode === "satnav_interior_return") {
+      if (room === "airlock" && !state.satNavDiagnosed) {
+        return "AIRLOCK ROUTE LOCKED // DIAGNOSE SAT-NAV FAILURE AT CONTROL";
       }
+    }
+
+    if (state.mapMode === "satnav_exterior" || state.mapMode === "satnav_exterior_return") {
       if (room === "outside" && !state.satNavModule && !state.satNavRepaired) {
         return "EVA EQUIPMENT INCOMPLETE // TAKE THE REPLACEMENT MODULE";
       }
@@ -553,8 +608,11 @@
     mapTitle.textContent = config.title;
     mapInstruction.textContent = config.instruction;
     shipMap.className = "ship-map";
+    if (config.compact) shipMap.classList.add("map-compact");
     if (config.expanded) shipMap.classList.add("map-expanded");
     if (config.mission) shipMap.classList.add("mission-map");
+    if (config.interior) shipMap.classList.add("interior-map");
+    if (config.exterior) shipMap.classList.add("exterior-map");
     if (config.final) shipMap.classList.add("final-map");
 
     const byId = Object.fromEntries(config.nodes.map((node) => [node.id, node]));
@@ -1460,7 +1518,16 @@
       return false;
     }
 
+    const previousRoom = state.currentRoom;
     state.currentRoom = targetRoom;
+
+    if (state.branch === "alone" && previousRoom === "airlock" && targetRoom === "outside") {
+      state.mapMode = state.satNavRepaired ? "satnav_exterior_return" : "satnav_exterior";
+    }
+    if (state.branch === "alone" && previousRoom === "outside" && targetRoom === "airlock") {
+      state.mapMode = state.satNavRepaired ? "satnav_interior_return" : "satnav_interior";
+    }
+
     if (targetRoom === "kitchen" && !state.kitchenEntered) {
       state.kitchenEntered = true;
       state.stress = Math.max(state.stress, 18);
@@ -1473,7 +1540,7 @@
     if (targetRoom === "life" && !state.fireExtinguished) showToast("WARNING // FIRE SUPPRESSION OFFLINE");
     if (targetRoom === "kitchen" && !state.alienEncountered) window.setTimeout(() => showToast("AUDIO EVENT // DOOR LOCK ENGAGED"), 650);
     if (targetRoom === "engineering" && !state.engineeringUnlocked) showToast("ACCESS DENIED // MANUAL ENGINEERING KEY REQUIRED");
-    if ((state.mapMode === "signal_return" || state.mapMode === "satnav_return") && targetRoom === "control" && !state.finalReported) {
+    if ((state.mapMode === "signal_return" || state.mapMode === "satnav_interior_return") && targetRoom === "control" && !state.finalReported) {
       window.setTimeout(finaliseBranch, reducedMotion ? 20 : 700);
     }
     return true;
@@ -1739,7 +1806,7 @@
 
   async function triggerSatNavFailure() {
     state.satNavFailed = true;
-    state.mapMode = "satnav_route";
+    state.mapMode = "satnav_interior";
     state.stress = Math.max(state.stress, 80);
     saveState();
 
@@ -1806,7 +1873,7 @@
   async function repairSatNav() {
     state.satNavRepaired = true;
     state.satNavModule = false;
-    state.mapMode = "satnav_return";
+    state.mapMode = "satnav_exterior_return";
     state.stress = Math.max(state.stress, 91);
     saveState();
 

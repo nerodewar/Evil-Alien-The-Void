@@ -246,33 +246,76 @@
   </dialog>
 
 
-  <dialog class="system-dialog" id="branchDialog">
+  <dialog class="system-dialog mission-choice-dialog" id="branchDialog">
     <div class="system-window choice-window">
-      <header>
+      <header class="choice-header">
         <div>
-          <span>MISSION DECISION // CONSEQUENCES PERSIST</span>
-          <h2>WHAT DOES LUNA DO?</h2>
+          <span>MISSION DECISION // PATH LOCKS AFTER SELECTION</span>
+          <h2>SELECT LUNA'S RESPONSE</h2>
+        </div>
+        <div class="choice-header-code" aria-hidden="true">
+          <span>DECISION NODE</span>
+          <strong>02-A/B</strong>
         </div>
       </header>
-      <div class="dialog-body">
-        <p class="choice-intro">The organism has withdrawn into the machinery. Luna has one brief window to act. She can return to Control and put out a crisis signal, or move into the ship's engineering systems before the thing relocates.</p>
+
+      <div class="dialog-body choice-body">
+        <p class="choice-intro">The organism has withdrawn into the machinery. Luna has one brief window to act. Both routes lead deeper into the ship, but each exposes a different critical system.</p>
+
         <div class="choice-grid">
-          <button class="choice-card" id="signalChoiceButton" type="button">
-            <span>OPTION A</span>
+          <button class="choice-card choice-signal" id="signalChoiceButton" type="button">
+            <span class="choice-corner choice-corner-a" aria-hidden="true"></span>
+            <span class="choice-corner choice-corner-b" aria-hidden="true"></span>
+
+            <div class="choice-card-topline">
+              <span>OPTION A // TRANSMIT</span>
+              <span class="choice-state">GROUND LINK</span>
+            </div>
+
             <strong>SEND CRISIS SIGNAL</strong>
-            <p>Return to Control and call Earth. Ground Control may help, but the transmission gives the organism time to interfere with the engines.</p>
-            <small>ROUTE: CONTROL → MAINTENANCE TUNNELS → ENGINE ROOM</small>
+            <p>Return to Control and warn Earth. The transmission costs time, and Engine 02 fails while Ground Control responds.</p>
+
+            <div class="choice-risk">
+              <span>SYSTEM CRISIS</span>
+              <strong>ENGINE FAILURE</strong>
+            </div>
+
+            <div class="choice-route" aria-label="Control Room to Maintenance Tunnels to Engine Room">
+              <span>CONTROL</span><i></i><span>TUNNELS</span><i></i><span>ENGINE</span>
+            </div>
+
+            <small>MISSION TYPE // INTERIOR REPAIR &amp; BLACKOUT RETURN</small>
           </button>
-          <button class="choice-card" id="aloneChoiceButton" type="button">
-            <span>OPTION B</span>
+
+          <button class="choice-card choice-alone" id="aloneChoiceButton" type="button">
+            <span class="choice-corner choice-corner-a" aria-hidden="true"></span>
+            <span class="choice-corner choice-corner-b" aria-hidden="true"></span>
+
+            <div class="choice-card-topline">
+              <span>OPTION B // ADVANCE</span>
+              <span class="choice-state">NO CONTACT</span>
+            </div>
+
             <strong>FACE ENGINEERING ALONE</strong>
-            <p>Move immediately through the maintenance access. The engines may be reached sooner, but no warning is sent and navigation remains exposed.</p>
-            <small>ROUTE: TUNNELS → ENGINE ROOM → AIRLOCK → OUTER HULL</small>
+            <p>Move through the maintenance route immediately. The engines remain stable, but satellite navigation fails.</p>
+
+            <div class="choice-risk">
+              <span>SYSTEM CRISIS</span>
+              <strong>SAT-NAV FAILURE</strong>
+            </div>
+
+            <div class="choice-route" aria-label="Engine Room to Control Room and Airlock, then exterior satellite navigation array">
+              <span>ENGINE</span><i></i><span>CONTROL</span><i></i><span>AIRLOCK</span><i></i><span>EVA</span>
+            </div>
+
+            <small>MISSION TYPE // EXTERIOR COMPONENT REPLACEMENT</small>
           </button>
         </div>
       </div>
-      <footer>
-        <span>THE SHIP MAP WILL RECONFIGURE</span>
+
+      <footer class="choice-footer">
+        <span>THE SCHEMATIC WILL RECONFIGURE AROUND THE SELECTED MISSION</span>
+        <span class="choice-footer-alert">SELECTION CANNOT BE UNDONE</span>
       </footer>
     </div>
   </dialog>
