@@ -1,10 +1,11 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v080";
+  const SAVE_KEY = "theVoidSave_v081";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
-  const LEGACY_KEYS = ["theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
+  const LEGACY_KEYS = ["theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -131,6 +132,9 @@
   let mapRevealTimer = 0;
   let captainLogSaveTimer = 0;
   let titleMusicFadeFrame = 0;
+  let creditsMusicFadeFrame = 0;
+  let creditsSequenceOpen = false;
+  let creditsResumeMode = "resume-title-audio";
   let orbitalAnimationFrame = 0;
   let orbitalRuntime = null;
   let orbitalLastFrame = 0;
@@ -138,6 +142,7 @@
   const imageCache = new Map();
 
   const titleMusic = document.getElementById("titleMusic");
+  const creditsMusic = document.getElementById("creditsMusic");
   const titleScreen = document.getElementById("titleScreen");
   const titleArtwork = document.getElementById("titleArtwork");
   const titleMenu = document.getElementById("titleMenu");
@@ -252,6 +257,11 @@
   const orbitalAbortButton = document.getElementById("orbitalAbortButton");
   const orbitalCommitButton = document.getElementById("orbitalCommitButton");
   const creditsDialog = document.getElementById("creditsDialog");
+  const creditsRoll = document.getElementById("creditsRoll");
+  const creditsStatus = document.getElementById("creditsStatus");
+  const creditsMuteButton = document.getElementById("creditsMuteButton");
+  const creditsCloseButton = document.getElementById("creditsCloseButton");
+  const creditsDoneButton = document.getElementById("creditsDoneButton");
 
   function loadState() {
     try {
@@ -444,6 +454,117 @@
     });
   }
 
+  function animateAudioVolume(audio, { from = 0, to = 1, duration = 1000, frameKey = "title" } = {}) {
+    if (!audio) return Promise.resolve();
+    let frame = frameKey === "credits" ? creditsMusicFadeFrame : titleMusicFadeFrame;
+    window.cancelAnimationFrame(frame);
+    audio.volume = from;
+    const startedAt = performance.now();
+    return new Promise((resolve) => {
+      const tick = (now) => {
+        const progress = Math.min(1, (now - startedAt) / Math.max(1, duration));
+        audio.volume = from + (to - from) * progress;
+        if (progress < 1) {
+          const raf = window.requestAnimationFrame(tick);
+          if (frameKey === "credits") creditsMusicFadeFrame = raf;
+          else titleMusicFadeFrame = raf;
+          return;
+        }
+        resolve();
+      };
+      const raf = window.requestAnimationFrame(tick);
+      if (frameKey === "credits") creditsMusicFadeFrame = raf;
+      else titleMusicFadeFrame = raf;
+    });
+  }
+
+  async function playCreditsMusic() {
+    if (!creditsMusic) return false;
+    window.cancelAnimationFrame(creditsMusicFadeFrame);
+    creditsMusic.pause();
+    creditsMusic.currentTime = 0;
+    creditsMusic.volume = 0;
+    creditsMusic.muted = false;
+    if (creditsMuteButton) creditsMuteButton.textContent = "MUTE";
+    try {
+      await creditsMusic.play();
+      await animateAudioVolume(creditsMusic, { from: 0, to: CREDITS_MUSIC_DEFAULT_VOLUME, duration: 1400, frameKey: "credits" });
+      creditsMusic.dataset.autoplay = "playing";
+      return true;
+    } catch {
+      creditsMusic.dataset.autoplay = "blocked";
+      if (creditsStatus) creditsStatus.textContent = "PRESS ANY KEY OR CLICK TO START THE CREDITS SONG";
+      return false;
+    }
+  }
+
+  function fadeCreditsMusicOut(duration = 900) {
+    if (!creditsMusic || creditsMusic.paused) return Promise.resolve();
+    window.cancelAnimationFrame(creditsMusicFadeFrame);
+    const startVolume = creditsMusic.volume;
+    const startedAt = performance.now();
+    return new Promise((resolve) => {
+      const tick = (now) => {
+        const progress = Math.min(1, (now - startedAt) / Math.max(1, duration));
+        creditsMusic.volume = Math.max(0, startVolume * (1 - progress));
+        if (progress < 1) {
+          creditsMusicFadeFrame = window.requestAnimationFrame(tick);
+          return;
+        }
+        creditsMusic.pause();
+        creditsMusic.currentTime = 0;
+        creditsMusic.volume = CREDITS_MUSIC_DEFAULT_VOLUME;
+        resolve();
+      };
+      creditsMusicFadeFrame = window.requestAnimationFrame(tick);
+    });
+  }
+
+  function restartCreditsRoll() {
+    if (!creditsRoll) return;
+    creditsRoll.classList.remove("is-rolling");
+    void creditsRoll.offsetWidth;
+    creditsRoll.classList.add("is-rolling");
+  }
+
+  async function openCreditsSequence({ fromEnding = false } = {}) {
+    if (creditsSequenceOpen) return;
+    creditsSequenceOpen = true;
+    creditsResumeMode = fromEnding ? "show-title" : (!titleScreen.hidden ? "resume-title-audio" : "show-title");
+    if (creditsStatus) creditsStatus.textContent = "ROLLING CREDITS // SPECIAL SONG PLAYING";
+    if (creditsStatus) creditsStatus.classList.remove("credits-status-muted");
+    closeAllDialogs();
+    if (!fromEnding && !titleScreen.hidden) await fadeTitleMusicOut(950);
+    restartCreditsRoll();
+    openDialog(creditsDialog);
+    if (creditsDoneButton) creditsDoneButton.focus({ preventScroll: true });
+    await playCreditsMusic();
+  }
+
+  async function closeCreditsSequence() {
+    if (!creditsSequenceOpen && !creditsDialog.open) return;
+    creditsSequenceOpen = false;
+    await fadeCreditsMusicOut(850);
+    closeDialog(creditsDialog);
+    if (creditsResumeMode === "show-title") {
+      showTitleScreen();
+      return;
+    }
+    if (!titleScreen.hidden) playTitleMusic();
+  }
+
+  function toggleCreditsMute() {
+    if (!creditsMusic) return;
+    creditsMusic.muted = !creditsMusic.muted;
+    if (creditsMuteButton) creditsMuteButton.textContent = creditsMusic.muted ? "UNMUTE" : "MUTE";
+    if (creditsStatus) {
+      creditsStatus.textContent = creditsMusic.muted
+        ? "ROLLING CREDITS // SONG MUTED"
+        : "ROLLING CREDITS // SPECIAL SONG PLAYING";
+      creditsStatus.classList.toggle("credits-status-muted", creditsMusic.muted);
+    }
+  }
+
   function wait(ms) {
     return new Promise((resolve) => window.setTimeout(resolve, ms));
   }
@@ -525,7 +646,7 @@
       "assets/IMG44.png", "assets/IMG45.png", "assets/IMG46.png",
       "assets/IMG47.png", "assets/IMG48.png", "assets/IMG49.png",
       "assets/IMG50.png", "assets/IMG51.png", "assets/IMG52.png",
-      "assets/IMG53.png", "assets/IMG55.png"
+      "assets/IMG53.png", "assets/IMG55.png", "assets/IMG56.png"
     ];
     const begin = () => preloadImages(sources, 1);
 
@@ -651,6 +772,11 @@
   }
 
   function showTitleScreen() {
+    if (creditsMusic && !creditsMusic.paused) {
+      creditsMusic.pause();
+      creditsMusic.currentTime = 0;
+      creditsMusic.volume = CREDITS_MUSIC_DEFAULT_VOLUME;
+    }
     closeOrbitalPuzzle();
     stopRebreatherCountdown({ preserve: true });
     cancelActiveSequence();
@@ -663,6 +789,8 @@
     titleScreen.hidden = false;
     refreshTitleMenu();
     preloadImage("assets/IMG00.png");
+  preloadImage("assets/IMG56.png");
+    preloadImage("assets/IMG56.png");
     requestAnimationFrame(() => {
       titleScreen.classList.add("is-visible");
       playButton.focus({ preventScroll: true });
@@ -4352,7 +4480,22 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
 
   playButton.addEventListener("click", () => startNewMission());
   continueGameButton.addEventListener("click", continueMission);
-  creditsButton.addEventListener("click", () => openDialog(creditsDialog));
+  creditsButton.addEventListener("click", () => openCreditsSequence());
+  creditsMuteButton?.addEventListener("click", toggleCreditsMute);
+  creditsCloseButton?.addEventListener("click", closeCreditsSequence);
+  creditsDoneButton?.addEventListener("click", closeCreditsSequence);
+  creditsDialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    closeCreditsSequence();
+  });
+  creditsDialog.addEventListener("close", () => {
+    if (creditsMusic && !creditsMusic.paused) {
+      creditsMusic.pause();
+      creditsMusic.currentTime = 0;
+      creditsMusic.volume = CREDITS_MUSIC_DEFAULT_VOLUME;
+    }
+    creditsSequenceOpen = false;
+  });
   returnCheckpointButton.addEventListener("click", returnToCheckpointFromLoss);
   restartMissionButton.addEventListener("click", restartFromLoss);
   quitTitleButton.addEventListener("click", quitFromLossToTitle);
@@ -4399,11 +4542,18 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
   });
 
   document.addEventListener("pointerdown", () => {
-    if (!titleScreen.hidden && titleMusic?.dataset.autoplay === "blocked") playTitleMusic();
+    if (creditsDialog.open && creditsMusic?.dataset.autoplay === "blocked") playCreditsMusic();
+    else if (!titleScreen.hidden && titleMusic?.dataset.autoplay === "blocked") playTitleMusic();
   }, { passive: true });
 
   document.addEventListener("keydown", (event) => {
-    if (!titleScreen.hidden && titleMusic?.dataset.autoplay === "blocked") playTitleMusic();
+    if (creditsDialog.open && creditsMusic?.dataset.autoplay === "blocked") playCreditsMusic();
+    else if (!titleScreen.hidden && titleMusic?.dataset.autoplay === "blocked") playTitleMusic();
+    if (event.key === "Escape" && creditsDialog.open) {
+      event.preventDefault();
+      closeCreditsSequence();
+      return;
+    }
     if (event.key !== "Enter" && event.key !== " ") return;
     if (creditsDialog.open || !cinematicTransition.hidden) return;
 
@@ -4427,6 +4577,12 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
   refreshTitleMenu();
   syncCaptainLogUI();
   preloadImage("assets/IMG00.png");
+  preloadImage("assets/IMG56.png");
+  window.theVoidCredits = {
+    open: () => openCreditsSequence(),
+    playEndingCredits: () => openCreditsSequence({ fromEnding: true })
+  };
+
   requestAnimationFrame(() => {
     titleScreen.hidden = false;
     titleScreen.classList.add("is-visible");

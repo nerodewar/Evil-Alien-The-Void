@@ -2838,22 +2838,161 @@ dialog::backdrop {
   background: linear-gradient(90deg, rgba(172,37,37,.24), rgba(255,255,255,.018));
 }
 
-.credits-dialog { width: min(720px, calc(100vw - 28px)); }
-.credits-window { border-color: rgba(150,205,241,.24); }
-.credits-body { padding-block: 34px; text-align: center; }
-.credits-studio,
-.credits-game {
+.credits-dialog { width: min(1320px, calc(100vw - 24px)); }
+.credits-window-roll {
+  border-color: rgba(240,244,255,.18);
+  background: rgba(3,5,9,.96);
+  min-height: min(92vh, 900px);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+.credits-header {
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.credits-body-roll {
+  padding: 0;
+  min-height: 0;
+}
+.credits-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 43%) minmax(0, 57%);
+  min-height: min(72vh, 760px);
+}
+.credits-visual {
+  position: relative;
+  overflow: hidden;
+  background: #020307;
+  border-right: 1px solid rgba(255,255,255,.08);
+}
+.credits-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.28) 58%, rgba(0,0,0,.62));
+  pointer-events: none;
+}
+.credits-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.credits-roll-panel {
+  background: #000;
+  color: #fff;
+  min-height: 0;
+}
+.credits-roll-viewport {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  min-height: min(72vh, 760px);
+  background: linear-gradient(180deg, rgba(0,0,0,.98), #000 8%, #000 92%, rgba(0,0,0,.98));
+}
+.credits-roll-viewport::before,
+.credits-roll-viewport::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  height: 88px;
+  z-index: 2;
+  pointer-events: none;
+}
+.credits-roll-viewport::before {
+  top: 0;
+  background: linear-gradient(180deg, #000 0%, rgba(0,0,0,.8) 45%, transparent 100%);
+}
+.credits-roll-viewport::after {
+  bottom: 0;
+  background: linear-gradient(0deg, #000 0%, rgba(0,0,0,.8) 45%, transparent 100%);
+}
+.credits-roll {
+  position: absolute;
+  left: 0; right: 0;
+  will-change: transform;
+}
+.credits-roll.is-rolling {
+  animation: credits-roll 168s linear forwards;
+}
+.credits-roll-content {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 36px 24px;
+  text-align: center;
+}
+.credits-roll-spacer { height: 90vh; min-height: 520px; }
+.credits-roll-spacer-end { height: 42vh; min-height: 280px; }
+.credits-overline,
+.credits-subtitle {
   margin: 0;
   text-transform: uppercase;
-  letter-spacing: .2em;
+  letter-spacing: .28em;
 }
-.credits-studio { color: #e6f4ff; font-size: 1.05rem; }
-.credits-game { margin-top: 12px; color: #8da7bb; font-size: .7rem; }
-.credits-rule { width: 74px; height: 1px; margin: 28px auto; background: rgba(159,211,244,.28); }
-.credits-body dl { max-width: 470px; margin: 0 auto; text-align: left; }
-.credits-body dl > div { display: grid; grid-template-columns: 1fr auto; gap: 24px; padding: 14px 0; border-top: 1px solid rgba(255,255,255,.07); }
-.credits-body dt { color: #748696; font-size: .72rem; }
-.credits-body dd { margin: 0; color: #e1ebf3; font-size: .76rem; text-align: right; }
+.credits-overline {
+  color: rgba(255,255,255,.86);
+  font-size: .86rem;
+}
+.credits-main-title {
+  margin: 22px 0 16px;
+  font-size: clamp(2.6rem, 5vw, 4.7rem);
+  font-weight: 300;
+  letter-spacing: .16em;
+}
+.credits-subtitle {
+  color: rgba(255,255,255,.7);
+  font-size: .8rem;
+}
+.credits-rule-roll {
+  width: 84px;
+  height: 1px;
+  margin: 36px auto 44px;
+  background: rgba(255,255,255,.28);
+}
+.credits-block {
+  margin: 0 auto 42px;
+}
+.credits-block h4 {
+  margin: 0 0 14px;
+  font-size: .92rem;
+  font-weight: 600;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.74);
+}
+.credits-block p {
+  margin: 0;
+  color: #fff;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  letter-spacing: .03em;
+}
+.credits-thanks-list p {
+  margin: 0 0 9px;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+.credits-closing-block {
+  margin-top: 56px;
+}
+.credits-closing-block p {
+  max-width: 420px;
+  margin-inline: auto;
+}
+.credits-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.credits-footer-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.credits-status-muted {
+  color: rgba(255,255,255,.62);
+}
 
 .ship-map.is-cinematic-reveal .connection-line {
   opacity: 0;
@@ -2926,6 +3065,11 @@ dialog::backdrop {
   to { opacity: 1; }
 }
 
+@keyframes credits-roll {
+  from { transform: translateY(0); }
+  to { transform: translateY(calc(-100% + 100vh - 120px)); }
+}
+
 @media (orientation: portrait), (max-width: 760px) {
   .title-artwork {
     object-fit: contain;
@@ -2962,6 +3106,17 @@ dialog::backdrop {
   .lose-card { padding: 30px 18px; }
   .lose-button { grid-template-columns: 1fr; gap: 4px; text-align: center; padding: 12px; }
   .lose-button small { text-align: center; }
+
+  .credits-dialog { width: min(100vw - 12px, 980px); }
+  .credits-layout { grid-template-columns: 1fr; }
+  .credits-visual { max-height: 34vh; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .credits-roll-viewport,
+  .credits-layout { min-height: 0; }
+  .credits-roll-content { padding-inline: 22px; }
+  .credits-main-title { font-size: clamp(2rem, 9vw, 3.2rem); }
+  .credits-footer { flex-direction: column; align-items: stretch; }
+  .credits-footer-actions { width: 100%; justify-content: stretch; }
+  .credits-footer-actions .dialog-button { flex: 1 1 auto; }
 }
 
 @keyframes title-menu-arrival-mobile {
@@ -2973,8 +3128,11 @@ dialog::backdrop {
   .title-enter-hint { margin-top: 10px; }
   .transition-core { padding: 28px 20px; }
   .transition-emblem { width: 62px; height: 62px; }
-  .credits-body dl > div { grid-template-columns: 1fr; gap: 5px; text-align: center; }
-  .credits-body dd { text-align: center; }
+  .credits-roll-spacer { min-height: 380px; }
+  .credits-roll-spacer-end { min-height: 220px; }
+  .credits-block h4 { font-size: .8rem; }
+  .credits-block p,
+  .credits-thanks-list p { font-size: .94rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2988,7 +3146,8 @@ dialog::backdrop {
   .lose-card,
   .ship-map.is-cinematic-reveal .connection-line,
   .ship-map.is-cinematic-reveal .room-node,
-  .ship-map.is-cinematic-reveal .luna-token {
+  .ship-map.is-cinematic-reveal .luna-token,
+  .credits-roll.is-rolling {
     animation: none !important;
   }
 
