@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const SAVE_KEY = "theVoidSave_v05";
-  const LEGACY_KEYS = ["theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const SAVE_KEY = "theVoidSave_v051";
+  const LEGACY_KEYS = ["theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -255,21 +255,23 @@
     else dialog.removeAttribute("open");
   }
 
+  const TYPE_SPEED_MULTIPLIER = 1.4;
+
   function introPause(character) {
     if (reducedMotion) return 0;
-    if (character === ".") return 300;
-    if (character === ",") return 105;
-    if (character === ":") return 145;
-    if (character === "\n") return 210;
-    return 23 + Math.random() * 17;
+    if (character === ".") return 300 / TYPE_SPEED_MULTIPLIER;
+    if (character === ",") return 105 / TYPE_SPEED_MULTIPLIER;
+    if (character === ":") return 145 / TYPE_SPEED_MULTIPLIER;
+    if (character === "\n") return 210 / TYPE_SPEED_MULTIPLIER;
+    return (23 + Math.random() * 17) / TYPE_SPEED_MULTIPLIER;
   }
 
   function roomPause(character) {
     if (reducedMotion) return 0;
-    if (character === ".") return 145;
-    if (character === ",") return 62;
-    if (character === "\n") return 100;
-    return 11 + Math.random() * 9;
+    if (character === ".") return 145 / TYPE_SPEED_MULTIPLIER;
+    if (character === ",") return 62 / TYPE_SPEED_MULTIPLIER;
+    if (character === "\n") return 100 / TYPE_SPEED_MULTIPLIER;
+    return (11 + Math.random() * 9) / TYPE_SPEED_MULTIPLIER;
   }
 
   function setContinueReady(isReady) {
@@ -767,10 +769,12 @@
   function deriveObjective() {
     if (state.actTwoComplete) return "Determine how the organism has accessed the ship's systems";
     if (state.blackoutStarted) {
-      if (!state.relayFound || !state.bridgeFound || !state.regulatorFound) return "Search the blackout sector for three lighting-system components";
-      if (!state.lightsRestored) return "Return to the Power Junction and restore the lighting grid";
-      if (!state.surveillanceOpened) return "Return to Control and access the surveillance archive";
-      if (!state.shadowFootageViewed || !state.mimicFootageViewed) return "Review the anomalous surveillance recordings";
+      if (!state.relayFound) return "Search Storage for the missing power relay";
+      if (!state.bridgeFound) return "Search Auxiliary Power for the missing circuit bridge";
+      if (!state.regulatorFound) return "Search the emergency cabinet in the Dark Corridor";
+      if (!state.alienRepelled) return "Get past the organism and return to the Power Junction";
+      if (!state.lightsRestored) return "Restore the lighting grid at the Power Junction";
+      if (!state.surveillanceOpened) return "Access the restored surveillance archive in Control";
       if (!state.falseGroundContacted) return "Attempt contact with Ground Control";
       return "Trace the organism's access to the ship systems";
     }
@@ -964,9 +968,9 @@
           alt: "The auxiliary power room and recovered lighting regulator.",
           caption: state.regulatorFound ? "ITEM ACQUIRED // LIGHTING REGULATOR" : "AUXILIARY POWER // BATTERY ARRAY 48%",
           mediaClass: "",
-          text: state.regulatorFound
-            ? "The emergency-lighting regulator is working. The circuit bridge is lodged inside the adjacent fuse bank, completing the set Luna needs."
-            : "Backup cells hum weakly behind the wall. A diagnostic drawer hangs open. The missing regulator should be here, unless something has moved it."
+          text: state.bridgeFound
+            ? "The recovered circuit bridge is intact. Its contacts show no burn damage. Like the relay, it was removed from the lighting system deliberately."
+            : "Backup cells hum weakly behind the wall. The fuse bank has been opened with impossible precision. The missing circuit bridge should still be somewhere inside."
         }
       };
       if (definitions[room]) return definitions[room];
@@ -1384,61 +1388,13 @@
     button.append(label, meta);
 
     if (!action.disabled) {
-      if (action.hold) attachHoldAction(button, action.duration || 2000, action.onClick);
-      else button.addEventListener("click", action.onClick);
+      button.addEventListener("click", () => {
+        if (button.disabled) return;
+        button.disabled = true;
+        window.setTimeout(action.onClick, reducedMotion ? 0 : 70);
+      });
     }
     return button;
-  }
-
-  function attachHoldAction(button, duration, callback) {
-    let active = false;
-    let startTime = 0;
-    let frame = 0;
-
-    function reset() {
-      active = false;
-      cancelAnimationFrame(frame);
-      button.style.setProperty("--hold-progress", "0%");
-    }
-
-    function finish() {
-      active = false;
-      cancelAnimationFrame(frame);
-      button.style.setProperty("--hold-progress", "100%");
-      button.disabled = true;
-      window.setTimeout(callback, reducedMotion ? 10 : 160);
-    }
-
-    function tick(now) {
-      if (!active) return;
-      const progress = Math.min((now - startTime) / duration, 1);
-      button.style.setProperty("--hold-progress", `${progress * 100}%`);
-      if (progress >= 1) {
-        finish();
-        return;
-      }
-      frame = requestAnimationFrame(tick);
-    }
-
-    function begin(event) {
-      if (button.disabled || active) return;
-      event.preventDefault();
-      active = true;
-      startTime = performance.now();
-      if (event.pointerId !== undefined) button.setPointerCapture?.(event.pointerId);
-      frame = requestAnimationFrame(tick);
-    }
-
-    button.addEventListener("pointerdown", begin);
-    button.addEventListener("pointerup", reset);
-    button.addEventListener("pointercancel", reset);
-    button.addEventListener("lostpointercapture", () => active && reset());
-    button.addEventListener("keydown", (event) => {
-      if ((event.key === "Enter" || event.key === " ") && !active) begin(event);
-    });
-    button.addEventListener("keyup", (event) => {
-      if (event.key === "Enter" || event.key === " ") reset();
-    });
   }
 
   function getRoomActions(room) {
@@ -1464,7 +1420,7 @@
 
     if (room === "life" && !state.fireExtinguished) {
       return [
-        { label: "HOLD TO EXTINGUISH FIRE", meta: "HOLD 2 SEC", danger: true, hold: true, duration: 2000, onClick: extinguishFire },
+        { label: "EXTINGUISH FIRE", meta: "ACTIVATE SUPPRESSANT", danger: true, onClick: extinguishFire },
         { label: "RETREAT TO HALLWAY", meta: "MOVE", onClick: () => moveToRoom("hallway") }
       ];
     }
@@ -1536,7 +1492,7 @@
         ];
       }
 
-      if (state.hidingInProgress) return [{ label: "HOLD TO REMAIN SILENT", meta: "HOLD 3 SEC", danger: true, hold: true, duration: 3000, onClick: completeHiding }];
+      if (state.hidingInProgress) return [{ label: "REMAIN SILENT", meta: "DO NOT RESPOND", danger: true, onClick: completeHiding }];
 
       return [
         { label: "HIDE UNDER THE WORKBENCH", meta: "LOW COVER", onClick: () => chooseHide("workbench") },
@@ -1557,47 +1513,63 @@
       }
 
       if (room === "control") {
-        if (!state.lightsRestored) return [{ label: "ENTER POWER JUNCTION", meta: "BLACKOUT MISSION", special: true, onClick: () => moveToRoom("power") }];
-        if (!state.surveillanceOpened) return [{ label: "OPEN SURVEILLANCE ARCHIVE", meta: "INVESTIGATE", special: true, onClick: openSurveillance }];
-        if (!state.shadowFootageViewed) return [{ label: "VIEW CAMERA B-12", meta: "ANOMALY", danger: true, onClick: viewShadowFootage }];
-        if (!state.mimicFootageViewed) return [{ label: "VIEW CRYOSLEEP ARCHIVE", meta: "CREW IDENTITY", danger: true, onClick: viewMimicFootage }];
-        if (!state.falseGroundContacted) return [{ label: "CONTACT GROUND CONTROL", meta: "COMMUNICATIONS", special: true, onClick: runFalseGroundSequence }];
+        if (!state.lightsRestored) {
+          return [{ label: "ENTER POWER JUNCTION", meta: "BLACKOUT MISSION", special: true, onClick: () => moveToRoom("power") }];
+        }
+        if (!state.surveillanceOpened) {
+          return [{ label: "REVIEW SURVEILLANCE ARCHIVE", meta: "RECOVERED FOOTAGE", special: true, onClick: openSurveillance }];
+        }
+        if (!state.falseGroundContacted) {
+          return [{ label: "CONTACT GROUND CONTROL", meta: "VERIFY CHANNEL", special: true, onClick: runFalseGroundSequence }];
+        }
         return [{ label: "REVIEW CORRUPTED TRANSMISSION", meta: "CHECKPOINT 04", onClick: runFalseGroundSequence }];
       }
 
       if (room === "power") {
         if (!state.relayFound || !state.bridgeFound || !state.regulatorFound) {
           return [
-            { label: "ENTER DARK CORRIDOR", meta: "SEARCH ROUTE", danger: true, onClick: () => moveToRoom("darkcorridor") },
+            { label: "ENTER DARK CORRIDOR", meta: "COMPONENT SEARCH", danger: true, onClick: () => moveToRoom("darkcorridor") },
             { label: "RETURN TO CONTROL", meta: "MOVE", onClick: () => moveToRoom("control") }
           ];
         }
-        if (!state.lightsRestored) {
-          return [{ label: "HOLD TO RESTORE LIGHTING GRID", meta: "HOLD 3 SEC", danger: true, hold: true, duration: 3000, onClick: restoreLights }];
+        if (!state.alienRepelled) {
+          return [{ label: "RETURN TO DARK CORRIDOR", meta: "MOVEMENT DETECTED", danger: true, onClick: () => moveToRoom("darkcorridor") }];
         }
-        return [{ label: "RETURN TO CONTROL", meta: "SURVEILLANCE", special: true, onClick: () => moveToRoom("control") }];
+        if (!state.lightsRestored) {
+          return [{ label: "RESTORE LIGHTING GRID", meta: "INSTALL 3 COMPONENTS", danger: true, onClick: restoreLights }];
+        }
+        return [{ label: "RETURN TO CONTROL", meta: "SURVEILLANCE ONLINE", special: true, onClick: () => moveToRoom("control") }];
       }
 
       if (room === "darkcorridor") {
         const actions = [];
-        if (!state.relayFound) actions.push({ label: "SEARCH STORAGE", meta: "POWER RELAY", special: true, onClick: () => moveToRoom("storage2") });
-        if (!state.regulatorFound || !state.bridgeFound) actions.push({ label: "SEARCH AUXILIARY POWER", meta: "2 COMPONENTS", special: true, onClick: () => moveToRoom("auxpower") });
-        if (state.blackoutThreatStep > 0 && !state.alienRepelled) {
-          actions.unshift({ label: "HIDE AND REMAIN SILENT", meta: "SURVIVE", danger: true, hold: true, duration: 2200, onClick: surviveBlackoutEncounter });
-          actions.push({ label: "RUN THROUGH THE DARK", meta: "HIGH RISK", danger: true, onClick: failBlackout });
+        if (!state.relayFound) {
+          actions.push({ label: "SEARCH STORAGE", meta: "POWER RELAY", special: true, onClick: () => moveToRoom("storage2") });
+        } else if (!state.bridgeFound) {
+          actions.push({ label: "SEARCH AUXILIARY POWER", meta: "CIRCUIT BRIDGE", special: true, onClick: () => moveToRoom("auxpower") });
+        } else if (!state.regulatorFound) {
+          actions.push({ label: "OPEN EMERGENCY CABINET", meta: "LIGHTING REGULATOR", special: true, onClick: findRegulator });
+        } else if (!state.alienRepelled) {
+          actions.push({ label: "HIDE IN THE MAINTENANCE RECESS", meta: "DANGER", danger: true, onClick: hideAndFailBlackout });
+          actions.push({ label: "KEEP THE FLASHLIGHT ON IT", meta: "DO NOT LOOK AWAY", special: true, onClick: holdAlienAtDistance });
+          return actions;
         }
         actions.push({ label: "RETURN TO POWER JUNCTION", meta: "MOVE", onClick: () => moveToRoom("power") });
         return actions;
       }
 
       if (room === "storage2") {
-        if (!state.relayFound) return [{ label: "SEARCH EQUIPMENT CRATES", meta: "NOISY", special: true, onClick: findRelay }];
-        return [{ label: "RETURN TO DARK CORRIDOR", meta: "MOVE", onClick: () => moveToRoom("darkcorridor") }];
+        if (!state.relayFound) {
+          return [{ label: "SEARCH EQUIPMENT CRATES", meta: "POWER RELAY", special: true, onClick: findRelay }];
+        }
+        return [{ label: "RETURN TO DARK CORRIDOR", meta: "NEXT: AUXILIARY POWER", onClick: () => moveToRoom("darkcorridor") }];
       }
 
       if (room === "auxpower") {
-        if (!state.regulatorFound || !state.bridgeFound) return [{ label: "SEARCH FUSE BANK", meta: "NOISY", special: true, onClick: findPowerParts }];
-        return [{ label: "RETURN TO DARK CORRIDOR", meta: "MOVE", onClick: () => moveToRoom("darkcorridor") }];
+        if (!state.bridgeFound) {
+          return [{ label: "SEARCH FUSE BANK", meta: "CIRCUIT BRIDGE", special: true, onClick: findPowerParts }];
+        }
+        return [{ label: "RETURN TO DARK CORRIDOR", meta: "NEXT: EMERGENCY CABINET", onClick: () => moveToRoom("darkcorridor") }];
       }
       return [];
     }
@@ -1633,7 +1605,7 @@
       if (room === "engine") {
         return state.engineRepaired
           ? [{ label: "RETURN THROUGH THE TUNNELS", meta: "BLACKOUT", danger: true, onClick: () => moveToRoom("tunnels") }]
-          : [{ label: "HOLD TO REPLACE ENGINE REGULATOR", meta: "HOLD 3 SEC", danger: true, hold: true, duration: 3000, onClick: repairEngine }];
+          : [{ label: "REPLACE ENGINE REGULATOR", meta: "MANUAL REPAIR", danger: true, onClick: repairEngine }];
       }
     }
 
@@ -1684,7 +1656,7 @@
       if (room === "satnav") {
         return state.satNavRepaired
           ? [{ label: "RETURN ACROSS THE HULL", meta: "NAV RESTORED", special: true, onClick: () => moveToRoom("outside") }]
-          : [{ label: "HOLD TO REPLACE SAT-NAV COMPONENT", meta: "HOLD 3 SEC", danger: true, hold: true, duration: 3000, onClick: repairSatNav }];
+          : [{ label: "REPLACE SAT-NAV COMPONENT", meta: "EXTERNAL REPAIR", danger: true, onClick: repairSatNav }];
       }
     }
 
@@ -2128,100 +2100,151 @@
 
   async function findRelay() {
     state.relayFound = true;
-    await triggerBlackoutThreat();
+    state.blackoutThreatStep = Math.max(state.blackoutThreatStep, 1);
+    state.stress = Math.min(99, state.stress + 2);
+    saveState();
+
     runSequence([{
       image: "assets/IMG27.png",
       alt: "A recovered power relay component.",
-      code: "ITEM ACQUIRED // PWR-REL-01",
-      title: "POWER RELAY",
-      text: "Luna extracts the working relay from beneath a storage crate. The moment it clears the floor, something heavy moves in the corridor outside.",
-      button: "LISTEN"
+      code: "ITEM 01 / 03 // PWR-REL-01",
+      title: "POWER RELAY RECOVERED",
+      text: "Luna finds the relay secured beneath a storage crate. It has not failed. Someone removed it from the lighting grid and hid it here.\n\nA heavy impact sounds once in the corridor outside.",
+      button: "RETURN TO CORRIDOR",
+      presentation: "item"
     }], async () => {
       state.currentRoom = "darkcorridor";
       saveState();
       updateInterface();
       await showRoom("darkcorridor");
+      showToast("1 OF 3 COMPONENTS RECOVERED");
     });
   }
 
   async function findPowerParts() {
     state.bridgeFound = true;
-    state.regulatorFound = true;
-    await triggerBlackoutThreat();
-    runSequence([
-      {
-        image: "assets/IMG28.png",
-        alt: "The recovered circuit bridge component.",
-        code: "ITEM ACQUIRED // CBR-02",
-        title: "CIRCUIT BRIDGE",
-        text: "The circuit bridge is wedged inside the open fuse bank. Its contacts are intact.",
-        button: "CONTINUE SEARCH"
-      },
-      {
-        image: "assets/IMG29.png",
-        alt: "The recovered emergency-lighting regulator.",
-        code: "ITEM ACQUIRED // ELR-01",
-        title: "LIGHTING REGULATOR",
-        text: "Behind the battery array, Luna finds the lighting regulator. A wet handprint has been pressed into the dust beside it.",
-        button: "RETURN TO CORRIDOR"
-      }
-    ], async () => {
+    state.blackoutThreatStep = Math.max(state.blackoutThreatStep, 2);
+    state.stress = Math.min(99, state.stress + 2);
+    saveState();
+
+    runSequence([{
+      image: "assets/IMG28.png",
+      alt: "The recovered circuit bridge component.",
+      code: "ITEM 02 / 03 // CBR-02",
+      title: "CIRCUIT BRIDGE RECOVERED",
+      text: "The circuit bridge is lodged deep inside the open fuse bank. Its contacts are intact. Black residue threads between the empty sockets around it.\n\nSomething scrapes slowly across the ceiling beyond the room.",
+      button: "RETURN TO CORRIDOR",
+      presentation: "item"
+    }], async () => {
       state.currentRoom = "darkcorridor";
       saveState();
       updateInterface();
       await showRoom("darkcorridor");
+      showToast("2 OF 3 COMPONENTS RECOVERED");
     });
   }
 
-  async function surviveBlackoutEncounter() {
-    runSequence([{
-      image: "assets/IMG31.png",
-      alt: "From Luna's perspective, she hides while the alien searches nearby.",
-      code: "BIOLOGICAL SIGNAL // ZERO METRES",
-      title: "DO NOT MOVE",
-      text: "Luna kills the flashlight and folds behind a maintenance recess. The organism enters, stretching one black limb across the doorway. It waits. Then it withdraws.",
-      button: "BREATHE"
-    }], async () => {
-      state.alienRepelled = true;
-      state.stress = Math.min(99, state.stress + 4);
-      saveState();
+  async function findRegulator() {
+    state.regulatorFound = true;
+    state.blackoutThreatStep = 3;
+    state.alienRepelled = false;
+    state.stress = Math.min(99, state.stress + 4);
+    saveState();
+
+    runSequence([
+      {
+        image: "assets/IMG29.png",
+        alt: "The recovered emergency-lighting regulator.",
+        code: "ITEM 03 / 03 // ELR-01",
+        title: "LIGHTING REGULATOR RECOVERED",
+        text: "Inside the corridor's emergency cabinet, Luna finds the final regulator. A wet handprint covers the cabinet release.\n\nAll three components are now secured.",
+        button: "CLOSE CABINET",
+        presentation: "item"
+      },
+      {
+        image: "assets/IMG30.png",
+        alt: "A partly seen alien shape hunts Luna in the dark corridor.",
+        code: "BIOLOGICAL SIGNAL // SAME SECTOR",
+        title: "IT IS IN THE CORRIDOR",
+        text: "The flashlight catches a shape at the far end of the passage. It recoils from the beam, then begins feeling its way along the walls toward Luna.",
+        button: "FACE IT",
+        presentation: "threat"
+      }
+    ], async () => {
       updateInterface();
       await showRoom("darkcorridor");
-      showToast("ENCOUNTER SURVIVED // MOVEMENT SIGNAL LOST");
     });
+  }
+
+  function hideAndFailBlackout() {
+    runSequence([
+      {
+        image: "assets/IMG31.png",
+        alt: "Luna hides in darkness while the alien searches the maintenance recess.",
+        code: "BIOLOGICAL SIGNAL // ZERO METRES",
+        title: "IT HEARD HER",
+        text: "Luna kills the flashlight and folds into the maintenance recess. The corridor becomes completely black.\n\nThe organism stops outside. A hand, almost shaped like hers, closes around the edge of the hiding place.",
+        button: "DO NOT BREATHE",
+        presentation: "failure"
+      },
+      {
+        image: "assets/IMG32.png",
+        alt: "The alien overwhelms Luna at point-blank range.",
+        code: "BIOLOGICAL STATUS // SIGNAL LOST",
+        title: "TOTAL FAILURE",
+        text: "It finds her.\n\nThe last image recorded by Luna's suit is a black face opening directly in front of her.",
+        button: "RESTART CHECKPOINT 03",
+        presentation: "failure"
+      }
+    ], restartBlackoutCheckpoint);
+  }
+
+  async function holdAlienAtDistance() {
+    runSequence([{
+      image: "assets/IMG30.png",
+      alt: "The alien recoils at the edge of Luna's flashlight beam.",
+      code: "FLASHLIGHT // MAXIMUM OUTPUT",
+      title: "DO NOT LOOK AWAY",
+      text: "Luna keeps the beam fixed on the organism and backs toward the Power Junction. It follows along the ceiling but refuses to cross the brightest part of the light.\n\nShe reaches the junction without turning her back.",
+      button: "ENTER POWER JUNCTION",
+      presentation: "threat"
+    }], async () => {
+      state.alienRepelled = true;
+      state.currentRoom = "power";
+      state.stress = Math.min(99, state.stress + 3);
+      saveState();
+      updateInterface();
+      await showRoom("power");
+      showToast("ROUTE CLEARED // INSTALL THE COMPONENTS");
+    });
+  }
+
+  async function restartBlackoutCheckpoint() {
+    state = {
+      ...state,
+      currentRoom: "control",
+      mapMode: "blackout",
+      relayFound: false,
+      bridgeFound: false,
+      regulatorFound: false,
+      blackoutThreatStep: 0,
+      alienRepelled: false,
+      lightsRestored: false,
+      surveillanceOpened: false,
+      shadowFootageViewed: false,
+      mimicFootageViewed: false,
+      falseGroundContacted: false,
+      actTwoComplete: false,
+      stress: 94
+    };
+    saveState();
+    updateInterface();
+    await showRoom("control");
+    showToast("CHECKPOINT 03 RESTORED // LIGHTS OUT");
   }
 
   function failBlackout() {
-    runSequence([{
-      image: "assets/IMG32.png",
-      alt: "The alien overwhelms Luna at point-blank range.",
-      code: "BIOLOGICAL STATUS // SIGNAL LOST",
-      title: "TOTAL FAILURE",
-      text: "The darkness moves faster than Luna can run. The last image recorded by her suit is a black face opening directly in front of her.",
-      button: "RESTART CHECKPOINT 03"
-    }], async () => {
-      state = {
-        ...state,
-        currentRoom: "control",
-        mapMode: "blackout",
-        relayFound: false,
-        bridgeFound: false,
-        regulatorFound: false,
-        blackoutThreatStep: 0,
-        alienRepelled: false,
-        lightsRestored: false,
-        surveillanceOpened: false,
-        shadowFootageViewed: false,
-        mimicFootageViewed: false,
-        falseGroundContacted: false,
-        actTwoComplete: false,
-        stress: 94
-      };
-      saveState();
-      updateInterface();
-      await showRoom("control");
-      showToast("CHECKPOINT 03 RESTORED // LIGHTS OUT");
-    });
+    hideAndFailBlackout();
   }
 
   async function restoreLights() {
@@ -2231,24 +2254,27 @@
         alt: "Luna concentrates on installing the lighting components at the Power Junction.",
         code: "POWER JUNCTION // MANUAL GRID REPAIR",
         title: "ROUTE THE CURRENT",
-        text: "Luna installs the relay, bridges the interrupted circuit and locks the regulator into place. Behind her, the organism rushes through the corridor.",
-        button: "TURN"
-      },
-      {
-        image: "assets/IMG34.png",
-        alt: "Luna fires the plasma gun and drives the alien back.",
-        code: "PLASMA DISCHARGE // CONTACT",
-        title: "BACK INTO THE DARK",
-        text: "Luna fires. The plasma bolt tears through the creature's outer form and hurls it away from the junction. It collapses into the wall conduits, screaming through every speaker on the deck.",
-        button: "RESTORE POWER"
+        text: "Luna installs the relay, locks the circuit bridge into place and seats the emergency regulator. The junction accepts all three components.",
+        button: "RESTART LIGHTING GRID",
+        presentation: "repair"
       },
       {
         image: "assets/IMG35.png",
         alt: "The corridor lighting returns as Luna stands beside the restored Power Junction.",
         code: "LIGHTING GRID // ONLINE",
         title: "THE LIGHTS RETURN",
-        text: "Fixtures ignite in sequence across the ship. For a moment, Luna is alone in clean white light. The relief lasts only until the surveillance system reports two valid crew identities.",
-        button: "RETURN TO CONTROL"
+        text: "Fixtures ignite in sequence across the ship. White light floods the corridor and exposes black residue retreating through the wall seams.",
+        button: "CHECK THE CORRIDOR",
+        presentation: "restored"
+      },
+      {
+        image: "assets/IMG34.png",
+        alt: "Luna fires the plasma gun and drives the alien back.",
+        code: "BIOLOGICAL CONTACT // PLASMA DISCHARGE",
+        title: "BACK INTO THE SHIP",
+        text: "The organism drops from the ceiling into the restored light. Luna raises the plasma gun and fires. The blast tears through its outer form and drives it into the conduits, screaming through every speaker on the deck.",
+        button: "RETURN TO CONTROL",
+        presentation: "combat"
       }
     ], async () => {
       state.lightsRestored = true;
@@ -2263,51 +2289,51 @@
   }
 
   async function openSurveillance() {
-    state.surveillanceOpened = true;
-    saveState();
-    runSequence([{
-      image: "assets/IMG36.png",
-      alt: "The active Control Room surveillance terminal.",
-      code: "SURVEILLANCE HUB // 24 CAMERAS ONLINE",
-      title: "ARCHIVE RECOVERED",
-      text: "The restored terminal indexes recordings from before Luna woke. Several clips were marked as ordinary crew movement, despite Luna being the only person aboard.",
-      button: "OPEN CAMERA B-12"
-    }], async () => {
+    runSequence([
+      {
+        image: "assets/IMG36.png",
+        alt: "The active Control Room surveillance terminal.",
+        code: "SURVEILLANCE ARCHIVE // INDEX RECOVERED",
+        title: "TWENTY-FOUR CAMERAS ONLINE",
+        text: "The restored terminal rebuilds the missing archive. Several recordings were classified as ordinary crew movement, even though Luna is the only registered crew member aboard.",
+        button: "REVIEW FLAGGED FOOTAGE",
+        presentation: "surveillance"
+      },
+      {
+        image: "assets/IMG37.png",
+        alt: "Security footage shows a partly human, partly black figure moving through a corridor.",
+        code: "CAMERA B-12 // 01:42:17",
+        title: "UNREGISTERED MOVEMENT",
+        text: "A dark figure crosses Corridor B-12. One side carries Luna's posture and gait. The other drags behind it as liquid shadow.",
+        button: "VIEW EARLIER RECORDING",
+        presentation: "surveillance"
+      },
+      {
+        image: "assets/IMG38.png",
+        alt: "Surveillance footage shows a copy of Luna walking while the real Luna slept.",
+        code: "CAMERA 07A // CRYOSLEEP PERIOD",
+        title: "CREW IDENTITIES DETECTED: 2",
+        text: "The earlier recording is unmistakable. A figure wearing Luna's body walks through Engineering while her cryosleep biometrics remain active in the same timestamp.\n\nThe organism is passing the ship's identity checks.",
+        button: "RETURN TO COMMUNICATIONS",
+        presentation: "surveillance"
+      }
+    ], async () => {
+      state.surveillanceOpened = true;
+      state.shadowFootageViewed = true;
+      state.mimicFootageViewed = true;
+      saveState();
       updateInterface();
       await showRoom("control");
+      showToast("SURVEILLANCE REVIEW COMPLETE // SECOND IDENTITY CONFIRMED");
     });
   }
 
   async function viewShadowFootage() {
-    state.shadowFootageViewed = true;
-    saveState();
-    runSequence([{
-      image: "assets/IMG37.png",
-      alt: "Security footage shows a partly human, partly black figure moving through a corridor.",
-      code: "CAMERA B-12 // 01:42:17",
-      title: "UNREGISTERED MOVEMENT",
-      text: "A dark figure crosses the corridor. Its right side resembles Luna's suit and gait. Its left side drags behind it as liquid shadow.",
-      button: "VIEW EARLIER ARCHIVE"
-    }], async () => {
-      updateInterface();
-      await showRoom("control");
-    });
+    openSurveillance();
   }
 
   async function viewMimicFootage() {
-    state.mimicFootageViewed = true;
-    saveState();
-    runSequence([{
-      image: "assets/IMG38.png",
-      alt: "Surveillance footage shows a perfect copy of Luna walking while the real Luna slept.",
-      code: "CAMERA 07A // CRYOSLEEP PERIOD",
-      title: "CREW IDENTITIES DETECTED: 2",
-      text: "The next recording is unmistakable. Luna walks through Engineering while her cryosleep biometrics remain visible in the corner of the same archive. The organism is not merely imitating her shape. It is passing the ship's identity checks.",
-      button: "CONTACT GROUND CONTROL"
-    }], async () => {
-      updateInterface();
-      await showRoom("control");
-    });
+    openSurveillance();
   }
 
   function runFalseGroundSequence() {
@@ -2318,7 +2344,8 @@
         code: "INCOMING TRANSMISSION // AUTHENTICATION PENDING",
         title: "GROUND CONTROL?",
         text: "The channel opens without the expected transmission delay.\n\n'Agent Luna H. Resume Earth approach immediately. Do not alter the landing corridor. Bring the vessel home.'",
-        button: "CHALLENGE AUTHENTICATION"
+        button: "CHALLENGE AUTHENTICATION",
+        presentation: "communication"
       },
       {
         image: "assets/IMG40.png",
@@ -2326,7 +2353,8 @@
         code: "SIGNAL SOURCE // INTERNAL NETWORK",
         title: "WELCOME HOME, LUNA",
         text: "The voice repeats fragments of old messages, then fractures into wet groans, clicks and impossible harmonics.\n\n'THE SHIP MUST ARRIVE. WE MUST ARRIVE. BRING THE SHIP TO EARTH.'\n\nGround Control is gone. The organism is speaking through the ship.",
-        button: "END TRANSMISSION"
+        button: "END TRANSMISSION",
+        presentation: "corruption"
       }
     ], async () => {
       state.falseGroundContacted = true;
@@ -2379,6 +2407,19 @@
     if (!activeSequence) return;
     const step = activeSequence.steps[sequenceIndex];
     sequenceButton.disabled = true;
+
+    sequenceDialog.classList.remove(
+      "is-item-sequence",
+      "is-surveillance-sequence",
+      "is-threat-sequence",
+      "is-failure-sequence",
+      "is-repair-sequence",
+      "is-combat-sequence",
+      "is-communication-sequence",
+      "is-corruption-sequence",
+      "is-restored-sequence"
+    );
+    if (step.presentation) sequenceDialog.classList.add(`is-${step.presentation}-sequence`);
 
     if (step.blackoutBefore && !reducedMotion) {
       sequenceMedia.classList.add("is-blackout");
