@@ -10,12 +10,14 @@
   };
 
 
-  const SAVE_KEY = "theVoidSave_v096";
+  const SAVE_KEY = "theVoidSave_v097";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
   const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
-  const LEGACY_KEYS = ["theVoidSave_v095", "theVoidSave_v094", "theVoidSave_v093", "theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const LEGACY_KEYS = ["theVoidSave_v096", "theVoidSave_v095", "theVoidSave_v094", "theVoidSave_v093", "theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const HOLD_CONFIRM_DURATION = 2000;
+  const HOLD_MOVE_TOLERANCE = 10;
 
   const introScenes = [
     {
@@ -3084,6 +3086,104 @@
     if (roomImage.getAttribute("src") !== source) roomImage.src = source;
   }
 
+  function clearAccidentalSelection() {
+    const selection = window.getSelection?.();
+    if (selection && selection.rangeCount) selection.removeAllRanges();
+  }
+
+  function bindHoldToConfirm(button, callback, {
+    duration = HOLD_CONFIRM_DURATION,
+    idleText = "HOLD TO COMMIT",
+    activeText = "KEEP HOLDING",
+    completeText = "DIRECTIVE CONFIRMED"
+  } = {}) {
+    if (!button || typeof callback !== "function") return;
+
+    button.classList.add("hold-confirm");
+    button.style.setProperty("--hold-duration", `${duration}ms`);
+    button.setAttribute("data-hold-label", idleText);
+    button.setAttribute("aria-description", `Hold for ${Math.round(duration / 100) / 10} seconds to confirm`);
+
+    const meter = document.createElement("span");
+    meter.className = "hold-meter";
+    meter.setAttribute("aria-hidden", "true");
+    const prompt = document.createElement("span");
+    prompt.className = "hold-prompt";
+    prompt.textContent = idleText;
+    prompt.setAttribute("aria-hidden", "true");
+    button.append(meter, prompt);
+
+    let timer = 0;
+    let startX = 0;
+    let startY = 0;
+    let activePointer = null;
+    let keyboardActive = false;
+    let completed = false;
+
+    const reset = () => {
+      window.clearTimeout(timer);
+      timer = 0;
+      activePointer = null;
+      keyboardActive = false;
+      button.classList.remove("is-holding");
+      if (!completed) prompt.textContent = idleText;
+    };
+
+    const complete = () => {
+      if (completed || button.disabled) return;
+      completed = true;
+      window.clearTimeout(timer);
+      timer = 0;
+      button.classList.remove("is-holding");
+      button.classList.add("is-hold-complete");
+      prompt.textContent = completeText;
+      button.setAttribute("aria-busy", "false");
+      navigator.vibrate?.(35);
+      window.setTimeout(callback, reducedMotion ? 0 : 120);
+    };
+
+    const begin = (x = 0, y = 0, pointerId = null) => {
+      if (completed || button.disabled || timer) return;
+      clearAccidentalSelection();
+      startX = x;
+      startY = y;
+      activePointer = pointerId;
+      prompt.textContent = activeText;
+      button.classList.add("is-holding");
+      button.setAttribute("aria-busy", "true");
+      timer = window.setTimeout(complete, duration);
+    };
+
+    button.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 && event.pointerType !== "touch") return;
+      event.preventDefault();
+      button.setPointerCapture?.(event.pointerId);
+      begin(event.clientX, event.clientY, event.pointerId);
+    });
+    button.addEventListener("pointermove", (event) => {
+      if (!timer || activePointer !== event.pointerId) return;
+      if (Math.hypot(event.clientX - startX, event.clientY - startY) > HOLD_MOVE_TOLERANCE) reset();
+    });
+    ["pointerup", "pointercancel", "lostpointercapture"].forEach((type) => {
+      button.addEventListener(type, (event) => {
+        if (!completed && (activePointer === null || event.pointerId === activePointer)) reset();
+      });
+    });
+    button.addEventListener("keydown", (event) => {
+      if ((event.key !== "Enter" && event.key !== " ") || event.repeat) return;
+      event.preventDefault();
+      keyboardActive = true;
+      begin();
+    });
+    button.addEventListener("keyup", (event) => {
+      if ((event.key === "Enter" || event.key === " ") && keyboardActive && !completed) reset();
+    });
+    button.addEventListener("blur", () => { if (!completed) reset(); });
+    button.addEventListener("click", (event) => event.preventDefault());
+    button.addEventListener("contextmenu", (event) => event.preventDefault());
+    button.addEventListener("dragstart", (event) => event.preventDefault());
+  }
+
   function createAction(action, index) {
     const button = document.createElement("button");
     button.type = "button";
@@ -3104,11 +3204,13 @@
     button.append(label, meta);
 
     if (!action.disabled) {
-      button.addEventListener("click", () => {
+      const invokeAction = () => {
         if (button.disabled) return;
         button.disabled = true;
         window.setTimeout(action.onClick, reducedMotion ? 0 : 70);
-      });
+      };
+      if (action.hold) bindHoldToConfirm(button, invokeAction, action.holdOptions);
+      else button.addEventListener("click", invokeAction);
     }
     return button;
   }
@@ -3338,8 +3440,8 @@
       if (room === "darkcorridor") {
         if (!state.alienRepelled) {
           return [
-            { label: "HIDE", meta: "RISKY", danger: true, onClick: hideAndFailBlackout },
-            { label: "FACE IT", meta: "PLASMA GUN", special: true, onClick: faceAlienBlackout }
+            { label: "HIDE", meta: "HOLD 2 SEC", danger: true, hold: true, onClick: hideAndFailBlackout },
+            { label: "FACE IT", meta: "HOLD 2 SEC", special: true, hold: true, onClick: faceAlienBlackout }
           ];
         }
         if (!state.relayFound) {
@@ -5304,8 +5406,8 @@
     creditsSequenceOpen = false;
   });
   returnCheckpointButton.addEventListener("click", returnToCheckpointFromLoss);
-  restartMissionButton.addEventListener("click", restartFromLoss);
-  quitTitleButton.addEventListener("click", quitFromLossToTitle);
+  bindHoldToConfirm(restartMissionButton, restartFromLoss);
+  bindHoldToConfirm(quitTitleButton, quitFromLossToTitle);
   orbitalDemoButton?.addEventListener("click", () => setOrbitalDemo(orbitalDemo.hidden));
 
   orbitalSlowButton.addEventListener("click", () => {
@@ -5329,10 +5431,10 @@
     closeDialog(chapterDialog);
     openDialog(branchDialog);
   });
-  signalChoiceButton.addEventListener("click", startSignalBranch);
-  aloneChoiceButton.addEventListener("click", startAloneBranch);
+  bindHoldToConfirm(signalChoiceButton, startSignalBranch);
+  bindHoldToConfirm(aloneChoiceButton, startAloneBranch);
   acknowledgeFinalButton.addEventListener("click", beginBlackoutAct);
-  restartButton.addEventListener("click", restartGame);
+  bindHoldToConfirm(restartButton, restartGame);
   personalLogNotes.addEventListener("input", scheduleCaptainLogSave);
   addLogTimestampButton.addEventListener("click", addCaptainLogTimestamp);
   clearLogButton.addEventListener("click", clearCaptainLogNotes);
@@ -5344,6 +5446,11 @@
     dragState = null;
     lunaToken.classList.remove("is-dragging");
     positionToken();
+  });
+
+  document.querySelectorAll("img").forEach((image) => {
+    image.draggable = false;
+    image.addEventListener("dragstart", (event) => event.preventDefault());
   });
 
   titleArtwork.addEventListener("error", () => {

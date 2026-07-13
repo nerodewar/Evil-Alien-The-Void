@@ -5849,3 +5849,120 @@ body.credits-open {
 .ship-map[data-cutaway-profile="habitation"] .cutaway-hull-panels {
   display: none;
 }
+
+/* v0.9.7 hold-to-confirm interaction */
+#app,
+#app button,
+#app img,
+#app .room-panel,
+#app .map-panel,
+dialog button,
+dialog img {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+#personalLogNotes,
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+img { -webkit-user-drag: none; }
+
+.hold-confirm {
+  --hold-duration: 2000ms;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+
+.hold-confirm .hold-meter {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 3px;
+  pointer-events: none;
+  background: currentColor;
+  opacity: .9;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.hold-confirm .hold-prompt {
+  position: absolute;
+  right: 14px;
+  bottom: 7px;
+  z-index: 2;
+  pointer-events: none;
+  color: currentColor;
+  opacity: 0;
+  font: 700 .48rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  transform: translateY(3px);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.hold-confirm:hover .hold-prompt,
+.hold-confirm:focus-visible .hold-prompt,
+.hold-confirm.is-holding .hold-prompt,
+.hold-confirm.is-hold-complete .hold-prompt {
+  opacity: .72;
+  transform: translateY(0);
+}
+
+.hold-confirm.is-holding {
+  border-color: currentColor;
+  box-shadow: inset 0 0 28px color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.hold-confirm.is-holding .hold-meter {
+  animation: hold-confirm-fill var(--hold-duration) linear forwards;
+}
+
+.hold-confirm.is-hold-complete .hold-meter {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+.hold-confirm.is-hold-complete {
+  animation: hold-confirm-pulse .32s var(--ease-cinematic) both;
+}
+
+.choice-card.hold-confirm .hold-prompt {
+  right: 20px;
+  bottom: 18px;
+}
+
+.utility-button.hold-confirm .hold-prompt,
+.lose-button.hold-confirm .hold-prompt {
+  left: 10px;
+  right: 10px;
+  bottom: 6px;
+  text-align: center;
+  font-size: .42rem;
+}
+
+@keyframes hold-confirm-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes hold-confirm-pulse {
+  0% { transform: scale(1); }
+  55% { transform: scale(.985); filter: brightness(1.35); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hold-confirm.is-holding .hold-meter {
+    animation-timing-function: steps(20, end);
+  }
+  .hold-confirm.is-hold-complete { animation: none; }
+}
