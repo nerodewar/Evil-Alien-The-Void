@@ -5798,3 +5798,54 @@ body.credits-open {
 @media (prefers-reduced-motion: reduce) {
   .demo-orb,.room-node.current-room,.room-node.reachable,.action-button::after { animation:none!important; }
 }
+
+
+/* v0.9.6 map, media and label polish */
+.sequence-dialog.is-item-sequence .sequence-media img,
+.sequence-dialog.is-repair-sequence .sequence-media img {
+  object-fit: contain;
+  object-position: center;
+  padding: clamp(10px, 1.8vw, 24px);
+  background: radial-gradient(circle at 50% 45%, rgba(31, 91, 125, .16), transparent 54%), #020406;
+}
+
+.room-node.cutaway-room-label {
+  container-type: size;
+}
+
+.cutaway-label-plate {
+  left: 7%;
+  top: 7%;
+  width: 86%;
+  max-width: none;
+  min-width: 0;
+  padding: clamp(5px, 0.55vw, 8px) clamp(6px, 0.7vw, 10px) clamp(5px, 0.55vw, 8px) clamp(13px, 1.15vw, 18px);
+  border-radius: 5px;
+}
+
+.room-node.cutaway-room-label strong {
+  font-size: clamp(.46rem, 1.7cqw, .68rem);
+  line-height: 1.12;
+  letter-spacing: .075em;
+  white-space: normal;
+  text-wrap: balance;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.room-node.cutaway-room-label small {
+  font-size: clamp(.32rem, 1.12cqw, .46rem);
+  line-height: 1.18;
+  letter-spacing: .085em;
+  white-space: normal;
+  text-wrap: balance;
+}
+
+.ship-map[data-cutaway-profile="habitation"] .cutaway-hull-shadow,
+.ship-map[data-cutaway-profile="habitation"] .cutaway-hull-shell,
+.ship-map[data-cutaway-profile="habitation"] .cutaway-deck,
+.ship-map[data-cutaway-profile="habitation"] .cutaway-deck-grid,
+.ship-map[data-cutaway-profile="habitation"] .cutaway-hull-rim,
+.ship-map[data-cutaway-profile="habitation"] .cutaway-hull-panels {
+  display: none;
+}

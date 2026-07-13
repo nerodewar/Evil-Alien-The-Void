@@ -78,12 +78,14 @@ REBREATHER: ${formatRebreatherTime(state.rebreatherSeconds)}. Luna must open the
             : state.relayFound
               ? "The recovered relay is ready for installation, but wet movement is closing through the corridor. Luna must deal with the organism first."
               : "The junction reports one absent module: the main power relay. It was not blown. It was physically removed and carried into Storage."),
-    "getroomdefinition.darkCorridor": ({ state = {}, clocks = "", checkpointText = "" } = {}) => (state.relayFound
-            ? "The organism blocks the route back. It feels along the walls toward Luna, recoiling whenever the flashlight crosses its face. Hiding will give it time to find her. The plasma gun is already in her hand."
-            : "Luna advances through the dark corridor. Black residue has spread along the wall seams, joining conduits as though it understands where the power runs."),
+    "getroomdefinition.darkCorridor": ({ state = {}, clocks = "", checkpointText = "" } = {}) => (!state.alienRepelled
+            ? "The organism closes across the corridor before Luna can reach Storage. It feels along the walls toward her, recoiling whenever the flashlight crosses its face. She has no time to search. She must hide now or face it with the plasma gun already in her hand."
+            : state.relayFound
+              ? "The corridor is clear and the lighting relay is secured. The Power Junction is ready for the repair."
+              : "The organism has retreated into the walls. Luna keeps the plasma gun raised and moves toward Storage to scour the equipment crates for the missing lighting relay."),
     "getroomdefinition.storage": ({ state = {}, clocks = "", checkpointText = "" } = {}) => (state.relayFound
-            ? "The power relay is intact. Something had placed it carefully beneath a sealed equipment crate rather than discarding it."
-            : "Shelving divides the storage room into blind corners. Luna can search the tool cabinet, floor crates and the sealed maintenance locker."),
+            ? "The opened crates are empty. Luna has recovered the power relay and the remaining lighting-grid parts."
+            : "With the immediate threat driven back, Luna can finally search properly. Shelving divides the store room into blind corners: tool cabinet, floor crates and sealed maintenance locker."),
     "getroomdefinition.maintenanceTunnels": ({ state = {}, clocks = "", checkpointText = "" } = {}) => (state.lightsOut
           ? "The tunnel lighting is dead. Luna's flashlight cuts a narrow path across pipes, cable trunks and open grating. Something shifts beyond the beam, then keeps pace inside the wall beside her."
           : state.branch === "signal"

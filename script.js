@@ -10,11 +10,11 @@
   };
 
 
-  const SAVE_KEY = "theVoidSave_v095";
+  const SAVE_KEY = "theVoidSave_v096";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
   const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
-  const LEGACY_KEYS = ["theVoidSave_v094", "theVoidSave_v093", "theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const LEGACY_KEYS = ["theVoidSave_v095", "theVoidSave_v094", "theVoidSave_v093", "theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -1263,6 +1263,7 @@
       expanded,
       compact: !expanded,
       mission: false,
+      noUnderpinning: true,
       nodes,
       edges,
       routes: originalRoutes
@@ -2289,7 +2290,7 @@
     });
     appendMapDefinitions(svg, uid, geometry);
     appendStarfield(svg, uid, profile);
-    appendHull(svg, uid, geometry, config);
+    if (!config.noUnderpinning) appendHull(svg, uid, geometry, config);
     appendCorridors(svg, uid, config, frames);
     appendCompartments(svg, uid, config, frames);
     return svg;
@@ -2844,7 +2845,8 @@
         title: "HALLWAY",
         status: state.alienEncountered ? "MOVEMENT DETECTED" : "EMERGENCY LIGHTING",
         statusClass: state.alienEncountered ? "is-alien" : "",
-        image: state.alienEncountered ? "assets/IMG13.png" : "assets/IMG02.png",
+        image: state.alienEncountered ? "assets/IMG13.png" : "assets/IMG2A.png",
+        fallbackImage: state.alienEncountered ? "assets/IMG13.png" : "assets/IMG02.png",
         alt: "A dim emergency corridor aboard the spacecraft.",
         caption: state.alienEncountered ? "DECK 07 // INTERNAL MOTION UNRESOLVED" : "HALLWAY H-07",
         mediaClass: state.alienEncountered ? "is-alien" : "",
@@ -2941,8 +2943,9 @@
         title: "SOUTH HALLWAY",
         status: state.alienEncountered ? "MOVEMENT DETECTED" : "LOW POWER",
         statusClass: state.alienEncountered ? "is-alien" : "is-warning",
-        image: "assets/IMG13.png",
-        alt: "A dark southern hallway ending at the locked Engineering Room.",
+        image: state.alienEncountered ? "assets/IMG13.png" : "assets/IMG4A.png",
+        fallbackImage: "assets/IMG13.png",
+        alt: "A dark southern hallway leading into the research and engineering wing.",
         caption: "SOUTH HALLWAY // LAB, STORE, MESS & ENGINEERING",
         mediaClass: state.alienEncountered ? "is-alien" : "",
         text: story("getroomdefinition.southHallway2", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" })};
@@ -3333,16 +3336,16 @@
       }
 
       if (room === "darkcorridor") {
-        if (!state.relayFound) {
-          return [
-            { label: "SEARCH STORAGE", meta: "POWER RELAY", special: true, onClick: () => moveToRoom("storage2") },
-            { label: "RETURN TO POWER JUNCTION", meta: "MOVE", onClick: () => moveToRoom("power") }
-          ];
-        }
         if (!state.alienRepelled) {
           return [
             { label: "HIDE", meta: "RISKY", danger: true, onClick: hideAndFailBlackout },
             { label: "FACE IT", meta: "PLASMA GUN", special: true, onClick: faceAlienBlackout }
+          ];
+        }
+        if (!state.relayFound) {
+          return [
+            { label: "SCOUR THE STORE ROOM", meta: "RECOVER LIGHTING PARTS", special: true, onClick: () => moveToRoom("storage2") },
+            { label: "RETURN TO POWER JUNCTION", meta: "RELAY STILL MISSING", onClick: () => moveToRoom("power") }
           ];
         }
         return [{ label: "RETURN TO CONTROL", meta: "COMMUNICATIONS", special: true, onClick: () => moveToRoom("control") }];
@@ -3350,9 +3353,9 @@
 
       if (room === "storage2") {
         if (!state.relayFound) {
-          return [{ label: "SEARCH EQUIPMENT CRATES", meta: "POWER RELAY", special: true, onClick: findRelay }];
+          return [{ label: "SCOUR EQUIPMENT CRATES", meta: "POWER RELAY", special: true, onClick: findRelay }];
         }
-        return [{ label: "RETURN TO DARK CORRIDOR", meta: "BIOLOGICAL SIGNAL", danger: true, onClick: () => moveToRoom("darkcorridor") }];
+        return [{ label: "RETURN TO CONTROL", meta: "LIGHTING RESTORED", special: true, onClick: () => moveToRoom("control") }];
       }
       return [];
     }
@@ -4022,27 +4025,42 @@
 
   async function findRelay() {
     state.relayFound = true;
-    state.blackoutThreatStep = 1;
-    state.alienRepelled = false;
+    state.blackoutThreatStep = 3;
     state.stress = Math.min(99, state.stress + 3);
     saveState();
 
-    runSequence([{
-      image: "assets/IMG27.png",
-      fallbackImage: "assets/IMG26.png",
-      alt: "A recovered power relay component.",
-      code: "ITEM ACQUIRED // PWR-REL-01",
-      title: "POWER RELAY RECOVERED",
-      text: story("findrelay.powerRelayRecovered", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
-      button: "RETURN TO CORRIDOR",
-      presentation: "item"
-    }], async () => {
-      state.currentRoom = "darkcorridor";
-      saveState();
-      updateInterface();
-      await showRoom("darkcorridor");
-      showToast("POWER RELAY RECOVERED // BIOLOGICAL SIGNAL CLOSE");
-    });
+    runSequence([
+      {
+        image: "assets/IMG27.png",
+        fallbackImage: "assets/IMG26.png",
+        alt: "A recovered power relay component and lighting repair parts.",
+        code: "ITEM ACQUIRED // PWR-REL-01",
+        title: "POWER RELAY RECOVERED",
+        text: story("findrelay.powerRelayRecovered", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
+        button: "REACH THE POWER JUNCTION",
+        presentation: "item"
+      },
+      {
+        image: "assets/IMG33.png",
+        fallbackImage: "assets/IMG23.png",
+        alt: "Luna installs the recovered relay at the Power Junction.",
+        code: "POWER JUNCTION // RELAY INSTALLATION",
+        title: "RESTORE THE GRID",
+        text: story("facealienblackout.restoreTheGrid", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
+        button: "RESTART LIGHTING GRID",
+        presentation: "repair"
+      },
+      {
+        image: "assets/IMG35.png",
+        fallbackImage: "assets/IMG21.png",
+        alt: "The corridor lighting returns beside the restored Power Junction.",
+        code: "LIGHTING GRID // ONLINE",
+        title: "THE LIGHTS RETURN",
+        text: story("facealienblackout.theLightsReturn", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
+        button: "RETURN TO CONTROL ROOM",
+        presentation: "restored"
+      }
+    ], completeBlackoutCounterattack);
   }
 
   function completeBlackoutCounterattack() {
@@ -4062,6 +4080,17 @@
         await showRoom("control", { immediate: true });
       }
     }).then(() => showToast("LIGHTING RESTORED // COMMUNICATIONS ONLINE"));
+  }
+
+  function completeBlackoutEncounter() {
+    state.alienRepelled = true;
+    state.currentRoom = "darkcorridor";
+    state.blackoutThreatStep = 2;
+    state.stress = Math.min(99, state.stress + 3);
+    saveState();
+    updateInterface();
+    return showRoom("darkcorridor", { immediate: true })
+      .then(() => showToast("BIOLOGICAL CONTACT REPELLED // SCOUR STORAGE FOR LIGHTING PARTS"));
   }
 
   function hideAndFailBlackout() {
@@ -4093,30 +4122,10 @@
         code: "BIOLOGICAL CONTACT // PLASMA DISCHARGE",
         title: "FIGHT BACK",
         text: story("hideandfailblackout.counterattack", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
-        button: "REACH THE POWER JUNCTION",
+        button: "SCOUR THE STORE ROOM",
         presentation: "combat"
-      },
-      {
-        image: "assets/IMG33.png",
-        fallbackImage: "assets/IMG23.png",
-        alt: "Luna installs the recovered relay at the Power Junction.",
-        code: "POWER JUNCTION // RELAY INSTALLATION",
-        title: "RESTORE THE GRID",
-        text: story("facealienblackout.restoreTheGrid", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
-        button: "RESTART LIGHTING GRID",
-        presentation: "repair"
-      },
-      {
-        image: "assets/IMG35.png",
-        fallbackImage: "assets/IMG21.png",
-        alt: "The corridor lighting returns beside the restored Power Junction.",
-        code: "LIGHTING GRID // ONLINE",
-        title: "THE LIGHTS RETURN",
-        text: story("facealienblackout.theLightsReturn", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
-        button: "RETURN TO COMMUNICATIONS",
-        presentation: "restored"
       }
-    ], completeBlackoutCounterattack);
+    ], completeBlackoutEncounter);
   }
 
   function faceAlienBlackout() {
@@ -4128,30 +4137,10 @@
         code: "BIOLOGICAL CONTACT // PLASMA DISCHARGE",
         title: "FACE IT",
         text: story("facealienblackout.faceIt", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
-        button: "REACH THE POWER JUNCTION",
+        button: "SCOUR THE STORE ROOM",
         presentation: "combat"
-      },
-      {
-        image: "assets/IMG33.png",
-        fallbackImage: "assets/IMG23.png",
-        alt: "Luna installs the recovered relay at the Power Junction.",
-        code: "POWER JUNCTION // RELAY INSTALLATION",
-        title: "RESTORE THE GRID",
-        text: story("facealienblackout.restoreTheGrid", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
-        button: "RESTART LIGHTING GRID",
-        presentation: "repair"
-      },
-      {
-        image: "assets/IMG35.png",
-        fallbackImage: "assets/IMG21.png",
-        alt: "The corridor lighting returns beside the restored Power Junction.",
-        code: "LIGHTING GRID // ONLINE",
-        title: "THE LIGHTS RETURN",
-        text: story("facealienblackout.theLightsReturn", { state, clocks: typeof clocks !== "undefined" ? clocks : "", checkpointText: typeof checkpointText !== "undefined" ? checkpointText : "" }),
-        button: "RETURN TO COMMUNICATIONS",
-        presentation: "restored"
       }
-    ], completeBlackoutCounterattack);
+    ], completeBlackoutEncounter);
   }
 
   async function restartBlackoutCheckpoint({ stateAlreadyReset = false } = {}) {
