@@ -10,14 +10,12 @@
   };
 
 
-  const SAVE_KEY = "theVoidSave_v097";
+  const SAVE_KEY = "theVoidSave_v098";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
   const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
-  const LEGACY_KEYS = ["theVoidSave_v096", "theVoidSave_v095", "theVoidSave_v094", "theVoidSave_v093", "theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const LEGACY_KEYS = ["theVoidSave_v097", "theVoidSave_v096", "theVoidSave_v095", "theVoidSave_v094", "theVoidSave_v093", "theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const HOLD_CONFIRM_DURATION = 2000;
-  const HOLD_MOVE_TOLERANCE = 10;
 
   const introScenes = [
     {
@@ -105,6 +103,9 @@
     emergencyRebreather: false,
     rebreatherSeconds: 90,
     tacticalGearCollected: false,
+    postCloneReturn: false,
+    postCloneContactComplete: false,
+    postCloneSystemsOnline: false,
     tacticalHelmet: false,
     oxygenTank: false,
     flamethrower: false,
@@ -338,7 +339,9 @@
     candidate.regulatorFound = false;
     if (candidate.currentRoom === "auxpower") candidate.currentRoom = "darkcorridor";
 
-    if (candidate.lockdownActive) candidate.mapMode = "lockdown";
+    if (candidate.postCloneSystemsOnline) candidate.mapMode = "postclone_control";
+    else if (candidate.postCloneReturn) candidate.mapMode = "postclone_return";
+    else if (candidate.lockdownActive) candidate.mapMode = "lockdown";
     else if (candidate.investigationUnlocked) candidate.mapMode = "investigation";
     else if (candidate.blackoutStarted && !candidate.actTwoComplete) candidate.mapMode = "blackout";
     else if (candidate.actTwoComplete) candidate.mapMode = "act2_control";
@@ -1018,6 +1021,9 @@
       emergencyRebreather: false,
       rebreatherSeconds: 90,
       tacticalGearCollected: false,
+    postCloneReturn: false,
+    postCloneContactComplete: false,
+    postCloneSystemsOnline: false,
       tacticalHelmet: false,
       oxygenTank: false,
       flamethrower: false,
@@ -1226,9 +1232,9 @@
           { id: "life", code: "LS-07", name: "LIFE SUPPORT", status: state.fireExtinguished ? "FIRE CONTAINED" : "EMERGENCY", x: 66, y: 20, classes: state.fireExtinguished ? ["alert-room", "is-contained"] : ["alert-room"], alert: !state.fireExtinguished },
           { id: "south", code: "SH-07", name: "SOUTH HALLWAY", status: state.groundContacted ? "ACCESSIBLE" : "AWAIT GROUND", x: 66, y: 40 },
           { id: "lab", code: "LAB-07", name: "LABORATORY", status: state.sampleCollected ? "SAMPLE SECURED" : state.residueFound ? "CLUE FOUND" : state.groundContacted ? "UNSCANNED" : "SEALED", x: 87, y: 50 },
-          { id: "store", code: "ST-07", name: "STORE ROOM", status: state.equipmentTaken ? "EQUIPPED" : state.alienEncountered ? "ACCESSIBLE" : "SAFETY LOCK", x: 43, y: 63 },
+          { id: "store", code: "ST-07", name: "STORE ROOM", status: state.equipmentTaken ? "EQUIPPED" : state.hidingCompleted ? "ACCESSIBLE" : "SAFETY LOCK", x: 43, y: 63 },
           { id: "kitchen", code: "K-07", name: "KITCHEN / MESS", status: state.alienEncountered ? "CONTACT" : state.sampleCollected ? "UNSCANNED" : "SEALED", x: 66, y: 67 },
-          { id: "engineering", code: "EN-07", name: "ENGINEERING", status: state.hidingInProgress ? "HIDING" : state.engineeringUnlocked ? "UNLOCKED" : state.engineeringKey ? "KEY ACQUIRED" : "LOCKED", x: 66, y: 88 }
+          { id: "engineering", code: "EN-07", name: "ENGINEERING", status: state.hidingInProgress ? "HIDING" : state.engineeringUnlocked ? "UNLOCKED" : "LOCKED", x: 66, y: 88 }
         ]
       : [
           { id: "crew", code: "CQ-03", name: "CREW QUARTERS", status: "STARTING LOCATION", x: 17, y: 59 },
@@ -1301,6 +1307,52 @@
           south: ["life", "lab"],
           lab: ["south"]
         }
+      };
+    }
+
+    if (state.mapMode === "postclone_return") {
+      return {
+        title: "DECK 07 // HABITATION, RESEARCH & ENGINEERING",
+        instruction: "SECURITY WING SEALED // RETURN TO CONTROL",
+        expanded: true,
+        compact: false,
+        mission: true,
+        interior: true,
+        noUnderpinning: true,
+        nodes: [
+          { id: "control", code: "CR-01", name: "CONTROL ROOM", status: "SENSOR CHECK", x: 38, y: 9, classes: ["is-objective"] },
+          { id: "hallway", code: "H-07", name: "HALLWAY", status: "ROUTE OPEN", x: 38, y: 24 },
+          { id: "life", code: "LS-07", name: "LIFE SUPPORT", status: "SYSTEM STABLE", x: 66, y: 24 },
+          { id: "south", code: "SH-07", name: "SOUTH HALL", status: "ROUTE OPEN", x: 66, y: 46 },
+          { id: "lab", code: "LAB-07", name: "LABORATORY", status: "RETURN POINT", x: 86, y: 58, classes: ["is-complete"] },
+          { id: "store", code: "ST-07", name: "STORE ROOM", status: "LOCKED", x: 43, y: 68, classes: ["is-locked"] },
+          { id: "kitchen", code: "K-07", name: "KITCHEN / MESS", status: "LOCKED", x: 66, y: 72, classes: ["is-locked"] },
+          { id: "engineering", code: "EN-07", name: "ENGINEERING", status: "LOCKED", x: 66, y: 90, classes: ["is-locked"] }
+        ],
+        edges: [
+          ["control", "hallway"], ["hallway", "life"], ["life", "south"], ["south", "lab"],
+          ["south", "store", "is-danger"], ["south", "kitchen", "is-danger"],
+          ["store", "engineering", "is-danger"], ["kitchen", "engineering", "is-danger"]
+        ],
+        routes: {
+          control: ["hallway"], hallway: ["control", "life"], life: ["hallway", "south"],
+          south: ["life", "lab"], lab: ["south"], store: [], kitchen: [], engineering: []
+        }
+      };
+    }
+
+    if (state.mapMode === "postclone_control") {
+      return {
+        title: "CONTROL ROOM // PRIMARY SYSTEMS ONLINE",
+        instruction: "VESSEL STATUS RESTORED",
+        expanded: false,
+        compact: true,
+        mission: true,
+        final: true,
+        singleControl: true,
+        nodes: [{ id: "control", code: "CR-01", name: "CONTROL ROOM", status: "ALL SYSTEMS ONLINE", x: 50, y: 50, classes: ["is-complete"] }],
+        edges: [],
+        routes: { control: [] }
       };
     }
 
@@ -1542,12 +1594,17 @@
       return "";
     }
 
+    if (state.mapMode === "postclone_return") {
+      if (["store", "kitchen", "engineering"].includes(room)) return "SOUTHERN FACILITY LOCK ACTIVE // SECURITY WING OFFLINE";
+      return "";
+    }
+
     if (state.mapMode === "original") {
       const chapterTwoRooms = new Set(["south", "lab", "store", "kitchen", "engineering"]);
       if (chapterTwoRooms.has(room) && !state.damageLogged) return "SOUTHERN DECK UNAVAILABLE // COMPLETE THE LIFE SUPPORT CHECK";
       if (chapterTwoRooms.has(room) && !state.groundContacted) return "NEW DIRECTIVE REQUIRED // CONTACT GROUND CONTROL";
       if (room === "kitchen" && !state.sampleCollected && !state.alienEncountered) return "LABORATORY INSPECTION INCOMPLETE // SECURE THE RESIDUE SAMPLE";
-      if (room === "store" && !state.alienEncountered) return "STORE ROOM SAFETY LOCK ACTIVE";
+      if (room === "store" && !state.hidingCompleted) return "STORE ROOM SAFETY LOCK ACTIVE // SURVIVE THE ENCOUNTER FIRST";
       if (room === "engineering" && !state.alienEncountered) return "ENGINEERING SECURITY LOCK ACTIVE";
       return "";
     }
@@ -2306,6 +2363,7 @@
     mapInstruction.textContent = config.instruction;
     shipMap.className = "ship-map cutaway-map";
     if (config.compact) shipMap.classList.add("map-compact");
+    shipMap.classList.toggle("map-single-control", Boolean(config.singleControl));
     if (config.expanded) shipMap.classList.add("map-expanded");
     if (config.mission) shipMap.classList.add("mission-map");
     if (config.interior) shipMap.classList.add("interior-map");
@@ -2419,6 +2477,8 @@
   }
 
   function deriveObjective() {
+    if (state.postCloneSystemsOnline) return "All systems online // Ground Control channel unresolved";
+    if (state.postCloneReturn) return state.currentRoom === "control" ? "Verify the biological scan and contact Ground Control" : "Return to the Control Room through the northern deck";
     if (state.lockdownActive) {
       if (!state.southHallUnlocked) return "Hack the South Hall blast door with the Orbital Cipher";
       if (!state.securityOverrideComplete) return "Reach Security Control and breach lockdown operations";
@@ -2461,10 +2521,9 @@
     if (!state.residueFound) return "Inspect the ship's facilities for further compromise";
     if (!state.sampleCollected) return "Secure a sample of the black residue";
     if (!state.alienEncountered) return "Continue the inspection in the Kitchen / Mess Hall";
-    if (!state.equipmentTaken) return "Find equipment and an Engineering access key";
-    if (!state.engineeringUnlocked) return "Unlock the Engineering Room";
-    if (!state.hideChoice) return "Hide before the organism reaches Engineering";
+    if (!state.hideChoice) return "Run to Engineering and choose a hiding place";
     if (!state.hidingCompleted) return "Remain silent and avoid detection";
+    if (!state.equipmentTaken) return "Search the Store Room for the flashlight and plasma gun";
     return "Choose whether to send a crisis signal or face Engineering alone";
   }
 
@@ -2472,6 +2531,19 @@
     threatReadout.className = "danger-readout";
     const label = threatReadout.querySelector("span");
     const value = threatReadout.querySelector("strong");
+
+    if (state.postCloneSystemsOnline) {
+      threatReadout.classList.add("is-safe");
+      label.textContent = "CREW";
+      value.textContent = "01";
+      return;
+    }
+    if (state.postCloneReturn) {
+      threatReadout.classList.add("is-safe");
+      label.textContent = "BIO";
+      value.textContent = "01";
+      return;
+    }
 
     if (state.lockdownActive) {
       threatReadout.classList.add("is-alien");
@@ -2589,6 +2661,34 @@
   }
 
   function getRoomDefinition(room) {
+    if (state.mapMode === "postclone_return" || state.mapMode === "postclone_control") {
+      const postCloneRooms = {
+        lab: { code: "LAB-07", title: "LABORATORY", status: "SECURITY WING SEALED", statusClass: "is-warning", image: "assets/IMG41.png", fallbackImage: "assets/IMG07.png", alt: "Luna reappears in the Laboratory with her sealed oxygen system and tactical weapons.", caption: "LABORATORY 07 // TACTICAL RETURN", mediaClass: "", text: "The screen clears. Luna is back in the Laboratory with the oxygen tank sealed, the flamethrower shouldered and fresh plasma cells locked into place. Behind her, the Security wing has sealed itself. The only open route leads north through the familiar ship." },
+        south: { code: "SH-07", title: "SOUTH HALL", status: "SECURITY ROUTE LOCKED", statusClass: "is-warning", image: "assets/IMG4A.png", fallbackImage: "assets/IMG13.png", alt: "The compact South Hall aboard Luna's ship, with the southern rooms sealed.", caption: "SOUTH HALL // SOUTHERN FACILITIES LOCKED", mediaClass: "", text: "Cold corridor light returns across the South Hall. Kitchen, Storage and Engineering remain sealed under the dead Security authority. Life Support is the only route north." },
+        life: { code: "LS-07", title: "LIFE SUPPORT", status: "SYSTEM STABLE", statusClass: "is-success", image: "assets/IMG06.png", fallbackImage: "assets/IMG04.png", alt: "The repaired Life Support compartment.", caption: "LIFE SUPPORT // OXYGEN BYPASS STABLE", mediaClass: "", text: "The bypass remains stable. No movement answers Luna from the vents. Her own oxygen tank gives a steady green pulse as she crosses toward the main Hallway." },
+        hallway: { code: "H-07", title: "HALLWAY", status: "ROUTE OPEN", statusClass: "", image: "assets/IMG2A.png", fallbackImage: "assets/IMG04.png", alt: "A narrow central hallway aboard Luna's small ship.", caption: "DECK 07 // CONTROL ROOM AHEAD", mediaClass: "", text: "The small ship feels impossibly quiet. Luna advances through the central Hallway with the plasma gun raised. Control is one door away." },
+        control: {
+          code: "CR-01",
+          title: "CONTROL ROOM",
+          status: state.postCloneSystemsOnline ? "ALL SYSTEMS ONLINE" : "BIOLOGICAL SCAN",
+          statusClass: state.postCloneSystemsOnline ? "is-success" : "is-warning",
+          image: "assets/IMG04.png",
+          fallbackImage: "assets/IMG36.png",
+          alt: "The compact Control Room aboard Luna's ship.",
+          caption: state.postCloneSystemsOnline ? "PRIMARY SYSTEMS // ONLINE" : "LIFE-SIGN SENSOR // 01 ORGANISM",
+          mediaClass: "",
+          text: state.postCloneSystemsOnline
+            ? "Every system has returned without explanation. The Security lockdown is gone. The ship is awake again."
+            : `The biological sensor completes its sweep.
+
+ORGANISMS ABOARD: 01.
+
+Luna watches the number hold. It is counting her. Nothing else remains aboard. The human-form organism is dead, and she knows it.`
+        }
+      };
+      if (postCloneRooms[room]) return postCloneRooms[room];
+    }
+
     if (state.mapMode === "investigation") {
       const investigationRooms = {
         control: {
@@ -3086,104 +3186,6 @@
     if (roomImage.getAttribute("src") !== source) roomImage.src = source;
   }
 
-  function clearAccidentalSelection() {
-    const selection = window.getSelection?.();
-    if (selection && selection.rangeCount) selection.removeAllRanges();
-  }
-
-  function bindHoldToConfirm(button, callback, {
-    duration = HOLD_CONFIRM_DURATION,
-    idleText = "HOLD TO COMMIT",
-    activeText = "KEEP HOLDING",
-    completeText = "DIRECTIVE CONFIRMED"
-  } = {}) {
-    if (!button || typeof callback !== "function") return;
-
-    button.classList.add("hold-confirm");
-    button.style.setProperty("--hold-duration", `${duration}ms`);
-    button.setAttribute("data-hold-label", idleText);
-    button.setAttribute("aria-description", `Hold for ${Math.round(duration / 100) / 10} seconds to confirm`);
-
-    const meter = document.createElement("span");
-    meter.className = "hold-meter";
-    meter.setAttribute("aria-hidden", "true");
-    const prompt = document.createElement("span");
-    prompt.className = "hold-prompt";
-    prompt.textContent = idleText;
-    prompt.setAttribute("aria-hidden", "true");
-    button.append(meter, prompt);
-
-    let timer = 0;
-    let startX = 0;
-    let startY = 0;
-    let activePointer = null;
-    let keyboardActive = false;
-    let completed = false;
-
-    const reset = () => {
-      window.clearTimeout(timer);
-      timer = 0;
-      activePointer = null;
-      keyboardActive = false;
-      button.classList.remove("is-holding");
-      if (!completed) prompt.textContent = idleText;
-    };
-
-    const complete = () => {
-      if (completed || button.disabled) return;
-      completed = true;
-      window.clearTimeout(timer);
-      timer = 0;
-      button.classList.remove("is-holding");
-      button.classList.add("is-hold-complete");
-      prompt.textContent = completeText;
-      button.setAttribute("aria-busy", "false");
-      navigator.vibrate?.(35);
-      window.setTimeout(callback, reducedMotion ? 0 : 120);
-    };
-
-    const begin = (x = 0, y = 0, pointerId = null) => {
-      if (completed || button.disabled || timer) return;
-      clearAccidentalSelection();
-      startX = x;
-      startY = y;
-      activePointer = pointerId;
-      prompt.textContent = activeText;
-      button.classList.add("is-holding");
-      button.setAttribute("aria-busy", "true");
-      timer = window.setTimeout(complete, duration);
-    };
-
-    button.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0 && event.pointerType !== "touch") return;
-      event.preventDefault();
-      button.setPointerCapture?.(event.pointerId);
-      begin(event.clientX, event.clientY, event.pointerId);
-    });
-    button.addEventListener("pointermove", (event) => {
-      if (!timer || activePointer !== event.pointerId) return;
-      if (Math.hypot(event.clientX - startX, event.clientY - startY) > HOLD_MOVE_TOLERANCE) reset();
-    });
-    ["pointerup", "pointercancel", "lostpointercapture"].forEach((type) => {
-      button.addEventListener(type, (event) => {
-        if (!completed && (activePointer === null || event.pointerId === activePointer)) reset();
-      });
-    });
-    button.addEventListener("keydown", (event) => {
-      if ((event.key !== "Enter" && event.key !== " ") || event.repeat) return;
-      event.preventDefault();
-      keyboardActive = true;
-      begin();
-    });
-    button.addEventListener("keyup", (event) => {
-      if ((event.key === "Enter" || event.key === " ") && keyboardActive && !completed) reset();
-    });
-    button.addEventListener("blur", () => { if (!completed) reset(); });
-    button.addEventListener("click", (event) => event.preventDefault());
-    button.addEventListener("contextmenu", (event) => event.preventDefault());
-    button.addEventListener("dragstart", (event) => event.preventDefault());
-  }
-
   function createAction(action, index) {
     const button = document.createElement("button");
     button.type = "button";
@@ -3204,13 +3206,11 @@
     button.append(label, meta);
 
     if (!action.disabled) {
-      const invokeAction = () => {
+      button.addEventListener("click", () => {
         if (button.disabled) return;
         button.disabled = true;
         window.setTimeout(action.onClick, reducedMotion ? 0 : 70);
-      };
-      if (action.hold) bindHoldToConfirm(button, invokeAction, action.holdOptions);
-      else button.addEventListener("click", invokeAction);
+      });
     }
     return button;
   }
@@ -3255,7 +3255,7 @@
     if (room === "south") {
       const actions = [{ label: "ENTER LABORATORY", meta: state.sampleCollected ? "CLEARED" : "INSPECT", special: !state.sampleCollected, onClick: () => moveToRoom("lab") }];
       if (state.sampleCollected) actions.push({ label: "ENTER KITCHEN / MESS", meta: state.alienEncountered ? "CONTACT" : "INSPECT", danger: state.alienEncountered, onClick: () => moveToRoom("kitchen") });
-      if (state.alienEncountered) actions.push({ label: "ENTER STORE ROOM", meta: state.equipmentTaken ? "CLEARED" : "EQUIPMENT", special: !state.equipmentTaken, onClick: () => moveToRoom("store") });
+      if (state.hidingCompleted) actions.push({ label: "ENTER STORE ROOM", meta: state.equipmentTaken ? "CLEARED" : "FIELD EQUIPMENT", special: !state.equipmentTaken, onClick: () => moveToRoom("store") });
       actions.push({ label: "RETURN TO LIFE SUPPORT", meta: "MOVE", onClick: () => moveToRoom("life") });
       return actions;
     }
@@ -3284,8 +3284,8 @@
 
     if (room === "store") {
       const actions = [];
-      if (!state.equipmentTaken) actions.push({ label: "TAKE ALL FIELD EQUIPMENT", meta: "3 ITEMS", special: true, onClick: takeEquipment });
-      if (state.equipmentTaken) actions.push({ label: "GO TO ENGINEERING", meta: "KEY READY", special: true, onClick: () => moveToRoom("engineering") });
+      if (!state.equipmentTaken) actions.push({ label: "TAKE FLASHLIGHT & PLASMA GUN", meta: "2 ITEMS", special: true, onClick: takeEquipment });
+      if (state.equipmentTaken) actions.push({ label: "RETURN TO ENGINEERING", meta: "MOVE", special: true, onClick: () => moveToRoom("engineering") });
       actions.push({ label: "RETURN TO SOUTH HALLWAY", meta: "MOVE", onClick: () => moveToRoom("south") });
       return actions;
     }
@@ -3304,6 +3304,7 @@
       }
 
       if (state.hidingCompleted) {
+        if (!state.equipmentTaken) return [{ label: "SEARCH THE STORE ROOM", meta: "FLASHLIGHT + PLASMA GUN", special: true, onClick: () => moveToRoom("store") }];
         return [
           { label: "CHOOSE LUNA'S NEXT MOVE", meta: "MAJOR DECISION", special: true, onClick: () => openDialog(branchDialog) },
           { label: "REVIEW CHECKPOINT 02", meta: "STATUS", onClick: () => openDialog(chapterDialog) }
@@ -3323,6 +3324,16 @@
   }
 
   function getMissionActions(room) {
+    if (state.mapMode === "postclone_return") {
+      if (room === "lab") return [{ label: "ENTER SOUTH HALL", meta: "RETURN TO CONTROL", special: true, onClick: () => moveToRoom("south") }];
+      if (room === "south") return [{ label: "PROCEED TO LIFE SUPPORT", meta: "NORTH", special: true, onClick: () => moveToRoom("life") }, { label: "RETURN TO LABORATORY", meta: "MOVE", onClick: () => moveToRoom("lab") }];
+      if (room === "life") return [{ label: "ENTER MAIN HALLWAY", meta: "CONTROL ROUTE", special: true, onClick: () => moveToRoom("hallway") }, { label: "RETURN TO SOUTH HALL", meta: "MOVE", onClick: () => moveToRoom("south") }];
+      if (room === "hallway") return [{ label: "ENTER CONTROL ROOM", meta: "VERIFY LIFE SIGNS", special: true, onClick: () => moveToRoom("control") }, { label: "RETURN TO LIFE SUPPORT", meta: "MOVE", onClick: () => moveToRoom("life") }];
+      if (room === "control") return [{ label: "CONTACT GROUND CONTROL", meta: "TRANSMIT", special: true, onClick: completePostCloneControl }];
+      return [];
+    }
+    if (state.mapMode === "postclone_control") return room === "control" ? [{ label: "OPEN CAPTAIN'S LOG", meta: "PERSONAL NOTES", onClick: openPilotLog }] : [];
+
     if (state.lockdownActive) {
       if (room === "lab") {
         return [
@@ -3440,8 +3451,8 @@
       if (room === "darkcorridor") {
         if (!state.alienRepelled) {
           return [
-            { label: "HIDE", meta: "HOLD 2 SEC", danger: true, hold: true, onClick: hideAndFailBlackout },
-            { label: "FACE IT", meta: "HOLD 2 SEC", special: true, hold: true, onClick: faceAlienBlackout }
+            { label: "HIDE", meta: "RISKY", danger: true, onClick: hideAndFailBlackout },
+            { label: "FACE IT", meta: "PLASMA GUN", special: true, onClick: faceAlienBlackout }
           ];
         }
         if (!state.relayFound) {
@@ -3752,12 +3763,13 @@
       ],
       async () => {
         state.alienEncountered = true;
+        state.engineeringUnlocked = true;
         state.stress = Math.max(state.stress, 48);
         state.currentRoom = "engineering";
         saveState();
         updateInterface();
         await showRoom("engineering");
-        showToast("UNKNOWN LIFE FORM DETECTED // ENGINEERING ACCESS DENIED");
+        showToast("UNKNOWN LIFE FORM DETECTED // ENGINEERING ACCESS OPEN");
       }
     );
   }
@@ -3766,12 +3778,12 @@
     state.equipmentTaken = true;
     state.plasmaGun = true;
     state.flashlight = true;
-    state.engineeringKey = true;
+    state.engineeringKey = false;
     state.stress = Math.max(state.stress, 51);
     saveState();
     updateInterface();
     await showRoom("store");
-    showToast("3 ITEMS ACQUIRED // PLASMA GUN // FLASHLIGHT // ENGINEERING KEY");
+    showToast("2 ITEMS ACQUIRED // PLASMA GUN // FLASHLIGHT");
   }
 
   async function unlockEngineering() {
@@ -4987,17 +4999,58 @@
         presentation: "restored"
       }
     ], async () => {
+      state.lockdownActive = false;
+      state.postCloneReturn = true;
+      state.postCloneContactComplete = false;
+      state.postCloneSystemsOnline = false;
+      state.mapMode = "postclone_return";
+      state.currentRoom = "lab";
+      saveState();
       await runCinematicTransition({
-        duration: 1250,
-        fadeInDuration: 520,
-        fadeOutDuration: 820,
+        kicker: "DECK 07 // TACTICAL RETURN",
+        title: "LABORATORY",
+        text: "Security has sealed the southern wing. Luna must return to Control and verify that the organism is truly gone.",
+        duration: 1350,
+        fadeInDuration: 620,
+        fadeOutDuration: 900,
         task: async () => {
           armMapReveal();
           updateInterface();
-          await showRoom("tactical", { immediate: true });
+          await showRoom("lab", { immediate: true });
         }
       });
-      showToast("CHECKPOINT 06 SAVED // TACTICAL LOADOUT SECURED");
+      showToast("BIOLOGICAL SENSOR ROUTE ONLINE // RETURN TO CONTROL");
+    });
+  }
+
+  function completePostCloneControl() {
+    if (state.postCloneContactComplete) return;
+    state.postCloneContactComplete = true;
+    saveState();
+    runSequence([
+      { image: "assets/IMG04.png", alt: "The Control Room biological sensor shows one organism aboard.", code: "BIOLOGICAL SENSOR // VESSEL TOTAL 01", title: "ONLY LUNA REMAINS", text: "The sensor repeats the result. One organism aboard. Luna is the only living signature on the ship. The thing in Tactical Supply did not survive the inert-gas purge.", button: "CONTACT GROUND CONTROL", presentation: "restored" },
+      { image: "assets/IMG04.png", alt: "The Control Room communications console returns only static.", code: "EARTH RELAY // NO CARRIER", title: "STATIC", text: "Luna opens the Ground Control channel. No voice answers. Only a flat wash of static reaches across The Void.", button: "WAIT", presentation: "surveillance" },
+      { image: "assets/IMG36.png", fallbackImage: "assets/IMG04.png", alt: "Every ship system suddenly returns online in the Control Room.", code: "LOCKDOWN RELEASED // PRIMARY SYSTEMS ONLINE", title: "THE SHIP WAKES", text: `Without warning, the lockdown releases. Sealed doors unlock across the vessel. Lighting, navigation, propulsion and environmental control all return at once.
+
+No command source is identified.`, button: "CONTINUE", presentation: "restored", blackoutBefore: true }
+    ], async () => {
+      state.postCloneSystemsOnline = true;
+      state.postCloneReturn = false;
+      state.mapMode = "postclone_control";
+      state.currentRoom = "control";
+      state.stress = Math.max(58, state.stress - 20);
+      saveState();
+      await runCinematicTransition({
+        duration: 1200,
+        fadeInDuration: 650,
+        fadeOutDuration: 850,
+        task: async () => {
+          armMapReveal();
+          updateInterface();
+          await showRoom("control", { immediate: true });
+        }
+      });
+      showToast("LOCKDOWN ENDED // ALL PRIMARY SYSTEMS ONLINE");
     });
   }
 
@@ -5406,8 +5459,8 @@
     creditsSequenceOpen = false;
   });
   returnCheckpointButton.addEventListener("click", returnToCheckpointFromLoss);
-  bindHoldToConfirm(restartMissionButton, restartFromLoss);
-  bindHoldToConfirm(quitTitleButton, quitFromLossToTitle);
+  restartMissionButton.addEventListener("click", restartFromLoss);
+  quitTitleButton.addEventListener("click", quitFromLossToTitle);
   orbitalDemoButton?.addEventListener("click", () => setOrbitalDemo(orbitalDemo.hidden));
 
   orbitalSlowButton.addEventListener("click", () => {
@@ -5431,10 +5484,10 @@
     closeDialog(chapterDialog);
     openDialog(branchDialog);
   });
-  bindHoldToConfirm(signalChoiceButton, startSignalBranch);
-  bindHoldToConfirm(aloneChoiceButton, startAloneBranch);
+  signalChoiceButton.addEventListener("click", startSignalBranch);
+  aloneChoiceButton.addEventListener("click", startAloneBranch);
   acknowledgeFinalButton.addEventListener("click", beginBlackoutAct);
-  bindHoldToConfirm(restartButton, restartGame);
+  restartButton.addEventListener("click", restartGame);
   personalLogNotes.addEventListener("input", scheduleCaptainLogSave);
   addLogTimestampButton.addEventListener("click", addCaptainLogTimestamp);
   clearLogButton.addEventListener("click", clearCaptainLogNotes);
@@ -5446,11 +5499,6 @@
     dragState = null;
     lunaToken.classList.remove("is-dragging");
     positionToken();
-  });
-
-  document.querySelectorAll("img").forEach((image) => {
-    image.draggable = false;
-    image.addEventListener("dragstart", (event) => event.preventDefault());
   });
 
   titleArtwork.addEventListener("error", () => {
