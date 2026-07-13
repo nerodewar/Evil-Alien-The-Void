@@ -5872,3 +5872,32 @@ body.credits-open {
   .ship-map.map-single-control { min-height: 320px; height: 42vh; }
   .ship-map.map-single-control .room-node { width: min(72vw, 250px); min-height: 112px; }
 }
+
+
+/* v0.9.9 demo title and major system banner */
+.demo-watermark {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: 1;
+  transform: translate(-50%, -50%) rotate(-7deg);
+  color: rgba(232,244,255,.12);
+  font: 800 clamp(5rem, 17vw, 16rem)/.8 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .16em;
+  text-indent: .16em;
+  pointer-events: none;
+  user-select: none;
+  text-shadow: 0 0 40px rgba(115,188,238,.08);
+}
+.toast.is-major {
+  top: 18%;
+  bottom: auto;
+  width: min(980px, calc(100vw - 36px));
+  max-width: none;
+  padding: 18px 26px;
+  border-color: rgba(145,220,255,.48);
+  color: #eaf8ff;
+  background: linear-gradient(90deg, rgba(5,11,18,.97), rgba(10,28,40,.97), rgba(5,11,18,.97));
+  box-shadow: 0 22px 70px rgba(0,0,0,.72), inset 0 0 38px rgba(83,177,224,.08);
+  font-size: clamp(.62rem, 1.2vw, .82rem);
+  letter-spacing: .15em;
+}

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#05070a">
-  <meta name="game-version" content="0.9.8">
+  <meta name="game-version" content="0.9.9">
   <meta name="description" content="The Void, a cinematic solo sci-fi survival adventure.">
   <title>The Void</title>
 
@@ -45,6 +45,15 @@
     aria-hidden="true"
   ></audio>
 
+  <!-- Universal in-game bed. Event-specific audio may temporarily override this track. -->
+  <audio
+    id="gameMusic"
+    src="https://pub-fcb7451138fa4bf39b6e0d6f01a687a6.r2.dev/My%20Song%2063%20(Proton)%20mastered%20loud.wav"
+    preload="auto"
+    loop
+    aria-hidden="true"
+  ></audio>
+
   <main id="app">
     <section class="title-screen is-visible" id="titleScreen" aria-label="The Void title screen">
       <div class="title-backdrop" aria-hidden="true"></div>
@@ -57,6 +66,7 @@
         alt="Luna pilots her spacecraft at maximum throttle toward a vast dark anomaly. The Void title and production credits appear over the scene."
       >
       <div class="title-shade" aria-hidden="true"></div>
+      <div class="demo-watermark" aria-hidden="true">DEMO</div>
       <div class="title-hud" aria-hidden="true">
         <span>DEEP SPACE MISSION ARCHIVE</span>
         <span>VESSEL LINK // STANDBY</span>
@@ -80,7 +90,7 @@
         </div>
         <p class="title-enter-hint" id="titleEnterHint">PRESS ENTER OR SELECT PLAY</p>
       </div>
-      <div class="title-build">BUILD 0.9.8</div>
+      <div class="title-build">BUILD 0.9.9</div>
     </section>
 
     <section class="cinematic-shell" id="cinematicShell" hidden>

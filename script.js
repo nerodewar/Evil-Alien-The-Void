@@ -10,11 +10,12 @@
   };
 
 
-  const SAVE_KEY = "theVoidSave_v098";
+  const SAVE_KEY = "theVoidSave_v099";
   const CAPTAINS_LOG_KEY = "theVoidCaptainsLog_v1";
   const TITLE_MUSIC_DEFAULT_VOLUME = 0.42;
   const CREDITS_MUSIC_DEFAULT_VOLUME = 0.72;
-  const LEGACY_KEYS = ["theVoidSave_v097", "theVoidSave_v096", "theVoidSave_v095", "theVoidSave_v094", "theVoidSave_v093", "theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
+  const GAME_MUSIC_DEFAULT_VOLUME = 0.16;
+  const LEGACY_KEYS = ["theVoidSave_v098", "theVoidSave_v097", "theVoidSave_v096", "theVoidSave_v095", "theVoidSave_v094", "theVoidSave_v093", "theVoidSave_v092", "theVoidSave_v082", "theVoidSave_v081", "theVoidSave_v080", "theVoidSave_v070", "theVoidSave_v060", "theVoidSave_v052", "theVoidSave_v051", "theVoidSave_v05", "theVoidSave_v041", "theVoidSave_v04", "theVoidSave_v03", "theVoidSave_v02"];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const introScenes = [
@@ -147,6 +148,7 @@
 
   const titleMusic = document.getElementById("titleMusic");
   const creditsMusic = document.getElementById("creditsMusic");
+  const gameMusic = document.getElementById("gameMusic");
   const titleScreen = document.getElementById("titleScreen");
   const titleArtwork = document.getElementById("titleArtwork");
   const titleMenu = document.getElementById("titleMenu");
@@ -881,7 +883,46 @@
     return result;
   }
 
+  async function playGameMusic(src = null, { volume = GAME_MUSIC_DEFAULT_VOLUME, loop = true } = {}) {
+    if (!gameMusic) return false;
+    if (src && gameMusic.src !== new URL(src, window.location.href).href) {
+      gameMusic.pause();
+      gameMusic.src = src;
+      gameMusic.currentTime = 0;
+    }
+    gameMusic.loop = loop;
+    gameMusic.volume = Math.max(0, Math.min(1, volume));
+    try {
+      await gameMusic.play();
+      gameMusic.dataset.autoplay = "playing";
+      return true;
+    } catch {
+      gameMusic.dataset.autoplay = "blocked";
+      return false;
+    }
+  }
+
+  function stopGameMusic({ reset = false } = {}) {
+    if (!gameMusic) return;
+    gameMusic.pause();
+    if (reset) gameMusic.currentTime = 0;
+  }
+
+  // Reserved audio override API for later event scoring.
+  window.VoidAudio = {
+    playBackground: (options = {}) => playGameMusic(null, options),
+    playEvent: (src, options = {}) => playGameMusic(src, { ...options, loop: options.loop ?? false }),
+    restoreBackground: () => {
+      if (!gameMusic) return false;
+      gameMusic.src = "https://pub-fcb7451138fa4bf39b6e0d6f01a687a6.r2.dev/My%20Song%2063%20(Proton)%20mastered%20loud.wav";
+      gameMusic.currentTime = 0;
+      return playGameMusic();
+    },
+    stop: () => stopGameMusic({ reset: true })
+  };
+
   function showTitleScreen() {
+    stopGameMusic({ reset: true });
     if (creditsMusic && !creditsMusic.paused) {
       creditsMusic.pause();
       creditsMusic.currentTime = 0;
@@ -1192,6 +1233,7 @@
       }
     });
 
+    playGameMusic();
     showToast("SHIP MAP ONLINE // DRAG LUNA OR SELECT A CONNECTED ROOM");
   }
 
@@ -2670,20 +2712,16 @@
         control: {
           code: "CR-01",
           title: "CONTROL ROOM",
-          status: state.postCloneSystemsOnline ? "ALL SYSTEMS ONLINE" : "BIOLOGICAL SCAN",
+          status: state.postCloneSystemsOnline ? "ALL SYSTEMS ONLINE" : "GROUND RELAY",
           statusClass: state.postCloneSystemsOnline ? "is-success" : "is-warning",
           image: "assets/IMG04.png",
           fallbackImage: "assets/IMG36.png",
           alt: "The compact Control Room aboard Luna's ship.",
-          caption: state.postCloneSystemsOnline ? "PRIMARY SYSTEMS // ONLINE" : "LIFE-SIGN SENSOR // 01 ORGANISM",
+          caption: state.postCloneSystemsOnline ? "PRIMARY SYSTEMS // ONLINE" : "EARTH RELAY // NO CARRIER",
           mediaClass: "",
           text: state.postCloneSystemsOnline
             ? "Every system has returned without explanation. The Security lockdown is gone. The ship is awake again."
-            : `The biological sensor completes its sweep.
-
-ORGANISMS ABOARD: 01.
-
-Luna watches the number hold. It is counting her. Nothing else remains aboard. The human-form organism is dead, and she knows it.`
+            : "Luna opens the Ground Control channel. The receiver answers with static. No voice, carrier code or rescue beacon survives the noise."
         }
       };
       if (postCloneRooms[room]) return postCloneRooms[room];
@@ -4961,7 +4999,8 @@ Luna watches the number hold. It is counting her. Nothing else remains aboard. T
           await showRoom("security", { immediate: true });
         }
       });
-      showToast("ATMOSPHERIC CONTAINMENT COMPLETE // REBREATHER READY");
+      showBanner("BIOLOGICAL SENSOR // RECOGNISABLE LIFE FORMS ABOARD: 01 // LUNA H.");
+      window.setTimeout(() => showToast("ATMOSPHERIC CONTAINMENT COMPLETE // REBREATHER READY"), 1300);
     });
   }
 
@@ -5028,7 +5067,6 @@ Luna watches the number hold. It is counting her. Nothing else remains aboard. T
     state.postCloneContactComplete = true;
     saveState();
     runSequence([
-      { image: "assets/IMG04.png", alt: "The Control Room biological sensor shows one organism aboard.", code: "BIOLOGICAL SENSOR // VESSEL TOTAL 01", title: "ONLY LUNA REMAINS", text: "The sensor repeats the result. One organism aboard. Luna is the only living signature on the ship. The thing in Tactical Supply did not survive the inert-gas purge.", button: "CONTACT GROUND CONTROL", presentation: "restored" },
       { image: "assets/IMG04.png", alt: "The Control Room communications console returns only static.", code: "EARTH RELAY // NO CARRIER", title: "STATIC", text: "Luna opens the Ground Control channel. No voice answers. Only a flat wash of static reaches across The Void.", button: "WAIT", presentation: "surveillance" },
       { image: "assets/IMG36.png", fallbackImage: "assets/IMG04.png", alt: "Every ship system suddenly returns online in the Control Room.", code: "LOCKDOWN RELEASED // PRIMARY SYSTEMS ONLINE", title: "THE SHIP WAKES", text: `Without warning, the lockdown releases. Sealed doors unlock across the vessel. Lighting, navigation, propulsion and environmental control all return at once.
 
@@ -5236,7 +5274,13 @@ No command source is identified.`, button: "CONTINUE", presentation: "restored",
 
     state.finalReported = true;
     state.checkpoint = 3;
-    state.mapMode = "final_control";
+    if (state.branch === "alone" && state.satNavRepaired) {
+      state.blackoutStarted = true;
+      state.lightsOut = true;
+      state.mapMode = "blackout";
+    } else {
+      state.mapMode = "final_control";
+    }
     state.currentRoom = "control";
     state.stress = Math.max(state.stress, 93);
     saveState();
@@ -5376,9 +5420,17 @@ No command source is identified.`, button: "CONTINUE", presentation: "restored",
 
   function showToast(message) {
     window.clearTimeout(toastTimer);
+    toast.classList.remove("is-major");
     toast.textContent = message;
     toast.classList.add("is-visible");
     toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 3400);
+  }
+
+  function showBanner(message) {
+    window.clearTimeout(toastTimer);
+    toast.textContent = message;
+    toast.classList.add("is-major", "is-visible");
+    toastTimer = window.setTimeout(() => toast.classList.remove("is-visible", "is-major"), 5600);
   }
 
   function nearestRoomToPointer(clientX, clientY) {
@@ -5428,13 +5480,13 @@ No command source is identified.`, button: "CONTINUE", presentation: "restored",
 
   async function restartGame() {
     closeOrbitalPuzzle();
-    stopRebreatherCountdown();
+    stopRebreatherCountdown({ preserve: true });
     cancelActiveSequence();
     mediaSwapToken += 1;
     roomFadeToken += 1;
-    const confirmed = window.confirm("Restart The Void from the opening cinematic? All checkpoints will be erased.");
+    const confirmed = window.confirm("Return to The Void title screen? Your latest checkpoint will remain saved.");
     if (!confirmed) return;
-    await startNewMission({ force: true });
+    showTitleScreen();
   }
 
   playButton.addEventListener("click", () => startNewMission());
@@ -5512,11 +5564,13 @@ No command source is identified.`, button: "CONTINUE", presentation: "restored",
   document.addEventListener("pointerdown", () => {
     if (creditsDialog.open && creditsMusic?.dataset.autoplay === "blocked") playCreditsMusic();
     else if (!titleScreen.hidden && titleMusic?.dataset.autoplay === "blocked") playTitleMusic();
+    else if (!gameScreen.hidden && gameMusic?.dataset.autoplay === "blocked") playGameMusic();
   }, { passive: true });
 
   document.addEventListener("keydown", (event) => {
     if (creditsDialog.open && creditsMusic?.dataset.autoplay === "blocked") playCreditsMusic();
     else if (!titleScreen.hidden && titleMusic?.dataset.autoplay === "blocked") playTitleMusic();
+    else if (!gameScreen.hidden && gameMusic?.dataset.autoplay === "blocked") playGameMusic();
     if (event.key === "Escape" && creditsDialog.open) {
       event.preventDefault();
       closeCreditsSequence();
